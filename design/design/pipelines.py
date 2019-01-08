@@ -50,23 +50,24 @@ class EasyDlPipeline(object):
         if result:
             return item
         else:
-            self.collection.insert_one(dict_item)
             label_name = dict_item['tag']
-            if not os.path.exists('./image'):
-                os.mkdir('./image')
+            if not os.path.exists('./image/'+label_name):
+                os.makedirs('./image/'+label_name)
             for i, img_url in enumerate(item['img_urls']):
                 a = int(time.time())
                 b = random.randint(10, 100)
                 num = str(a) + str(b)
                 img_response = requests.get(img_url)
-                with open('./image/' + num + '.jpg', 'wb') as file:
+                with open('./image/' + label_name + '/' +num + '.jpg', 'wb') as file:
                     file.write(img_response.content)
-                img_data = base64.b64encode(BytesIO(img_response.content).read()).decode('utf-8')
-                result = ds.tag_add(23051, entity_content=img_data, entity_name=str(num),
-                                    labels=[{'label_name': label_name}])
-                if result:
-                    print(result, '失败数据', img_url)
-        return item
+                # img_data = base64.b64encode(BytesIO(img_response.content).read()).decode('utf-8')
+                # result = ds.tag_add(23051, entity_content=img_data, entity_name=str(num)+'.jpg',
+                #                     labels=[{'label_name': label_name}])
+                # if result:
+                #     print(result, '失败数据', img_url)
+                dict_item['file_name'] = num+'.jpg'
+                self.collection.insert_one(dict_item)
+                return item
     def close_spider(self, spider):
         pass
 

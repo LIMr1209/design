@@ -56,10 +56,15 @@ class DesignCaseSpider(scrapy.Spider):
             pass
         else:
             tags.extend(tag2)
+        try:
+            material_tags = response.xpath('//label[text()="主要材质："]/../div/text()').extract()[0]
+        except:
+            material_tags = ''
         tags = ','.join(tags)
         item['url'] = url
         item['title'] = title
         item['sub_title'] = title
+        item['material_tags'] = material_tags
         item['img_urls'] = ','.join(img_urls)
         item['company'] = company
         item['tags'] = tags
