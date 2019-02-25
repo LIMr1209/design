@@ -25,14 +25,10 @@ class DesignCaseSpider(scrapy.Spider):
         # 'LOG_LEVEL': 'INFO',
         'DOWNLOAD_DELAY': 0,
         'COOKIES_ENABLED': False,  # enabled by default
-        'DOWNLOADER_MIDDLEWARES': {
-            # 代理中间件
-            # 'design.middlewares.ProxiesMiddleware': 400,
-            # SeleniumMiddleware 中间件
-            'design.middlewares.SeleniumMiddleware': 543,
-            # 将scrapy默认的user-agent中间件关闭
-            'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+        'ITEM_PIPELINES': {
+            'design.pipelines.EasyDlPipeline': 301,
         }
+
     }
 
     # 将chrome初始化放到spider中，成为spider中的元素

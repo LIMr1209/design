@@ -38,5 +38,5 @@ class DesignCaseSpider(scrapy.Spider):
         item['url'] = url
         for key, value in data.items():
             item[key] = value
-        # print(item)
+        print(item)
         yield item

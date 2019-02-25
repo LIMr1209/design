@@ -16,11 +16,48 @@ import time
 import os
 
 
+
+
+class ImageSavePipeline(object):
+    def __init__(self):
+        self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
+        # self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
+        self.url = 'http://127.0.0.1:8002/api/produce/submit'
+        # self.url = 'http://127.0.0.1:8002/api/image/submit'
+
+    def open_spider(self, spider):
+        pass
+
+    def process_item(self, item, spider):
+        dict_item = dict(item)
+        img_url = dict_item['img_url']
+        label_name = dict_item['search_word']
+        if not os.path.exists('./image_test/' + label_name):
+            os.makedirs('./image_test/' + label_name)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
+        try:
+            img_response = requests.get(img_url, headers=headers, timeout=5)
+            a = int(time.time())
+            b = random.randint(10, 100)
+            num = str(a) + str(b)
+            try:
+                with open('./image_test/' + label_name + '/' + num + '.jpg', 'wb') as file:
+                    file.write(img_response.content)
+            except:
+                print('保存图片失败')
+        except:
+            print('访问图片失败')
+
+    def close_spider(self, spider):
+        pass
+
+
 class ImagePipeline(object):
     def __init__(self):
         self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
         # self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
-        # self.url = 'http://127.0.0.1:8002/api/produce/submit'
+        self.url = 'http://127.0.0.1:8002/api/produce/submit'
         # self.url = 'http://127.0.0.1:8002/api/image/submit'
 
     def open_spider(self, spider):
@@ -51,25 +88,33 @@ class EasyDlPipeline(object):
             return item
         else:
             label_name = dict_item['tag']
-            if not os.path.exists('./image/'+label_name):
-                os.makedirs('./image/'+label_name)
+            if not os.path.exists('./image/' + label_name):
+                os.makedirs('./image/' + label_name)
+            # file_name = []
             for i, img_url in enumerate(item['img_urls']):
                 a = int(time.time())
                 b = random.randint(10, 100)
                 num = str(a) + str(b)
                 img_response = requests.get(img_url)
-                with open('./image/' + label_name + '/' +num + '.jpg', 'wb') as file:
+                with open('./image/' + label_name + '/' + num + '.jpg', 'wb') as file:
                     file.write(img_response.content)
                 # img_data = base64.b64encode(BytesIO(img_response.content).read()).decode('utf-8')
-                # result = ds.tag_add(23051, entity_content=img_data, entity_name=str(num)+'.jpg',
+                # result = ds.tag_add(23657, entity_content=img_data, entity_name=num + '.jpg',
                 #                     labels=[{'label_name': label_name}])
                 # if result:
                 #     print(result, '失败数据', img_url)
-                dict_item['file_name'] = num+'.jpg'
-                self.collection.insert_one(dict_item)
-                return item
+                #     dict_item['img_urls'].pop(i)
+                # else:
+                #     with open('./image/' + label_name + '/' + num + '.jpg', 'wb') as file:
+                #         file.write(img_response.content)
+                #     file_name.append(num + '.jpg')
+            # dict_item['file_name'] = file_name
+            # self.collection.insert_one(dict_item)
+            return item
+
     def close_spider(self, spider):
         pass
+
 
 # 数据集管理
 class DSManger:
