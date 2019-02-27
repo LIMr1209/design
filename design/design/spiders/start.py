@@ -1,3 +1,3 @@
 from scrapy import cmdline
 # 执行爬虫
-cmdline.execute('scrapy crawl weiping'.split ())
+cmdline.execute('scrapy crawl suning'.split ())

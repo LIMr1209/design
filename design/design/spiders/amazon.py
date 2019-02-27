@@ -1,13 +1,12 @@
 # 亚马逊
 import scrapy
-import os
-import requests
 import time
 import random
 from design.settings import USER_AGENTS
+from design.items import ProduceItem
 
 
-class AmazonSpider(scrapy.spiders.Spider):
+class AmazonSpider(scrapy.Spider):
     name = "amazon"
     allowed_domains = ["amazon.cn"]
     key_word = "打印机"
@@ -16,6 +15,14 @@ class AmazonSpider(scrapy.spiders.Spider):
               "session-token": "'ZJr/OPdrRIP7Tg8VLRvOkiU68zMtoU5eJ0VNVhwpkZYpwsoOp78gmf78w3me5drvIPjhR0vKW21oGo/SttpKHZ9YWIIowhPkk9y5Wx2wDOvLg8wjCtSfM9v4jikU1g7/9w2Gsl+nrPvTdOMsvUY2cxJ8HEdA50qFVn/3xpxquzX5nd4NU3qu+9ekVv9N8pyRcDojYHFKEuGkrKRRYrTRclwT/G1lMsJ8ESuXsXGfumdB758Mm1RNfA=='",
               "i18n-prefs": "CNY", "session-id-time": "2082787201l",
               "csm-hit": "tb:11Z75V7KVZRH53JGJTV8+sa-11Z75V7KVZRH53JGJTV8-9TCZAX86FDRJFQG2VEK4|1550628429630&t:1550628429630&adb:adblk_no"}
+
+    custom_settings = {
+        'DOWNLOAD_DELAY': 0,
+        'COOKIES_ENABLED': False,  # enabled by default
+        'ITEM_PIPELINES': {
+            'design.pipelines.ImageSavePipeline': 300
+        },
+    }
 
     def start_requests(self):
         headers = {
@@ -29,25 +36,10 @@ class AmazonSpider(scrapy.spiders.Spider):
                                  cookies=self.cookie, headers=headers)
 
     def list_page(self, response):
+        item = ProduceItem()
         img_urls = response.xpath('//a[@class="a-link-normal a-text-normal"]/img/@src').extract()
-
-        ################################保存图片 start
-        for img_url in img_urls:
-            img_url = img_url.replace('AA200', 'SX679')
-            try:
-                path = './image_test/' + self.key_word
-                isExists = os.path.exists(path)
-                if not isExists:
-                    os.makedirs(path)
-                img_response = requests.get(img_url, timeout=5)
-                a = int(time.time())
-                b = random.randint(10, 100)
-                num = str(a) + str(b)
-                try:
-                    with open(path + '/' + num + '.jpg', 'wb') as file:
-                        file.write(img_response.content)
-                        print('保存成功')
-                except:
-                    print('保存图片失败')
-            except:
-                print('访问图片失败')
+        for i in range(len(img_urls)):
+            img_urls[i] = img_urls[i].replace('AA200', 'SX679')
+        item['tag'] = self.key_word
+        item['img_urls'] = img_urls
+        yield item

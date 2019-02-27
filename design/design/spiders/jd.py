@@ -1,15 +1,11 @@
 # 京东电商
 import scrapy
 from selenium import webdriver
-import time
-import os
-import requests
-import random
-
+from design.items import ProduceItem
 from selenium.webdriver.chrome.options import Options
 
 
-class JdSpider(scrapy.spiders.Spider):
+class JdSpider(scrapy.Spider):
     name = "jd"
     allowed_domains = ["search.jd.com"]
     start_urls = [
@@ -18,6 +14,13 @@ class JdSpider(scrapy.spiders.Spider):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     key_words = "热水器"
+    custom_settings = {
+        'DOWNLOAD_DELAY': 0,
+        'COOKIES_ENABLED': False,  # enabled by default
+        'ITEM_PIPELINES': {
+            'design.pipelines.ImageSavePipeline': 300
+        },
+    }
 
     def start_requests(self):
         browser = webdriver.Chrome(options=self.chrome_options)
@@ -30,26 +33,10 @@ class JdSpider(scrapy.spiders.Spider):
                 yield scrapy.Request(url.get_attribute('href'), callback=self.parse)
 
     def parse(self, response):
-        print('*' * 10)
+        item = ProduceItem()
         img_urls = response.xpath('//div[@id="spec-list"]/ul/li/img/@data-url').extract()
         for i in range(len(img_urls)):
             img_urls[i] = 'http://img10.360buyimg.com/n0/%s' % img_urls[i]
-        # print(img_urls)
-        for img_url in img_urls:
-            try:
-                path = './image_test/' + self.key_words
-                isExists = os.path.exists(path)
-                if not isExists:
-                    os.makedirs(path)
-                img_response = requests.get(img_url, timeout=5)
-                a = int(time.time())
-                b = random.randint(10, 100)
-                num = str(a) + str(b)
-                try:
-                    with open(path + '/' + num + '.jpg', 'wb') as file:
-                        file.write(img_response.content)
-                        print('保存成功')
-                except:
-                    print('保存图片失败')
-            except:
-                print('访问图片失败')
+        item['tag'] = self.key_words
+        item['img_urls'] = img_urls
+        yield item
