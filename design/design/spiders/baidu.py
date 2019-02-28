@@ -3,7 +3,7 @@ import scrapy
 from scrapy.http import Request
 import random
 import hashlib
-from design.items import BaiduPicItem
+from design.items import ProduceItem
 import requests
 import json
 import re
@@ -55,7 +55,7 @@ def translation(content):
 
 
 class BaiduImagesSpider(scrapy.Spider):
-    name = 'baidu_images'
+    name = 'baidu'
     allowed_domains = ['http:image.baidu.com']
     start_urls = ['http://image.baidu.com/']
     custom_settings = {
@@ -73,8 +73,8 @@ class BaiduImagesSpider(scrapy.Spider):
                'istype=2&qc=&nc=1&fr=&expermode=&force=&' \
                'pn={1}&rn=30&gsm=1e&'
     page = 30
-    key_words = '水杯'
-    tag = translation(key_words).replace(' ', '_')
+    key_words = '空调'
+    # tag = translation(key_words).replace(' ', '_')
 
 
     def parse(self, response):
@@ -85,7 +85,7 @@ class BaiduImagesSpider(scrapy.Spider):
 
     def get_pic(self, response):
         headers = {'Referer': 'http://image.baidu.com/', 'Host': 'image.baidu.com'}
-        item = BaiduPicItem()
+        item = ProduceItem()
         response_json = response.text
         response_json = json.loads(response_json)
         response_data = response_json['data']
@@ -93,9 +93,8 @@ class BaiduImagesSpider(scrapy.Spider):
             return
         for content in response_data:
             if content.get('thumbURL', None):
-                item['search_word'] = self.tag
+                item['tag'] = self.key_words
                 item['img_url'] = baidtu_uncomplie(content['objURL'])
-                item['img_name'] = content['fromPageTitleEnc']
                 yield item
         self.page += 30
         if self.page > 12000:

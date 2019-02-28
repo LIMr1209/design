@@ -44,12 +44,7 @@ class DesignItem(scrapy.Item):
     url = scrapy.Field()  # 原文地址
 
 
-class BaiduPicItem(scrapy.Item):
-    search_word = scrapy.Field()
-    img_name = scrapy.Field()
-    img_url = scrapy.Field()
-
-
 class ProduceItem(scrapy.Item):
     img_urls = scrapy.Field()
     tag = scrapy.Field()
+    img_url = scrapy.Field()

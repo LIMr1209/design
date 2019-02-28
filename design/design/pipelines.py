@@ -28,13 +28,26 @@ class ImageSavePipeline(object):
 
     def process_item(self, item, spider):
         dict_item = dict(item)
-        img_urls = dict_item['img_urls']
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
         label_name = dict_item['tag']
         if not os.path.exists('/home/tian/Desktop/image_test/' + label_name):
             os.makedirs('/home/tian/Desktop/image_test/' + label_name)
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
-
+        # img_url = dict_item['img_url']
+        # try:
+        #     img_response = requests.get(img_url, headers=headers, timeout=5)
+        #     a = int(time.time())
+        #     b = random.randint(10, 100)
+        #     num = str(a) + str(b)
+        #     try:
+        #         with open('/home/tian/Desktop/image_test/' + label_name + '/' + num + '.jpg', 'wb') as file:
+        #             file.write(img_response.content)
+        #         print('保存图片成功', img_url)
+        #     except:
+        #         print('保存图片失败', img_url)
+        # except:
+        #     print('访问图片失败', img_url)
+        img_urls = dict_item['img_urls']
         for url in img_urls:
             try:
                 img_response = requests.get(url, headers=headers, timeout=5)
@@ -46,13 +59,13 @@ class ImageSavePipeline(object):
                         file.write(img_response.content)
                     print('保存图片成功', url)
                 except:
-                    print('保存图片失败', url )
+                    print('保存图片失败', url)
             except:
                 print('访问图片失败', url)
+        return item
 
-
-def close_spider(self, spider):
-    pass
+    def close_spider(self, spider):
+        pass
 
 
 class ImagePipeline(object):

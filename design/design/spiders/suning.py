@@ -5,11 +5,11 @@ from design.items import ProduceItem
 
 class SNSpider(scrapy.Spider):
     name = "suning"
-    key_words = "手机"
+    key_words = "机器人"
     cp = 0
     paging = 0
     # url 关键词 变化 url 变化
-    url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&ci=0&pg=01&cp=%s&il=0&st=0&iy=0&isNoResult=0&n=1&sesab=ACAABAAB&id=IDENTIFYING&cc=010&paging=%s&sub=1&jzq=120240'
+    url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&ci=0&pg=01&cp=%s&il=0&st=0&iy=0&isNoResult=0&n=1&sesab=ACAABAAB&id=IDENTIFYING&cc=010&paging=%s&sub=0&jzq=15851'
     start_urls = [url % (key_words, cp, paging)]
     custom_settings = {
         'DOWNLOAD_DELAY': 0,
@@ -26,11 +26,11 @@ class SNSpider(scrapy.Spider):
                 detail_urls[i] = 'https:' + detail_urls[i]
         for url in detail_urls:
             yield scrapy.Request(url, callback=self.parse_detail, )
-        if self.paging < 1:
+        if self.paging < 3:
             self.paging += 1
             yield scrapy.Request(self.url % (self.key_words, self.cp, self.paging))
         else:
-            if self.cp < 1:
+            if self.cp < 2:
                 self.paging = 0
                 self.cp += 1
                 yield scrapy.Request(self.url % (self.key_words, self.cp, self.paging))
