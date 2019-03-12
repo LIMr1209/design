@@ -9,7 +9,7 @@ class GoogleRobotImagesSpider(scrapy.Spider):
     name = 'google'
     allowed_domains = ['google.com']
     key_words = [
-        'POS机'
+        '冰箱'
     ]
     cookies = {"CGIC": "IgMqLyo",
                "NID": "160=LM3qWskIf9T2o_5zEtBGsD-VbciT49WCs_6SsHJO8CkwWI1AuH9qKNFvfbRtivGailN5Axnl4uI6_EPuyLQsue_JnLlEsF6tgp7Vp1sWvu7GL_WuKo9aet9FPrtxXtKKVdsyz-I3IT2AnsYwQuuKG1GtQHnzkJ0rqvXVx3I_bLo",

@@ -11,7 +11,7 @@ from pydispatch import dispatcher
 
 class JdSpider(scrapy.Spider):
     name = "tianmao"
-    key_words = "空气净化器"
+    key_words = "放大镜"
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     custom_settings = {

@@ -9,7 +9,7 @@ from design.items import ProduceItem
 class AmazonSpider(scrapy.Spider):
     name = "amazon"
     allowed_domains = ["amazon.cn"]
-    key_word = "打印机"
+    key_word = '电暖器'
     cookie = {"x-wl-uid": "1HLv1HxJzEtQLlBYWMfv7puk8/voXH/VIgoiQ9ewAWWntrB+0QJz17S/Yi9k9IVEHfJxncjXErfE=",
               "session-id": "459-1170388-1651454", "ubid-acbcn": "459-7032326-5051849",
               "session-token": "'ZJr/OPdrRIP7Tg8VLRvOkiU68zMtoU5eJ0VNVhwpkZYpwsoOp78gmf78w3me5drvIPjhR0vKW21oGo/SttpKHZ9YWIIowhPkk9y5Wx2wDOvLg8wjCtSfM9v4jikU1g7/9w2Gsl+nrPvTdOMsvUY2cxJ8HEdA50qFVn/3xpxquzX5nd4NU3qu+9ekVv9N8pyRcDojYHFKEuGkrKRRYrTRclwT/G1lMsJ8ESuXsXGfumdB758Mm1RNfA=='",

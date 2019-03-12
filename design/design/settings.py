@@ -114,10 +114,7 @@ USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
 ]
 PROXY_LIST = [
-    '1.85.220.87:8118',
-    '221.224.136.211:35101',
-    '112.67.37.243:8118',
-    '125.40.29.100:8118'
+    '58.56.108.226:43296'
 
 ]
 # Enable and configure the AutoThrottle extension (disabled by default)

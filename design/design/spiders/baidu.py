@@ -73,7 +73,7 @@ class BaiduImagesSpider(scrapy.Spider):
                'istype=2&qc=&nc=1&fr=&expermode=&force=&' \
                'pn={1}&rn=30&gsm=1e&'
     page = 30
-    key_words = '空调'
+    key_words = '充电宝'
     # tag = translation(key_words).replace(' ', '_')
 
 

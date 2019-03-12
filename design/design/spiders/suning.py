@@ -5,11 +5,11 @@ from design.items import ProduceItem
 
 class SNSpider(scrapy.Spider):
     name = "suning"
-    key_words = "机器人"
+    key_words = "钢笔"
     cp = 0
     paging = 0
     # url 关键词 变化 url 变化
-    url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&ci=0&pg=01&cp=%s&il=0&st=0&iy=0&isNoResult=0&n=1&sesab=ACAABAAB&id=IDENTIFYING&cc=010&paging=%s&sub=0&jzq=15851'
+    url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&ci=0&pg=01&cp=%s&il=0&st=0&iy=0&isNoResult=0&n=1&sesab=ACAABAAB&id=IDENTIFYING&cc=010&paging=%s&sub=1&jzq=20895'
     start_urls = [url % (key_words, cp, paging)]
     custom_settings = {
         'DOWNLOAD_DELAY': 0,
@@ -40,6 +40,7 @@ class SNSpider(scrapy.Spider):
         image_urls = response.xpath('//div[@class="imgzoom-thumb-main"]//img/@src').extract()
         for i in range(len(image_urls)):
             image_urls[i] = image_urls[i].replace('60w_60h', '800w_800h')
+            image_urls[i] = image_urls[i].replace('75w_100h', '800w_800h')
             if not image_urls[i].startswith('http'):
                 image_urls[i] = 'http:' + image_urls[i]
         item['tag'] = self.key_words
