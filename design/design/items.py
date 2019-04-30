@@ -114,3 +114,12 @@ class CompanyItem(scrapy.Item):
     channel = scrapy.Field()  # 获取渠道	NULL
     soure_url = scrapy.Field()  # 来源地址	NULL
     edit_pattern = scrapy.Field()  # 编辑模式	0	0	是否允许编辑：0.关闭；1.开启；
+
+
+class MeizituItem(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+    url = scrapy.Field()
+    image_urls = scrapy.Field()
+    image_paths = scrapy.Field()
+    title = scrapy.Field()

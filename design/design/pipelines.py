@@ -68,8 +68,8 @@ class ImageSavePipeline(object):
         label_name = dict_item['tag']
         if not os.path.exists('/home/tian/Desktop/image_test/' + label_name):
             os.makedirs('/home/tian/Desktop/image_test/' + label_name)
-        # baidu_image(dict_item, headers, label_name)
-        other_image(dict_item, headers, label_name)
+        baidu_image(dict_item, headers, label_name)
+        # other_image(dict_item, headers, label_name)
         return item
 
     def close_spider(self, spider):

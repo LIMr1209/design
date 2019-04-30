@@ -13,7 +13,7 @@ class JdSpider(scrapy.Spider):
     ]
     chrome_options = Options()
     chrome_options.add_argument("--headless")
-    key_words = "电动轮椅"
+    key_words = "钢锯"
     custom_settings = {
         'DOWNLOAD_DELAY': 0,
         'COOKIES_ENABLED': False,  # enabled by default
