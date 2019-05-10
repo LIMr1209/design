@@ -5,7 +5,7 @@ from design.items import ProduceItem
 
 class SNSpider(scrapy.Spider):
     name = "suning"
-    key_words = "壁挂炉"
+    key_words = "烘干机"
     cp = 0
     paging = 1
     url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&pg=01&cp=%s&paging=%s'
