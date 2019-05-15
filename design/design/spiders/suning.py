@@ -5,11 +5,10 @@ from design.items import ProduceItem
 
 class SNSpider(scrapy.Spider):
     name = "suning"
-    key_words = "钢笔"
+    key_words = "烘干机"
     cp = 0
-    paging = 0
-    # url 关键词 变化 url 变化
-    url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&ci=0&pg=01&cp=%s&il=0&st=0&iy=0&isNoResult=0&n=1&sesab=ACAABAAB&id=IDENTIFYING&cc=010&paging=%s&sub=1&jzq=20895'
+    paging = 1
+    url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&pg=01&cp=%s&paging=%s'
     start_urls = [url % (key_words, cp, paging)]
     custom_settings = {
         'DOWNLOAD_DELAY': 0,
