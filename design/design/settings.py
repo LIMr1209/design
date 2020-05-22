@@ -28,7 +28,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-# DOWNLOAD_DELAY = 3  # 下载延迟
+DOWNLOAD_DELAY = 3  # 下载延迟
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16  # 多线程
 # CONCURRENT_REQUESTS_PER_IP = 16 # 多线程
@@ -41,17 +41,11 @@ COOKIES_ENABLED = True
 
 # Override the default request headers:
 # DEFAULT_REQUEST_HEADERS = {
-#     # 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-#     # 'Accept-Language': 'en',
-#     'Host': 'www.mm131.com',
-#     'Connection': 'keep-alive',
-#     'Cache-Control': 'max-age=0',
-#     'Upgrade-Insecure-Requests': '1',
+#     'Host': 'www.laisj.com',
+#     'Cache-Control': 'no-cache',
 #     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-#
 #     'Accept-Language': 'zh-CN,zh;q=0.9',
-#     'Cookie': 'UM_distinctid=1649785b8cf32d-06477b5e0c6b66-6114147a-100200-1649785b8d0258; CNZZDATA3866066=cnzz_eid%3D985481165-1494676185-%26ntime%3D1494676185; Hm_lvt_9a737a8572f89206db6e9c301695b55a=1531550481; bdshare_firstime=1531550480807; Hm_lpvt_9a737a8572f89206db6e9c301695b55a=1531551995',
-#     'If-Modified-Since': 'Wed, 04 Jul 2018 14:36:13 GMT',
+#     'Cookie': '_ga=GA1.2.22582115.1550218744; UM_distinctid=16e0097668d672-06d0dc86e10d94-3f75065b-384000-16e0097668eda2; PHPSESSID=3miirajgr13jnr45qm5usp18ju; acw_tc=7cc1f43915749089317778318ef68d7776dabc9d0d1d17dabc7cef58e4; _gid=GA1.2.1547875979.1574908934; Hm_lvt_c84c6dfaf119e270700a348f9073b2c2=1574911593; nb-referrer-hostname=www.laisj.com; acw_sc__v2=5ddf68832875692d58da0dc507055a7c9464cb5d; CNZZDATA1260548842=1992531904-1564021327-%7C1574921790; Hm_lpvt_c84c6dfaf119e270700a348f9073b2c2=1574922376; pt_4099d0b9=uid=5-J56HCwMc51rmVOUekcEw&nid=0&vid=k93b6mDbh7BBthqI2Cex8g&vn=8&pvn=1&sact=1574922376224&to_flag=0&pl=q9SDdT17dY4Tn6z1CPIOwA*pt*1574922376224; pt_s_4099d0b9=vt=1574922376224&cad=; nb-start-page-url=http%3A%2F%2Fwww.laisj.com%2Fcasestudy%2F11655.html',
 #     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
 # }
 # IMAGES_STORE = "./Images"

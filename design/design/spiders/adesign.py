@@ -18,7 +18,7 @@ class ChinagoodSpider(scrapy.Spider):
     # 2010-2014
     # url = 'http://www.awardwinningdesign.org/'
     # 2015-2018
-    url = 'http://www.awardeddesigns.com/'
+    url = 'https://www.awardeddesigns.com/'
     start_urls = [url]
 
     def parse(self, response):

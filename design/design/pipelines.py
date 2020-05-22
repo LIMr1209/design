@@ -78,10 +78,10 @@ class ImageSavePipeline(object):
 
 class ImagePipeline(object):
     def __init__(self):
-        # self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
+        self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
         # self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
         # self.url = 'http://127.0.0.1:8002/api/produce/submit'
-        self.url = 'http://opalus.taihuoniao.com/api/company/submit'
+        # self.url = 'http://opalus.taihuoniao.com/api/company/submit'
         # self.url = 'http://127.0.0.1:8002/api/image/submit'
 
     def open_spider(self, spider):
