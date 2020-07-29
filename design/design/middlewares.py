@@ -39,7 +39,7 @@ class SeleniumMiddleware():
     def process_request(self, request, spider):
         '''
         用chrome抓取页面
-        :param request: Request请求对象
+        :param request: Request请求对象c
         :param spider: Spider对象
         :return: HtmlResponse响应
         '''

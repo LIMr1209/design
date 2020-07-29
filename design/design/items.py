@@ -35,6 +35,7 @@ class DesignItem(scrapy.Item):
     category_id = scrapy.Field()  # 分类ID 0
     designer = scrapy.Field()  # 设计师
     status = scrapy.Field()  # 状态: 0.禁用；1.启用
+    open = scrapy.Field() # 公开
     remark = scrapy.Field()  # 描述
     info = scrapy.Field()  # 其它json串
     evt = scrapy.Field()  # 来源：1.默认  3.振斌

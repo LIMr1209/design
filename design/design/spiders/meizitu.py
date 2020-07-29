@@ -2,6 +2,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from design.items import MeizituItem
 from scrapy.loader import ItemLoader
+from scrapy.selector import Selector
 
 
 class Meinvtu2Spider(CrawlSpider):

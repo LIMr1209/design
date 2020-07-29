@@ -24,7 +24,7 @@ def baidu_image(dict_item, headers, label_name):
         b = random.randint(10, 100)
         num = str(a) + str(b)
         try:
-            with open('/home/tian/Desktop/image_test/' + label_name + '/' + num + '.jpg', 'wb') as file:
+            with open('C:\\Users\\aaa10\Desktop\image\\' + label_name + '\\' + num + '.jpg', 'wb') as file:
                 file.write(img_response.content)
             print('保存图片成功', img_url)
         except:
@@ -53,9 +53,9 @@ def other_image(dict_item, headers, label_name):
 
 class ImageSavePipeline(object):
     def __init__(self):
-        self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
-        # self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
-        self.url = 'http://127.0.0.1:8002/api/produce/submit'
+        # self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
+        self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
+        # self.url = 'http://127.0.0.1:8002/api/produce/submit'
         # self.url = 'http://127.0.0.1:8002/api/image/submit'
 
     def open_spider(self, spider):
@@ -66,10 +66,9 @@ class ImageSavePipeline(object):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
         label_name = dict_item['tag']
-        if not os.path.exists('/home/tian/Desktop/image_test/' + label_name):
-            os.makedirs('/home/tian/Desktop/image_test/' + label_name)
-        # baidu_image(dict_item, headers, label_name)
-        other_image(dict_item, headers, label_name)
+        if not os.path.exists('C:\\Users\\aaa10\\Desktop\\image\\' + label_name):
+            os.makedirs('C:\\Users\\aaa10\\Desktop\\image\\' + label_name)
+        baidu_image(dict_item, headers, label_name)
         return item
 
     def close_spider(self, spider):
@@ -78,10 +77,10 @@ class ImageSavePipeline(object):
 
 class ImagePipeline(object):
     def __init__(self):
-        # self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
+        self.url = 'https://opalus.d3ingo.com/api/produce/submit'
         # self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
         # self.url = 'http://127.0.0.1:8002/api/produce/submit'
-        self.url = 'http://opalus.taihuoniao.com/api/company/submit'
+        # self.url = 'https://opalus.d3ingo.com/api/company/submit'
         # self.url = 'http://127.0.0.1:8002/api/image/submit'
 
     def open_spider(self, spider):
