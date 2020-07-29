@@ -13,7 +13,7 @@ class JdSpider(scrapy.Spider):
     ]
     chrome_options = Options()
     chrome_options.add_argument("--headless")
-    key_words = "自拍杆"
+    key_words = "玉玺"
     custom_settings = {
         'DOWNLOAD_DELAY': 0,
         'COOKIES_ENABLED': False,  # enabled by default
@@ -24,7 +24,8 @@ class JdSpider(scrapy.Spider):
 
     def start_requests(self):
         browser = webdriver.Chrome(options=self.chrome_options)
-        for i in range(1, 8):
+        browser.find_elements()[0].click()
+        for i in range(5, 8):
             browser.get(
                 "https://search.jd.com/Search?keyword=%s&wq=%s&page=%d&enc=utf-8&qrst=1&rt=1&stop=1&vt=2&stock=1&s=61&click=0" % (
                     self.key_words, self.key_words, i))

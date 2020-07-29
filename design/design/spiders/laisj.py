@@ -12,12 +12,26 @@ class DesignCaseSpider(scrapy.Spider):
     name = 'laisj'
     allowed_domains = ['www.laisj.com']
     page = 1
+    headers = {
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:58.0) Gecko/20100101 Firefox/58.0',
+    }
+    custom_settings = {
+        'DOWNLOAD_DELAY': 3,
+        'COOKIES_ENABLED': False,  # enabled by default
+        'DOWNLOADER_MIDDLEWARES':{
+            'design.middlewares.UserAgentSpiderMiddleware': 300,
+        },
+        'ITEM_PIPELINES': {
+            'design.pipelines.ImagePipeline': 300
+        },
+    }
+    # start_urls = ['http://www.laisj.com/publics2/work/list']
 
     def start_requests(self):
-        yield scrapy.FormRequest(
+        yield scrapy.Request(
             url='http://www.laisj.com/publics2/work/list',
-            formdata={'page': str(self.page)},
-            callback=self.parse
+            callback=self.parse,
+            headers=self.headers
         )
 
     def parse(self, response):
@@ -29,9 +43,8 @@ class DesignCaseSpider(scrapy.Spider):
         last_page = content['last_page']
         if self.page < int(last_page):
             self.page += 1
-            yield scrapy.FormRequest(
-                url='http://www.laisj.com/publics2/work/list',
-                formdata={'page': str(self.page)},
+            yield scrapy.Request(
+                url='http://www.laisj.com/publics2/work/list?page=%s'% str(self.page),
                 callback=self.parse
             )
 
@@ -39,7 +52,7 @@ class DesignCaseSpider(scrapy.Spider):
         item = DesignItem()
         url = response.url
         img_urls = response.xpath('//div[@class="content-other"]//img/@src').extract()
-        title = response.xpath('//div[@class="content-table"]/div[1]/div[1]/div/text()').extract()[0]
+        title = response.xpath('//label[text()="案例名称 "]/../div/text()').extract()[0]
         company = response.xpath('//div[@class="info-name"]/text()').extract()[0]
         tags = []
         try:
@@ -57,7 +70,7 @@ class DesignCaseSpider(scrapy.Spider):
         else:
             tags.extend(tag2)
         try:
-            material_tags = response.xpath('//label[text()="主要材质："]/../div/text()').extract()[0]
+            material_tags = response.xpath('//label[text()="主要材质 "]/../div/text()').extract()[0]
         except:
             material_tags = ''
         tags = ','.join(tags)
