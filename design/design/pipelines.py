@@ -38,13 +38,17 @@ def other_image(dict_item, headers, label_name):
     for url in img_urls:
         try:
             img_response = requests.get(url, headers=headers, timeout=5)
-            a = int(time.time())
-            b = random.randint(10, 100)
-            num = str(a) + str(b)
+            # a = int(time.time())
+            # b = random.randint(10, 100)
+            # num = str(a) + str(b)
+            img_file = url.split('/')[-1]
             try:
-                with open('/home/tian/Desktop/image_test/' + label_name + '/' + num + '.jpg', 'wb') as file:
-                    file.write(img_response.content)
-                print('保存图片成功', url)
+                if img_response.status_code == 200:
+                    with open('C:\\Users\\aaa10\\Desktop\\image\\' + label_name + '\\' + img_file, 'wb') as file:
+                        file.write(img_response.content)
+                    print('保存图片成功', url)
+                else:
+                    print('访问图片失败', url)
             except:
                 print('保存图片失败', url)
         except:
@@ -53,10 +57,7 @@ def other_image(dict_item, headers, label_name):
 
 class ImageSavePipeline(object):
     def __init__(self):
-        # self.url = 'http://opalus.taihuoniao.com/api/produce/submit'
-        self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
-        # self.url = 'http://127.0.0.1:8002/api/produce/submit'
-        # self.url = 'http://127.0.0.1:8002/api/image/submit'
+        pass
 
     def open_spider(self, spider):
         pass
@@ -68,7 +69,7 @@ class ImageSavePipeline(object):
         label_name = dict_item['tag']
         if not os.path.exists('C:\\Users\\aaa10\\Desktop\\image\\' + label_name):
             os.makedirs('C:\\Users\\aaa10\\Desktop\\image\\' + label_name)
-        baidu_image(dict_item, headers, label_name)
+        other_image(dict_item, headers, label_name)
         return item
 
     def close_spider(self, spider):

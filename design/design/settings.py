@@ -28,7 +28,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 3  # 下载延迟
+DOWNLOAD_DELAY = 1  # 下载延迟
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16  # 多线程
 # CONCURRENT_REQUESTS_PER_IP = 16 # 多线程
@@ -54,7 +54,6 @@ COOKIES_ENABLED = True
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
     'design.middlewares.DesignSpiderMiddleware': 543,
-
 }
 
 # Enable or disable downloader middlewares
@@ -69,17 +68,16 @@ MONGODB_PORT = 27017
 MONGODB_DBNAME = "opalus"
 SHEETE_NAME = "produce-item"
 
-SELENIUM_TIMEOUT = 25           # selenium浏览器的超时时间，单位秒
-LOAD_IMAGE = False               # 是否下载图片
-WINDOW_HEIGHT = 900             # 浏览器窗口大小
+SELENIUM_TIMEOUT = 25  # selenium浏览器的超时时间，单位秒
+LOAD_IMAGE = False  # 是否下载图片
+WINDOW_HEIGHT = 900  # 浏览器窗口大小
 WINDOW_WIDTH = 900
-
 
 DOWNLOADER_MIDDLEWARES = {
     # 'design.middlewares.DesignDownloaderMiddleware': 543,
     'design.middlewares.UserAgentSpiderMiddleware': 543,
     # 'design.middlewares.ProxySpiderMiddleware': 543,
-    # 'design.middlewares.SeleniumMiddleware': 543,
+    'design.middlewares.SeleniumMiddleware': 543,
 }
 
 # Enable or disable extensions
@@ -91,7 +89,9 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'design.pipelines.ImagePipeline': 301,
+    # 'design.pipelines.ImagePipeline': 301,
+    'design.pipelines.ImageSavePipeline': 301,
+
 }
 
 USER_AGENTS = [
