@@ -5,7 +5,7 @@ from design.items import ProduceItem
 
 class SNSpider(scrapy.Spider):
     name = "suning"
-    key_words = "玉玺"
+    key_words = "台灯"
     cp = 0
     paging = 1
     url = 'https://search.suning.com/emall/searchV1Product.do?keyword=%s&pg=01&cp=%s&paging=%s'
@@ -44,4 +44,5 @@ class SNSpider(scrapy.Spider):
                 image_urls[i] = 'http:' + image_urls[i]
         item['tag'] = self.key_words
         item['img_urls'] = image_urls
+        item['channel'] = 'suning'
         yield item

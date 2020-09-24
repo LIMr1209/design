@@ -12,6 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from scrapy.http import HtmlResponse
 
+
 # 浏览器中间件
 class UserAgentSpiderMiddleware(object):
     def precess_request(self, requset, spider):
@@ -30,7 +31,7 @@ class ProxySpiderMiddleware(object):
         # request.meta['proxy'] = service
         # return None
         proxy = random.choice(PROXY_LIST)
-        service = 'https://%s' % proxy
+        service = 'socks5://%s' % proxy
         request.meta['proxy'] = service
         return None
 # selenium 中间件

@@ -7,7 +7,7 @@ class DesignCaseSpider(scrapy.Spider):
     allowed_domains = ['www.veer.com']
     num = 0
     page = 1
-    search = '保温杯'
+    search = '玻璃杯'
     url = 'https://www.veer.com/query/image/?phrase=%s&page=%s' % (search, page)
 
     def start_requests(self):
@@ -18,12 +18,13 @@ class DesignCaseSpider(scrapy.Spider):
         img_url_list = response.xpath('//span[@class="search_result_asset_link"]/img//@src').extract()
         img_new_list = []
         for i in img_url_list:
-            # j = i.replace('612', '1200')
-            img_new_list.append(i)
+            j = i.replace('612', '1200')
+            img_new_list.append(j)
         item['tag'] = self.search
         item['img_urls'] = img_new_list
-        # yield item
-        if self.page < 164:
+        item['channel'] = 'veer'
+        yield item
+        if self.page < 10:
             self.page += 1
             yield scrapy.Request(
                 url="https://www.veer.com/query/image/?phrase=%s&page=%s" % (self.search, self.page),

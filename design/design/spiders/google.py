@@ -39,4 +39,5 @@ class GoogleRobotImagesSpider(scrapy.Spider):
         print('第' + page + '页')
         item['tag'] = response.meta['key_word']
         item['img_urls'] = img_urls
+        item['channel'] = 'google'
         yield item

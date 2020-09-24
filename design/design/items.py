@@ -49,6 +49,7 @@ class ProduceItem(scrapy.Item):
     img_urls = scrapy.Field()
     tag = scrapy.Field()
     img_url = scrapy.Field()
+    channel = scrapy.Field()
 
 
 class CompanyItem(scrapy.Item):

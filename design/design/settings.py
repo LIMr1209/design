@@ -28,7 +28,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 1  # 下载延迟
+DOWNLOAD_DELAY = 5  # 下载延迟
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16  # 多线程
 # CONCURRENT_REQUESTS_PER_IP = 16 # 多线程
@@ -54,6 +54,7 @@ COOKIES_ENABLED = True
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
     'design.middlewares.DesignSpiderMiddleware': 543,
+
 }
 
 # Enable or disable downloader middlewares
@@ -108,8 +109,7 @@ USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
 ]
 PROXY_LIST = [
-    '58.56.108.226:43296'
-
+    '127.0.0.1:1080'
 ]
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

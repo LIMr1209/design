@@ -16,7 +16,7 @@ import time
 import os
 
 
-def baidu_image(dict_item, headers, label_name):
+def baidu_image(dict_item, headers, path):
     img_url = dict_item['img_url']
     try:
         img_response = requests.get(img_url, headers=headers, timeout=5)
@@ -24,7 +24,7 @@ def baidu_image(dict_item, headers, label_name):
         b = random.randint(10, 100)
         num = str(a) + str(b)
         try:
-            with open('C:\\Users\\aaa10\Desktop\image\\' + label_name + '\\' + num + '.jpg', 'wb') as file:
+            with open(path + '\\' + num + '.jpg', 'wb') as file:
                 file.write(img_response.content)
             print('保存图片成功', img_url)
         except:
@@ -33,7 +33,7 @@ def baidu_image(dict_item, headers, label_name):
         print('访问图片失败', img_url)
 
 
-def other_image(dict_item, headers, label_name):
+def other_image(dict_item, headers, path):
     img_urls = dict_item['img_urls']
     for url in img_urls:
         try:
@@ -42,9 +42,11 @@ def other_image(dict_item, headers, label_name):
             # b = random.randint(10, 100)
             # num = str(a) + str(b)
             img_file = url.split('/')[-1]
+            if dict_item['channel'] == 'suning' or dict_item['channel'] == "amazon":
+                img_file = img_file.split('.')[0]+'.jpg'
             try:
                 if img_response.status_code == 200:
-                    with open('C:\\Users\\aaa10\\Desktop\\image\\' + label_name + '\\' + img_file, 'wb') as file:
+                    with open(path + '\\' + img_file, 'wb') as file:
                         file.write(img_response.content)
                     print('保存图片成功', url)
                 else:
@@ -67,9 +69,13 @@ class ImageSavePipeline(object):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
         label_name = dict_item['tag']
-        if not os.path.exists('C:\\Users\\aaa10\\Desktop\\image\\' + label_name):
-            os.makedirs('C:\\Users\\aaa10\\Desktop\\image\\' + label_name)
-        other_image(dict_item, headers, label_name)
+        path = 'Z:\\image\\' + label_name+'_'+dict_item['channel']
+        if not os.path.exists(path):
+            os.makedirs(path)
+        if dict_item['channel'] == 'baidu':
+            baidu_image(dict_item, headers, path)
+        else:
+            other_image(dict_item, headers, path)
         return item
 
     def close_spider(self, spider):

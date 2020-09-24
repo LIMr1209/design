@@ -73,7 +73,7 @@ class BaiduImagesSpider(scrapy.Spider):
                'istype=2&qc=&nc=1&fr=&expermode=&force=&' \
                'pn={1}&rn=30&gsm=1e&'
     page = 30
-    key_words = '保温杯'
+    key_words = '台灯'
     # tag = translation(key_words).replace(' ', '_')
 
 
@@ -86,19 +86,23 @@ class BaiduImagesSpider(scrapy.Spider):
     def get_pic(self, response):
         headers = {'Referer': 'http://image.baidu.com/', 'Host': 'image.baidu.com'}
         item = ProduceItem()
-        response_json = response.text
-        response_json = json.loads(response_json)
-        response_data = response_json['data']
-        if len(response_data) == 0:
+        try:
+            item['channel'] = 'baidu'
+            response_json = response.text
+            response_json = json.loads(response_json)
+            response_data = response_json['data']
+            if len(response_data) == 0:
+                return
+            for content in response_data:
+                if content.get('thumbURL', None):
+                    item['tag'] = self.key_words
+                    item['img_url'] = baidtu_uncomplie(content['objURL'])
+                    yield item
+            self.page += 30
+            if self.page > 15000:
+                return
+            next_url = self.base_url.format(self.key_words, str(self.page))
+            yield Request(next_url, callback=self.get_pic,
+                          dont_filter=True, headers=headers)
+        except:
             return
-        for content in response_data:
-            if content.get('thumbURL', None):
-                item['tag'] = self.key_words
-                item['img_url'] = baidtu_uncomplie(content['objURL'])
-                yield item
-        self.page += 30
-        if self.page > 12000:
-            return
-        next_url = self.base_url.format(self.key_words, str(self.page))
-        yield Request(next_url, callback=self.get_pic,
-                      dont_filter=True, headers=headers)
