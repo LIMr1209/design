@@ -17,6 +17,7 @@ class SeleniumSpider(scrapy.Spider):
         chrome_options = Options()
         chrome_options.add_argument("--headless")  # 无头浏览器
         # 初始化chrome对象
+        # self.browser = webdriver.Chrome(options=chrome_options)
         self.browser = webdriver.Chrome()
         self.browser.maximize_window()
         # if self.windowHeight and self.windowWidth:

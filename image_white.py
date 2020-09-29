@@ -8,32 +8,32 @@ from PIL import Image
 # SECRET_KEY = "khKaBZEkN2EnDoeRkU18pGbBF71CH2Fd"
 
 # client = AipImageClassify(APP_ID, API_KEY, SECRET_KEY)
-path = "C:\\Users\\aaa10\\Desktop\\耳机_待处理"
+path = "C:\\Users\\aaa10\\Desktop\\拉杆箱_待处理"
 for i in os.listdir(path):
     try:
         img = Image.open(path + '\\' + i)
-        rgb_data = (img.getpixel((795, 5)))
-        for x in range(0, 300):
-            for y in range(0, 100):
-                img.putpixel((x, y), rgb_data)
-        img.save(path + '\\' + i)
-        # if img.size == (600,600):
-        #
-        #     rgb_data = (img.getpixel((555, 555)))
-        #     for x in range(470, 600):
-        #         for y in range(550, 600):
+        # rgb_data = (img.getpixel((795, 5)))
+        # for x in range(0, 420):
+        #     for y in range(0, 140):
+        #         img.putpixel((x, y), rgb_data)
+        # img.save(path + '\\' + i)
+
+        if img.size == (400,400):
+            rgb_data = (img.getpixel((395, 5)))
+            for x in range(0, 70):
+                for y in range(0, 80):
+                    img.putpixel((x, y), rgb_data)
+            img.save(path + '\\' + i)
+        # elif img.size == (750,750):
+        #     rgb_data = (img.getpixel((745, 5)))
+        #     for x in range(0, 200):
+        #         for y in range(0, 200):
         #             img.putpixel((x, y), rgb_data)
         #     img.save(path + '\\' + i)
-        # elif img.size == (450,450):
-        #     rgb_data = (img.getpixel((445, 445)))
-        #     for x in range(350, 450):
-        #         for y in range(420, 450):
-        #             img.putpixel((x, y), rgb_data)
-        #     img.save(path + '\\' + i)
-        # elif img.size == (290,290):
-        #     rgb_data = (img.getpixel((285, 285)))
-        #     for x in range(200, 290):
-        #         for y in range(260, 290):
+        # elif img.size == (750,714):
+        #     rgb_data = (img.getpixel((745, 5)))
+        #     for x in range(0, 200):
+        #         for y in range(0, 100):
         #             img.putpixel((x, y), rgb_data)
         #     img.save(path + '\\' + i)
     except Exception as e:

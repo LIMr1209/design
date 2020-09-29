@@ -35,7 +35,7 @@ class DesignItem(scrapy.Item):
     category_id = scrapy.Field()  # 分类ID 0
     designer = scrapy.Field()  # 设计师
     status = scrapy.Field()  # 状态: 0.禁用；1.启用
-    open = scrapy.Field() # 公开
+    open = scrapy.Field()  # 公开
     remark = scrapy.Field()  # 描述
     info = scrapy.Field()  # 其它json串
     evt = scrapy.Field()  # 来源：1.默认  3.振斌
@@ -125,3 +125,29 @@ class MeizituItem(scrapy.Item):
     image_urls = scrapy.Field()
     image_paths = scrapy.Field()
     title = scrapy.Field()
+
+
+class CommentItem(scrapy.Item):
+    type = scrapy.Field()  # 品论类型 0 好评 1 差评 2 中评
+    impression = scrapy.Field() #大家印象
+    first = scrapy.Field() # 初评
+    add = scrapy.Field() # 追评
+    buyer = scrapy.Field() # 买家
+    style = scrapy.Field() # 样式
+
+class TaobaoItem(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+    url = scrapy.Field()  # 链接
+    title = scrapy.Field()  # 名称
+    original_price = scrapy.Field()  # 原价
+    promotion_price = scrapy.Field()  # 优惠价
+    turnover = scrapy.Field()  # 成交量
+    favorite_count = scrapy.Field()  # 收藏量
+    service = scrapy.Field()  # 服务承诺
+    reputation = scrapy.Field()  # 信誉
+    detail_str = scrapy.Field()  # 商品详情
+    img_url = scrapy.Field()  # 图片地址
+    comment = CommentItem() # 评论信息
+
+
