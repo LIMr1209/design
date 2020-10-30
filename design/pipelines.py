@@ -84,11 +84,9 @@ class ImageSavePipeline(object):
 
 class ImagePipeline(object):
     def __init__(self):
-        self.url = 'https://opalus.d3ingo.com/api/produce/submit'
-        # self.url = 'http://opalus-dev.taihuoniao.com/api/produce/submit'
-        # self.url = 'http://127.0.0.1:8002/api/produce/submit'
-        # self.url = 'https://opalus.d3ingo.com/api/company/submit'
-        # self.url = 'http://127.0.0.1:8002/api/image/submit'
+        self.url = 'https://www.taihuoniao.com/api/product/submit'
+        # self.url = 'http://dev.taihuoniao.com/api/product/submit'
+        # self.url = 'http://127.0.0.1:8004/api/product/submit'
 
     def open_spider(self, spider):
         pass
@@ -96,7 +94,7 @@ class ImagePipeline(object):
     def process_item(self, item, spider):
         dict_item = dict(item)
         response = requests.post(self.url, data=dict_item)
-        print(response.content)
+        print(json.loads(response.content.decode('utf-8')))
 
     def close_spider(self, spider):
         pass

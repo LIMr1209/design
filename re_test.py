@@ -1,0 +1,15 @@
+import re
+
+a = '<noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050" <noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050"</noscript><noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050" <noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050"</noscript>'
+a = '<noscript>&lt;img src="https://static.wixstatic.com/media/2635bf_27afca1a1124404ebf1fefce5db51e45~mv2.gif/v1/fill/w_800,h_450/Pluuus-Power%20Bank.gif" alt="" width="1050" height="590" data-jpibfi-post-excerpt="" data-jpibfi-post-url="https://www.yankodesign.com/2019/09/10/the-pluuus-is-the-next-generation-of-wallets-designed-for-life-in-2020/" data-jpibfi-post-title="The Pluuus is the next generation of wallets designed for life in 2020" data-jpibfi-src="https://static.wixstatic.com/media/2635bf_27afca1a1124404ebf1fefce5db51e45~mv2.gif/v1/fill/w_800,h_450/Pluuus-Power%20Bank.gif" ></noscript>'
+# a = '<noscript>&lt;img src="https://www.yankodesign.com/images/design_news/2020/10/auto-draft/chipolo_ocean_2.jpg" alt="" width="1050" height="700" class="aligncenter size-full wp-image-282902" data-jpibfi-post-excerpt="" <noscript>&lt;img src="https://www.yankodesign.com/images/design_news/2020/10/auto-draft/chipolo_ocean_2.jpg" alt="" width="1050" height="700" class="aligncenter size-full wp-image-282902" data-jpibfi-post-excerpt=""</noscript>'
+# rex = re.compile('&lt;img class="alignnone size-full .*? src="(.*?)" alt')
+# a = '<noscript>&lt;img src="https://www.yankodesign.com/images/design_news/2020/02/auto-draft/anicorn_redundant_watch-yankodesign02.jpg" data-jpibfi-post-excerpt="" data-jpibfi-post-url="https://www.yankodesign</noscript>'
+rex = re.compile('<noscript>&lt;img.*?src="(.*?)".*?</noscript>')
+print(rex.findall(a))
+
+# a = 'https://ksr-ugc.imgix.net/assets/031/001/155/2d9c80cbbaa0a795121775a987349f13_original.gif?ixlib=rb-2.1.0&w=680&fit=max&v=1602682467&auto=format&gif-q=50&q=92&s=b8528d9b4e0c3e5aaa5a65267fc39f9f'
+# b = 'https://ksr-ugc.imgix.net/assets/031/001/155/2d9c80cbbaa0a795121775a987349f13_original.gif?ixlib=rb-2.1.0&amp;amp;w=680&amp;amp;fit=max&amp;amp;v=1602682467&amp;amp;auto=format&amp;amp;gif-q=50&amp;amp;q=92&amp;amp;s=b8528d9b4e0c3e5aaa5a65267fc39f9f'
+# # d = "https://ksr-ugc.imgix.net/assets/030/537/910/8044edb10b84a4e28fd5d19ce7050efa_original.gif?ixlib=rb-2.1.0&amp;#038;w=680&amp;#038;fit=max&amp;#038;v=1599678904&amp;#038;auto=format&amp;#038;gif-q=50&amp;#038;q=92&amp;#038;s=1a1634b209185741ef3fdcc545a92937"
+# c = b.replace("amp;",'').replace("#038;","")
+# print(c)

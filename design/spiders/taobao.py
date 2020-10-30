@@ -1,6 +1,15 @@
 import json
+import os
+import re
+import time
+import requests
 import scrapy
-from design.items import ProduceItem, TaobaoItem
+from urllib import parse
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from design.items import ProduceItem, TaobaoItem, CommentItem
 from design.spiders.selenium import SeleniumSpider
 
 
@@ -20,41 +29,68 @@ class TaobaoSpider(SeleniumSpider):
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words
         self.page = 1
-        self.cookie = "tg=0; cna=zasMF12t3zoCATzCuQKpN3kO; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; thw=cn; enc=hhk8t%2B%2Bkpl2xLE0wC5J9lH0S9A81kjr1zit1l9%2B956QkQ8CH2AfazGIkEVic1u9A7tiLbGrsuDqVPO4%2BeLizug%3D%3D; hng=CN%7Czh-CN%7CCNY%7C156; miid=149403541520371257; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; mt=ci=4_1; _samesite_flag_=true; cookie2=167e49f0bd5118e188156d5057cfec8e; t=2e09211d408c4672133f88cd3b7a57c1; _tb_token_=fe9e3f87be7eb; sgcookie=E100EyPmsidazidttKDDTHu%2FibtACMe46spRMTt3W%2BADBATC%2B6WLbLTov4t02JZjcnkOXrprMqpLyUxwnE%2FJgBWzGA%3D%3D; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&lg2=UIHiLt3xD8xYTw%3D%3D&vt3=F8dCufeOb%2FP7apna8eo%3D; csg=229583fc; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; skt=787d3e4dbad0f601; existShop=MTYwMTAxMjg3MQ%3D%3D; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSdoC3JDBP2R&nk4=0%400AdtZS03tnds0llDWCRcSihqN1j2LxKsh6Ub; _cc_=U%2BGCWk%2F7og%3D%3D; v=0; _m_h5_tk=2912fb3914db3529b80e1a21542a0cb1_1601194943350; _m_h5_tk_enc=40a0dc6ec266359f8ea39992157df0bd; xlly_s=1; uc1=cookie21=VFC%2FuZ9aiKCaj7AzMHh1&pas=0&cookie16=Vq8l%2BKCLySLZMFWHxqs8fwqnEw%3D%3D&existShop=false&cookie14=Uoe0bHb9FOaMGg%3D%3D; l=eBjqXoucQKR1CqKDBOfwnurza77tKIRA_uPzaNbMiOCP951pX6qPWZzYioT9CnGVh65wR3RSn5QgBeYBqIA7kOiEIosM_6Hmn; tfstk=cJQOBJGPuJ2MLiOdaGEHGg7t5qVhZE09Hf9rk7UVgmIjyCgAiJ7lyZx0fQH9JWC..; isg=BAEBe4tLOiA8vlfOlaVbt8YREE0bLnUgJ3Q-rGNWu4hLSiEcq3-98L1ALL4MxQ1Y"
-        self.data_url = "https://s.taobao.com/search?initiative_id=tbindexz_20170306&ie=utf8&spm=a21bo.2017.201856-taobao-item.2&sourceId=tb.index&search_type=item&ssid=s5-e&commend=all&imgfile=&q=%s&suggest=history_1&_input_charset=utf-8&wq=&suggest_query=&source=suggest"
+        self.data_url = "https://list.tmall.com/search_product.htm?q=%s"
+        self.comment_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=1296479913&sellerId=1726473375&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&_ksTS=1603094370130_780&callback=jsonp781'
+        self.comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true&t=1603103889422&groupId=&_ksTS=1603103889423_500&callback=jsonp501'
         self.end_page = 50
         super(TaobaoSpider, self).__init__(*args, **kwargs)
         self.browser.get('https://www.taobao.com/')
-        cookies = self.stringToDict()
-        for i in cookies:
-            self.browser.add_cookie(i)
+        # cookies = self.stringToDict()
+        # for i in cookies:
+        #     self.browser.add_cookie(i)
 
-    def stringToDict(self):
-        '''
-        将从浏览器上Copy来的cookie字符串转化为Scrapy能使用的Dict
-        :return:
-        '''
-        cookies = []
-        items = self.cookie.split(';')
+    # def stringToDict(self):
+    #     '''
+    #     将从浏览器上Copy来的cookie字符串转化为Scrapy能使用的Dict
+    #     :return:
+    #     '''
+    #     cookies = []
+    #     items = self.cookie.(';')
+    #     for item in items:
+    #         itemDict = {}
+    #         key = item.('=')[0].replace(' ', '')
+    #         value = item.('=')[1]
+    #         itemDict['name'] = key
+    #         itemDict['value'] = value
+    #         itemDict['path'] = '/'
+    #         itemDict['domain'] = '.taobao.com'
+    #         itemDict['expires'] = None
+    #         cookies.append(itemDict)
+    #     return cookies
+
+    def DictToString(self):
+        cookies = ''
+        items = self.browser.get_cookies()
         for item in items:
-            itemDict = {}
-            key = item.split('=')[0].replace(' ', '')
-            value = item.split('=')[1]
-            itemDict['name'] = key
-            itemDict['value'] = value
-            itemDict['path'] = '/'
-            itemDict['domain'] = '.taobao.com'
-            itemDict['expires'] = None
-            cookies.append(itemDict)
+            cookies += item['name'] +'='+item['value']+";"
+        cookies = cookies[:-1]
         return cookies
 
     def start_requests(self):
-        # for i in range(self.page, self.end_page):
-        yield scrapy.Request(self.data_url % self.key_words, callback=self.parse_list,meta={'usedSelenium': True} )
-
+        login_url = 'https://login.taobao.com/member/login.jhtml'
+        username = '斌爷爷1058169464'
+        password = 'aaa1058169464'
+        cookie_file = os.path.join('tmp', '{}@{}.cookie'.format(username, self.name))
+        if not os.path.exists(cookie_file):
+            self.browser.get(login_url)
+            self.browser.find_element_by_xpath('//*[@id="fm-login-id"]').send_keys(username)
+            self.browser.find_element_by_xpath('//*[@id="fm-login-password"]').send_keys(password)
+            self.browser.find_element_by_xpath('//*[@id="login-form"]/div[4]/button').click()
+            # cookies = self.browser.get_cookies()
+            time.sleep(3)
+            # fw = open(cookie_file, 'w')
+            # fw.write(json.dumps(cookies))
+            # fw.close()
+        else:
+            fr = open(cookie_file, 'r')
+            cookies = json.loads(fr.read())
+            fr.close()
+            for i in cookies:
+                self.browser.add_cookie(i)
+        yield scrapy.Request(self.data_url % self.key_words, callback=self.parse_list, meta={'usedSelenium': True})
 
     def parse_list(self, response):
-        list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
+        list_url = response.xpath('//div[@class="product  "]//div[@class="productImg-wrap"]/a/@href').extract()
         # for i in list_url:
         #     yield scrapy.Request("https:"+i, callback=self.parse_detail,meta={'usedSelenium': True})
         yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail, meta={'usedSelenium': True})
@@ -66,7 +102,60 @@ class TaobaoSpider(SeleniumSpider):
         item['original_price'] = response.xpath('//dl[@id="J_StrPriceModBox"]//span/text()').extract()[0]
         item['promotion_price'] = response.xpath('//dl[@id="J_PromoPrice"]//span/text()').extract()[0]
         item['service'] = ','.join(response.xpath('//ul[@class="tb-serPromise"]/li/a/text()').extract())
-        item['reputation'] = ','.join(response.xpath('//div[@id="side-shop-info"]//div[@class="main-info"]/div[@class="shopdsr-item"]').extract())
-        item[''] = response.xpath('//span[@id="J_CollectCount"]/text()').extract()[0]
-        item['img_urls'] = img_urls
-        yield item
+        reputation = response.xpath('//div[@id="shop-info"]//span[@class="shopdsr-score-con"]//text()').extract()
+        item['reputation'] = "描述: %s 服务: %s 物流: %s" % (reputation[0], reputation[1], reputation[2])
+        item['turnover'] = response.xpath(
+            '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]/text()').extract()
+        try:
+            item['favorite'] = response.xpath('//span[@id="J_CollectCount"]/text()').extract()[0]
+        except:
+            item['favorite'] = 0
+        detail_list = response.xpath('//div[@id="attributes"]//text()').extract()
+        item['detail_str'] = ''
+        for i in detail_list:
+            s = i.replace(' ','').replace('\n', '').replace('\r', '').replace('\t', '')
+            if s:
+                item['detail_str'] += s
+        # item['img_urls'] = img_urls
+        itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
+        headers = {
+            'Referer': response.url,
+            'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36'
+        }
+        elem = WebDriverWait(self.browser, 20, 0.5).until(
+            EC.presence_of_element_located(
+                (By.ID, 'J_TabBar')
+            )
+        )
+        if elem.is_displayed:
+            click = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
+            click.click()
+
+        impression_ele = self.browser.find_elements_by_xpath('//span[@class="tag-posi"]')
+        # impression_res = requests.get(self.comment_impression%itemId,stream=True)
+        # rex = re.compile('({.*})')
+        # impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
+        # item['impression'] = ''
+        # for i in impression_data['tags']['tagClouds']:
+        #      item['impression'] += i['tag']+'('+i['count']+')  '
+        item['comment'] = []
+        comment_page = 1
+        while True:
+            comment_res = requests.get(self.comment_url % (itemId, comment_page), headers=headers)
+            rex = re.compile('({.*})')
+            result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
+            for i in  result['rateDetail']['rateList']:
+                comment = {}
+                comment['type'] = 1 if i['anony'] else 0
+                comment['first'] = i['rateContent']
+                comment['add'] = i['appendComment']['content'] if i['appendComment'] else ''
+                comment['buyer'] = i['displayUserNick']
+                comment['style'] = i['pics']
+                item['comment'].append(comment)
+
+            pages = result['rateDetail']['paginator']['lastPage']
+            if comment_page == pages:
+                break
+            comment_page += 1
+        print(item)
+

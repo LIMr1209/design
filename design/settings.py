@@ -14,8 +14,6 @@ BOT_NAME = 'design'
 SPIDER_MODULES = ['design.spiders']
 NEWSPIDER_MODULE = 'design.spiders'
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-# USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -28,13 +26,13 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 5  # 下载延迟
+DOWNLOAD_DELAY = 0  # 下载延迟
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16  # 多线程
 # CONCURRENT_REQUESTS_PER_IP = 16 # 多线程
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = True
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
@@ -76,9 +74,9 @@ WINDOW_WIDTH = 900
 
 DOWNLOADER_MIDDLEWARES = {
     # 'design.middlewares.DesignDownloaderMiddleware': 543,
-    'design.middlewares.UserAgentSpiderMiddleware': 543,
+    'design.middlewares.UserAgentSpiderMiddleware': 300,
     # 'design.middlewares.ProxySpiderMiddleware': 543,
-    'design.middlewares.SeleniumMiddleware': 543,
+    # 'design.middlewares.SeleniumMiddleware': 543,
 }
 
 # Enable or disable extensions
@@ -95,7 +93,7 @@ ITEM_PIPELINES = {
 
 }
 
-USER_AGENTS = [
+USER_AGENT_LIST = [
     'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0',
     'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299',
@@ -108,6 +106,12 @@ USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
 ]
+
+import random
+# user agent 列表
+# 随机生成user agent
+# Crawl responsibly by identifying yourself (and your website) on the user-agent
+USER_AGENT = random.choice(USER_AGENT_LIST)
 PROXY_LIST = [
     '127.0.0.1:1080'
 ]
@@ -131,3 +135,17 @@ PROXY_LIST = [
 # HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# 爬虫允许的最大深度，可以通过meta查看当前深度；0表示无深度
+DEPTH_LIMIT = 0
+
+# 爬取时，0表示深度优先Lifo(默认)；1表示广度优先FiFo
+# 后进先出，深度优先
+DEPTH_PRIORITY = 0
+SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleLifoDiskQueue'
+SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.LifoMemoryQueue'
+
+# 先进先出，广度优先
+# DEPTH_PRIORITY = 1
+# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
+# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'

@@ -7,7 +7,7 @@
 
 from scrapy import signals
 import random
-from design.settings import USER_AGENTS, PROXY_LIST
+from design.settings import USER_AGENT_LIST, PROXY_LIST
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from scrapy.http import HtmlResponse
@@ -16,7 +16,7 @@ from scrapy.http import HtmlResponse
 # 浏览器中间件
 class UserAgentSpiderMiddleware(object):
     def precess_request(self, requset, spider):
-        user_agent = random.choice(USER_AGENTS)
+        user_agent = random.choice(USER_AGENT_LIST)
         requset.headers['User-Agent'] = user_agent
         return None
 
