@@ -11,8 +11,8 @@ data = {
 }
 
 
-class DesignCaseSpider(scrapy.Spider):
-    name = 'design_case'
+class EffecSpider(scrapy.Spider):
+    name = 'dba'
     allowed_domains = ['www.effectivedesign.org.uk']
     year = 2018
     url = 'http://www.effectivedesign.org.uk/winners/'
@@ -40,7 +40,6 @@ class DesignCaseSpider(scrapy.Spider):
                 designer_name = design.xpath('.//p[@class="agency"]/text()').extract()[0].strip()
             detail_url = design.xpath('.//a[1]/@href').extract()[0]
             prize['id'] = 20
-            prize['name'] = 'DBA设计效能奖'
             prize['time'] = str(self.year + 1)
             prize['level'] = prize_level
             item['title'] = title  # 标题

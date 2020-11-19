@@ -32,5 +32,5 @@ class SeleniumSpider(scrapy.Spider):
 
 
     def mySpiderCloseHandle(self, spider):
-        pass
-        # self.browser.quit()
+        # pass
+        self.browser.quit()

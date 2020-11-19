@@ -38,12 +38,14 @@ def other_image(dict_item, headers, path):
     for url in img_urls:
         try:
             img_response = requests.get(url, headers=headers, timeout=5)
-            # a = int(time.time())
-            # b = random.randint(10, 100)
             # num = str(a) + str(b)
             img_file = url.split('/')[-1]
             if dict_item['channel'] == 'suning' or dict_item['channel'] == "amazon":
                 img_file = img_file.split('.')[0]+'.jpg'
+            if dict_item["channel"] == "samsonite" or dict_item['channel'] == "tumi" or dict_item['channel'] == "americantourister":
+                a = int(time.time())
+                b = random.randint(10, 100)
+                img_file = str(a) + str(b)+'.jpg'
             try:
                 if img_response.status_code == 200:
                     with open(path + '\\' + img_file, 'wb') as file:
@@ -69,7 +71,7 @@ class ImageSavePipeline(object):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
         label_name = dict_item['tag']
-        path = 'Z:\\image\\' + label_name+'_'+dict_item['channel']
+        path = 'C:\\Users\\aaa10\\Desktop\\image\\' + label_name+'_'+dict_item['channel']
         if not os.path.exists(path):
             os.makedirs(path)
         if dict_item['channel'] == 'baidu':
@@ -94,7 +96,10 @@ class ImagePipeline(object):
     def process_item(self, item, spider):
         dict_item = dict(item)
         response = requests.post(self.url, data=dict_item)
-        print(json.loads(response.content.decode('utf-8')))
+        res = json.loads(response.content.decode('utf-8'))
+        if res['code'] == 3011:
+            b = 1
+        print(res)
 
     def close_spider(self, spider):
         pass
@@ -240,5 +245,5 @@ class DSManger:
             return
 
 
-ds = DSManger()
-ds.get_access_token('2GzP6I50zxHOqQ66zyKdRMT3', '5VL8eL2IFKH61CxjSv55CvCWGdcFogr0')
+# ds = DSManger()
+# ds.get_access_token('2GzP6I50zxHOqQ66zyKdRMT3', '5VL8eL2IFKH61CxjSv55CvCWGdcFogr0')
