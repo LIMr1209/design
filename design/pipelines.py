@@ -86,8 +86,8 @@ class ImageSavePipeline(object):
 
 class ImagePipeline(object):
     def __init__(self):
-        # self.url = 'https://www.taihuoniao.com/api/product/submit'
-        self.url = 'http://dev.taihuoniao.com/api/product/submit'
+        self.url = 'https://www.taihuoniao.com/api/product/submit'
+        # self.url = 'http://dev.taihuoniao.com/api/product/submit'
         # self.url = 'http://127.0.0.1:8004/api/product/submit'
 
     def open_spider(self, spider):

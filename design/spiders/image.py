@@ -39,10 +39,10 @@ category_list = {
 }
 
 
-class ImageSpider(SeleniumSpider):
+class ImageSpider(scrapy.Spider):
     name = 'good-design'
     allowed_domains = ['good-design.org']
-    year = 2015
+    year = 2019
     url = 'https://good-design.org/good-design-index/?yr=%s&awardtype=%s'
 
     custom_settings = {
@@ -52,7 +52,7 @@ class ImageSpider(SeleniumSpider):
             'design.pipelines.ImagePipeline': 300
         },
         'DOWNLOADER_MIDDLEWARES': {
-            'design.middlewares.SeleniumMiddleware': 543,
+            'design.middlewares.DesignDownloaderMiddleware': 543,
         }
     }
 
@@ -92,8 +92,8 @@ class ImageSpider(SeleniumSpider):
         prize_level = response.meta['prize_level']
         prize_time = response.xpath('//li[@class="project-year project-term"]/h4/text()').extract()[0]
         prize = {}
-        # prize['id'] = 309
-        prize['id'] = 400
+        prize['id'] = 309
+        # prize['id'] = 400
         prize['level'] = level_dict[prize_level]
         prize['time'] = prize_time
         # tags = response.xpath('//li[@class="project-discipline project-term"]//div/text()').extract()
@@ -107,8 +107,10 @@ class ImageSpider(SeleniumSpider):
         title = response.xpath('//h1/text()').extract()[0]
         img_urls = response.xpath('//div[@class="project-main-content__inner-wrapper"]/figure/img/@src').extract()
         for i in range(len(img_urls)):
+            img_urls[i] = img_urls[i].strip()
             if not img_urls[i].startswith('https://good-design.org'):
                 img_urls[i] = 'https://good-design.org' + img_urls[i]
+
         remark = response.xpath('//div[@class="project-description"]/p[1]/text()').extract()[0]
         # remark = remark.replace('\n', '').replace(' ', '').replace('\r', '').strip()
         item['prize'] = json.dumps(prize)
