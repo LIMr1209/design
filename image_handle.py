@@ -15,13 +15,14 @@
 
 import os
 from PIL import Image
-path = "C:\\Users\\aaa10\\Desktop\\image\\拉杆箱_rimowa"
+path = "C:\\Users\\aaa10\\Desktop\\lgx_front_new"
 path_new = "C:\\Users\\aaa10\\Desktop\\image\\拉杆箱_rimowa_new"
 for i in os.listdir(path):
     im = Image.open(path+'\\'+i)
-    if im.mode=="RGBA":
-        im.load()  # required for png.split()
-        background = Image.new("RGB", im.size, (255, 255, 255))
-        background.paste(im, mask=im.split()[3])  # 3 is the alpha channel
-        im = background
-    im.save(path_new+'\\'+i)
+    print(im.mode)
+    # if im.mode=="RGBA":
+    #     im.load()  # required for png.split()
+    #     background = Image.new("RGB", im.size, (255, 255, 255))
+    #     background.paste(im, mask=im.split()[3])  # 3 is the alpha channel
+    #     im = background
+    # im.save(path_new+'\\'+i)
