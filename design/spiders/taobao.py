@@ -5,12 +5,14 @@ import time
 import requests
 import scrapy
 from urllib import parse
-
+from selenium.webdriver.chrome.options import Options
+from fake_useragent import UserAgent
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from design.items import TaobaoItem, CommentItem
+from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
+from selenium import webdriver
 
 
 class TaobaoSpider(SeleniumSpider):
@@ -64,6 +66,22 @@ class TaobaoSpider(SeleniumSpider):
                 self.browser.add_cookie(i)
         time.sleep(5)
 
+    def update_browser(self):
+        cookies = self.browser.get_cookies()
+        self.browser.quit()
+        ua = UserAgent().random
+        chrome_options = Options()
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        chrome_options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
+        chrome_options.add_argument("user-agent={}".format(ua))
+        # chrome_options.add_argument("--proxy-server=http://1.199.31.96:9999")
+        self.browser = webdriver.Chrome(options=chrome_options)
+        self.browser.maximize_window()
+        self.wait = WebDriverWait(self.browser, 30)  # 指定元素加载超时时间
+        self.browser.get('https://www.taobao.com/')  # 必须先请求一下网页，才能添加cookie
+        for i in cookies:
+            self.browser.add_cookie(i)
+
     # # 更换动态ip
     # def update_ip(self):
     #     pass
@@ -78,7 +96,7 @@ class TaobaoSpider(SeleniumSpider):
         list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
         # list_url = response.xpath('//div[contains(@class,"item J_MouserOnverReq")]//div[@class="pic"]/a/@href').extract()
         yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail,
-                             meta={'usedSelenium': True, "list_url": list_url, "index": 0, "page": page})
+                             meta={'usedSelenium': True, "list_url": list_url, "page": page})
 
     def parse_detail(self, response):
         try:
@@ -87,15 +105,19 @@ class TaobaoSpider(SeleniumSpider):
             if "item.taobao.com" in response.url:
                 self.save_taobao_data(response)
         except Exception as e:
+            print(
+                "文件 {}".format(e.__traceback__.tb_frame.f_globals["__file__"])
+            )  # 文件
+            print("行号 {}".format(e.__traceback__.tb_lineno))  # 行号
             print("产品爬取失败", response.url, str(e))
             self.fail_url.append(response.url)
         page = response.meta['page']
-        index = response.meta['index']
         list_url = response.meta['list_url']
-        new_index = index + 1
-        if len(list_url) >= new_index + 1:
-            yield scrapy.Request("https:" + list_url[new_index], callback=self.parse_detail,
-                                 meta={'usedSelenium': True, "list_url": list_url, "index": new_index, 'page': page})
+        list_url.pop(0)
+        # self.update_browser()  # 更换浏览器
+        if list_url:
+            yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail,
+                                 meta={'usedSelenium': True, "list_url": list_url, 'page': page})
         else:
             if self.page < self.max_page:
                 self.page += 1
@@ -114,8 +136,13 @@ class TaobaoSpider(SeleniumSpider):
         sale_xpath = response.xpath(
             '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]/text()').extract()
         if sale_xpath:
-            sale_count = re.search('\d+', sale_xpath[0]).group()
-            item['sale_count'] = int(sale_count)
+            index = sale_xpath[0].find('万')
+            if index != -1:
+                item['sale_count'] = int(float(sale_xpath[0][:index])*10000)
+            else:
+                sale_count = re.search('\d+', sale_xpath[0])
+                if sale_count:
+                    item['sale_count'] = int(sale_count.group())
         try:
             elem = WebDriverWait(self.browser, 20, 0.5).until(
                 EC.presence_of_element_located(
@@ -124,7 +151,9 @@ class TaobaoSpider(SeleniumSpider):
             )
             if elem.is_displayed:
                 favorite_count_text = self.browser.find_element_by_xpath('//span[@id="J_CollectCount"]')
-                item['favorite_count'] = int(re.search("\d+", favorite_count_text.text).group())
+                d = re.search("\d+", favorite_count_text.text)
+                if d:
+                    item['favorite_count'] = int(d.group())
         except:
             item['favorite_count'] = 0
         detail_list = response.xpath('//div[@id="attributes"]//text()').extract()
@@ -133,10 +162,13 @@ class TaobaoSpider(SeleniumSpider):
             s = i.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
             if s:
                 item['detail_str'] += s
-        cover_url = response.xpath('//ul[@id="J_UlThumb"]/li//img/@src').extract()[0]
-        if not cover_url.startswith == "http":
-            cover_url = "https://img.alicdn.com" + cover_url
-        cover_url = cover_url.rsplit('_', 1)[0]
+        try:
+            cover_url = response.xpath('//ul[@id="J_UlThumb"]/li//img/@src').extract()[0]
+            if not cover_url.startswith == "http":
+                cover_url = "https://img.alicdn.com" + cover_url
+            cover_url = cover_url.rsplit('_', 1)[0]
+        except:
+            cover_url = ''
         item['cover_url'] = cover_url
         itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
         elem = WebDriverWait(self.browser, 20, 0.5).until(
@@ -146,33 +178,33 @@ class TaobaoSpider(SeleniumSpider):
         )
 
         # 滚动滚动条 到指定标签位置
-        ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
-        self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-        if elem.is_displayed:
-            elem = WebDriverWait(self.browser, 20, 0.5).until(
-                EC.presence_of_element_located(
-                    (By.XPATH, '//*[@id="J_TabBar"]/li[2]')
-                )
-            )
-            if elem.is_displayed:
-                click = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]/li[2]')
-                comment = click.find_element_by_xpath('.//em')
-                comment_count = comment.text
-                item['comment_count'] = int(comment_count)
-                click.click()
-                elem = WebDriverWait(self.browser, 20, 0.5).until(
-                    EC.presence_of_element_located(
-                        (By.XPATH, '//span[@class="tag-posi"]')
-                    )
-                )
-                if elem.is_displayed:
-                    impression_ele = self.browser.find_elements_by_xpath('//span[@class="tag-posi"]')
-                    impression = []
-                    for i in impression_ele:
-                        impression.append(i.text)
-                    item['impression'] = "，".join(impression)
+        # ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
+        # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
+        # if elem.is_displayed:
+        #     elem = WebDriverWait(self.browser, 20, 0.5).until(
+        #         EC.presence_of_element_located(
+        #             (By.XPATH, '//*[@id="J_TabBar"]/li[2]')
+        #         )
+        #     )
+        #     if elem.is_displayed:
+        #         click = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]/li[2]')
+        #         comment = click.find_element_by_xpath('.//em')
+        #         comment_count = comment.text
+        #         item['comment_count'] = int(comment_count)
+        #         click.click()
+        #         elem = WebDriverWait(self.browser, 20, 0.5).until(
+        #             EC.presence_of_element_located(
+        #                 (By.XPATH, '//span[@class="tag-posi"]')
+        #             )
+        #         )
+        #         if elem.is_displayed:
+        #             impression_ele = self.browser.find_elements_by_xpath('//span[@class="tag-posi"]')
+        #             impression = []
+        #             for i in impression_ele:
+        #                 impression.append(i.text)
+        #             item['impression'] = "，".join(impression)
 
-        item['site_from'] = 2
+        item['site_from'] = 9
         item['site_type'] = 1
         item['price_range'] = self.price_range
         item['out_number'] = itemId
@@ -206,8 +238,13 @@ class TaobaoSpider(SeleniumSpider):
         # item['reputation'] = "描述: %s 服务: %s 物流: %s" % (reputation[0], reputation[1], reputation[2])
         sale_xpath = response.xpath('//*[@id="J_SellCounter"]/text()').extract()
         if sale_xpath:
-            sale_count = re.search('\d+', sale_xpath[0]).group()
-            item['sale_count'] = int(sale_count)
+            index = sale_xpath[0].find('万')
+            if index != -1:
+                item['sale_count'] = int(float(sale_xpath[0][:index]) * 10000)
+            else:
+                sale_count = re.search('\d+', sale_xpath[0])
+                if sale_count:
+                    item['sale_count'] = int(sale_count.group())
         try:
             elem = WebDriverWait(self.browser, 20, 0.5).until(
                 EC.presence_of_element_located(
@@ -216,7 +253,9 @@ class TaobaoSpider(SeleniumSpider):
             )
             if elem.is_displayed:
                 favorite_count_text = self.browser.find_element_by_xpath('//em[@class="J_FavCount"]')
-                item['favorite_count'] = int(re.search("\d+", favorite_count_text.text).group())
+                d = re.search("\d+", favorite_count_text.text)
+                if d:
+                    item['favorite_count'] = int(d.group())
         except:
             item['favorite'] = 0
         itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
@@ -226,11 +265,14 @@ class TaobaoSpider(SeleniumSpider):
             s = i.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
             if s:
                 item['detail_str'] += s
-        cover_url = response.xpath('//ul[@id="J_UlThumb"]/li//img/@src').extract()[0]
-        if not cover_url.startswith == "http":
-            cover_url = "https://img.alicdn.com" + cover_url
+        try:
+            cover_url = response.xpath('//ul[@id="J_UlThumb"]/li//img/@src').extract()[0]
+            if not cover_url.startswith == "http":
+                cover_url = "https://img.alicdn.com" + cover_url
 
-        cover_url = cover_url.rsplit('_', 1)[0]
+            cover_url = cover_url.rsplit('_', 1)[0]
+        except Exception as e:
+            cover_url = ''
         item['cover_url'] = cover_url
         elem = WebDriverWait(self.browser, 20, 0.5).until(
             EC.presence_of_element_located(
@@ -238,36 +280,36 @@ class TaobaoSpider(SeleniumSpider):
             )
         )
 
-        # 滚动滚动条 直到评论出现
-        ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
-        self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-
-        if elem.is_displayed:
-            elem = WebDriverWait(self.browser, 20, 0.5).until(
-                EC.presence_of_element_located(
-                    (By.XPATH, '//*[@id="J_TabBar"]/li[2]')
-                )
-            )
-            if elem.is_displayed:
-                click = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]/li[2]')
-                comment = click.find_element_by_xpath('.//em')
-                comment_count = comment.text
-                item['comment_count'] = int(comment_count)
-                click.click()
-                elem = WebDriverWait(self.browser, 20, 0.5).until(
-                    EC.presence_of_element_located(
-                        (By.XPATH, '//ul[@class="kg-rate-wd-impression tb-r-ubox-bd"]/li/a')
-                    )
-                )
-                if elem.is_displayed:
-                    impression_ele = self.browser.find_elements_by_xpath(
-                        '//ul[@class="kg-rate-wd-impression tb-r-ubox-bd"]/li/a')
-                    impression = []
-                    for i in impression_ele:
-                        impression.append(i.text)
-                    item['impression'] = "，".join(impression)
+        # # 滚动滚动条 直到评论出现
+        # ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
+        # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
+        #
+        # if elem.is_displayed:
+        #     elem = WebDriverWait(self.browser, 20, 0.5).until(
+        #         EC.presence_of_element_located(
+        #             (By.XPATH, '//*[@id="J_TabBar"]/li[2]')
+        #         )
+        #     )
+        #     if elem.is_displayed:
+        #         click = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]/li[2]')
+        #         comment = click.find_element_by_xpath('.//em')
+        #         comment_count = comment.text
+        #         item['comment_count'] = int(comment_count)
+        #         click.click()
+        #         elem = WebDriverWait(self.browser, 20, 0.5).until(
+        #             EC.presence_of_element_located(
+        #                 (By.XPATH, '//ul[@class="kg-rate-wd-impression tb-r-ubox-bd"]/li/a')
+        #             )
+        #         )
+        #         if elem.is_displayed:
+        #             impression_ele = self.browser.find_elements_by_xpath(
+        #                 '//ul[@class="kg-rate-wd-impression tb-r-ubox-bd"]/li/a')
+        #             impression = []
+        #             for i in impression_ele:
+        #                 impression.append(i.text)
+        #             item['impression'] = "，".join(impression)
                 # 评论
-        item['site_from'] = 1
+        item['site_from'] = 8
         item['site_type'] = 1
         item['price_range'] = self.price_range
         item['out_number'] = itemId

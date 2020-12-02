@@ -25,9 +25,9 @@ class SeleniumSpider(scrapy.Spider):
         chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
 
         # 不加载图片
-        chrome_options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
+        # chrome_options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
         # ip ua
-        # chrome_options.add_argument("--proxy-server=http://1.199.31.96:9999")
+        chrome_options.add_argument("--proxy-server=http://1.199.31.96:9999")
         chrome_options.add_argument("user-agent={}".format(ua))
         # 现有的浏览器
         # chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
