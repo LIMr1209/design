@@ -21,14 +21,14 @@ class DesignItem(scrapy.Item):
     local_path = scrapy.Field()  # 本地文件路径
     ext = scrapy.Field()  # 扩展名
     tags = scrapy.Field()  # 标签
-    description = scrapy.Field() # 前台描述
+    description = scrapy.Field()  # 前台描述
     color_tags = scrapy.Field()  # 颜色标签
     brand_tags = scrapy.Field()  # 品牌标签
     material_tags = scrapy.Field()  # 材质
     style_tags = scrapy.Field()  # 风格
     technique_tags = scrapy.Field()  # 工艺
     other_tags = scrapy.Field()  # 其它
-    customer = scrapy.Field() # 客户
+    customer = scrapy.Field()  # 客户
     company = scrapy.Field()  # 公司
     user_id = scrapy.Field()  # 用户ID  0
     kind = scrapy.Field()  # 类型:  1
@@ -131,25 +131,31 @@ class MeizituItem(scrapy.Item):
 
 class CommentItem(scrapy.Item):
     type = scrapy.Field()  # 品论类型 0 好评 1 差评 2 中评
-    first = scrapy.Field() # 初评
-    add = scrapy.Field() # 追评
-    buyer = scrapy.Field() # 买家
-    style = scrapy.Field() # 样式
+    first = scrapy.Field()  # 初评
+    add = scrapy.Field()  # 追评
+    buyer = scrapy.Field()  # 买家
+    style = scrapy.Field()  # 样式
+    date = scrapy.Field()
+    good_url = scrapy.Field()
+
 
 class TaobaoItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
+    category = scrapy.Field()
     url = scrapy.Field()  # 链接
     title = scrapy.Field()  # 名称
     original_price = scrapy.Field()  # 原价
+    out_number = scrapy.Field() # 淘宝商品id
     promotion_price = scrapy.Field()  # 优惠价
-    turnover = scrapy.Field()  # 成交量
-    favorite = scrapy.Field()  # 收藏量
+    price_range = scrapy.Field()  # 价格范围
+    sale_count = scrapy.Field()  # 成交量
+    favorite_count = scrapy.Field()  # 收藏量
     service = scrapy.Field()  # 服务承诺
     reputation = scrapy.Field()  # 信誉
     detail_str = scrapy.Field()  # 商品详情
-    img_url = scrapy.Field()  # 图片地址 ?
-    impression = scrapy.Field() # 大家印象
-    comment = scrapy.Field() # 评论信息
-
-
+    cover_url = scrapy.Field()  # 图片地址
+    impression = scrapy.Field()  # 大家印象
+    comment_count = scrapy.Field()
+    site_from = scrapy.Field()
+    site_type = scrapy.Field()

@@ -20,7 +20,7 @@ If you’re a die-hard Tesla fan after yesterday’s absolutely mind-melting pre
 Carry around a part of the automobile giant’s legacy around with the Tesla Powerbank. Made by Tesla, the Powerbank was designed and inspired after Tesla’s Supercharger monument. With a 3350mAh battery on the inside and circuitry to ensure fast charging to the maximum battery capacity, the Powerbank can charge both Android phones and iPhones, thanks to the dual connectors concealed in the Powerbank’s slick, heart-pumping design. Plus, if there’s any company that’s known for making the world’s best batteries, it’s Tesla, right?!
 Designer: Tesla'''
 
-b = re.search("Designer[s]*:[\s\S]*", a,)
+b = re.search("Designer[s]*:[\s\S]*", a, )
 d = b.group()
 
 print(d)
@@ -48,3 +48,8 @@ a = '''
 b = re.findall('"image": \["(.*)"\]', a)
 c = b[0].split('","')
 print(c)
+
+text = ' Communication Design Category, 2010 - 2011.'
+rex = re.compile(r'Category, (\d+) - (\d+)')
+prize_time = rex.findall(text)
+print(prize_time)

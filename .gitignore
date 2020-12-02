@@ -12,3 +12,4 @@ dbs
 build/
 project.egg-info/
 *.log
+design/tmp

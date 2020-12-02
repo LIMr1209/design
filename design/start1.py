@@ -3,4 +3,4 @@ from scrapy import cmdline
 # cmdline.execute('scrapy crawl weipinghui -a key_words=拉杆箱'.split()) #
 # cmdline.execute('scrapy crawl pdd -a key_words=拉杆箱'.split())
 # cmdline.execute('scrapy crawl google'.split()) #
-cmdline.execute('scrapy crawl hghsj2'.split()) #
+cmdline.execute('scrapy crawl adesign'.split()) #
