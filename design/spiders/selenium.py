@@ -22,19 +22,28 @@ class SeleniumSpider(scrapy.Spider):
         chrome_options = Options()
         # chrome_options.add_argument("--headless")  # 无头浏览器
         # 这些网站识别不出来你是用了Selenium，因此需要将模拟浏览器设置为开发者模式
-        chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        # chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        # chrome_options.add_experimental_option('useAutomationExtension', False)
 
         # 不加载图片
         # chrome_options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
         # ip ua
-        chrome_options.add_argument("--proxy-server=http://1.199.31.96:9999")
-        chrome_options.add_argument("user-agent={}".format(ua))
-        # 现有的浏览器
-        # chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+        # chrome_options.add_argument("--proxy-server=http://tps125.kdlapi.com:15818")
+        # chrome_options.add_argument("user-agent={}".format(ua))
+        chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+
 
         # 初始化chrome对象
         self.browser = webdriver.Chrome(options=chrome_options)
-        self.browser.maximize_window()
+
+        # self.browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+        #     "source": """
+        #           Object.defineProperty(navigator, 'webdriver', {
+        #             get: () => undefined
+        #           })
+        #         """
+        # })
+        # self.browser.maximize_window()
         # if self.windowHeight and self.windowWidth:
         #     self.browser.set_window_size(900, 900)
         # self.browser.set_page_load_timeout(self.timeout)  # 页面加载超时时间

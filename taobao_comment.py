@@ -10,7 +10,7 @@ comment_url = 'http://127.0.0.1:8002/api/comment/save'
 comment_data_url_tmail = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
 comment_data_url_taobao = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=sort_weight&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'
 comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
-proxies = {'http': 'http://localhost:8888', 'https': 'http://localhost:8888'}
+proxies = {'http': 'http://tps125.kdlapi.com:15818'}
 
 
 def comment_tmail_js(out_number):

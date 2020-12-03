@@ -18,8 +18,25 @@ from design.utils.antiContent_Js import js
 
 
 import requests
+#
+# a = {'url': 'https://detail.tmall.com/item.htm?id=569676181813&ns=1&abbucket=17',
+#      'title': '梦旅者铝框拉杆箱 超静音万向轮行李箱女旅行箱男小型皮箱20 22寸', 'original_price': '956.00-1296.00',
+#      'promotion_price': '478.00-648.00', 'service': '正品保证,极速退款,退货运费险,七天无理由退换', 'reputation': '描述: 4.9 服务: 4.9 物流: 4.9',
+#      'sale_count': 7500, 'favorite_count': 163027,
+#      'detail_str': '产品参数：品牌:\xa0Dreamtraveller/梦旅者质地:\xa0PC闭合方式:\xa0锁扣图案:\xa0纯色风格:\xa0时尚潮流成色:\xa0全新尺寸:\xa020寸(德国工艺，原创设计)\xa022寸(德国工艺，原创设计)\xa024寸(德国工艺，原创设计)\xa026寸(德国工艺，原创设计)\xa028寸(德国工艺，原创设计)性别:\xa0男女通用颜色分类:\xa0L纹亚光白色\xa0L纹亚光黑色\xa0L纹亮面银色\xa0折叠纹亚光白色\xa0折叠纹亚光墨绿\xa0折叠纹沙漠玫瑰粉\xa0折叠纹亚光黑色\xa0折叠纹冰川蓝\xa0折叠纹波尔多红内部结构:\xa0拉链暗袋\xa0手机袋\xa0证件袋\xa0夹层拉链袋\xa0电脑插袋是否配包:\xa0否有无拉杆:\xa0有滚轮样式:\xa0万向轮上市时间:\xa02018年春夏货号:\xa01989里料材质:\xa0涤纶适用对象:\xa0青年箱包硬度:\xa0硬锁的类型:\xa0TSA密码锁是否带锁:\xa0是销售渠道类型:\xa0纯电商(只在线上销售)是否有扩展层:\xa0否',
+#      'cover_url': 'https://img.alicdn.com//img.alicdn.com/imgextra/i2/2901218787/O1CN01WOKxFX2EmUs4pjCwG_!!0-item_pic.jpg',
+#      'comment_count': 4044, 'impression': '外型好看(826)，质量好(778)，轮子滑行顺畅(303)，尺寸合适(298)，做工挺好(247)', 'site_from': 2,
+#      'site_type': 1, 'price_range': '[459,750]'}
+# requests.post('http://127.0.0.1:8002/api/goods/save', data=a)
+#
+# import requests
 
-a = {'url': 'https://detail.tmall.com/item.htm?id=569676181813&ns=1&abbucket=17', 'title': '梦旅者铝框拉杆箱 超静音万向轮行李箱女旅行箱男小型皮箱20 22寸', 'original_price': '956.00-1296.00', 'promotion_price': '478.00-648.00', 'service': '正品保证,极速退款,退货运费险,七天无理由退换', 'reputation': '描述: 4.9 服务: 4.9 物流: 4.9', 'sale_count': 7500, 'favorite_count': 163027, 'detail_str': '产品参数：品牌:\xa0Dreamtraveller/梦旅者质地:\xa0PC闭合方式:\xa0锁扣图案:\xa0纯色风格:\xa0时尚潮流成色:\xa0全新尺寸:\xa020寸(德国工艺，原创设计)\xa022寸(德国工艺，原创设计)\xa024寸(德国工艺，原创设计)\xa026寸(德国工艺，原创设计)\xa028寸(德国工艺，原创设计)性别:\xa0男女通用颜色分类:\xa0L纹亚光白色\xa0L纹亚光黑色\xa0L纹亮面银色\xa0折叠纹亚光白色\xa0折叠纹亚光墨绿\xa0折叠纹沙漠玫瑰粉\xa0折叠纹亚光黑色\xa0折叠纹冰川蓝\xa0折叠纹波尔多红内部结构:\xa0拉链暗袋\xa0手机袋\xa0证件袋\xa0夹层拉链袋\xa0电脑插袋是否配包:\xa0否有无拉杆:\xa0有滚轮样式:\xa0万向轮上市时间:\xa02018年春夏货号:\xa01989里料材质:\xa0涤纶适用对象:\xa0青年箱包硬度:\xa0硬锁的类型:\xa0TSA密码锁是否带锁:\xa0是销售渠道类型:\xa0纯电商(只在线上销售)是否有扩展层:\xa0否', 'cover_url': 'https://img.alicdn.com//img.alicdn.com/imgextra/i2/2901218787/O1CN01WOKxFX2EmUs4pjCwG_!!0-item_pic.jpg', 'comment_count': 4044, 'impression': '外型好看(826)，质量好(778)，轮子滑行顺畅(303)，尺寸合适(298)，做工挺好(247)', 'site_from': 2, 'site_type': 1, 'price_range': '[459,750]'}
-requests.post('http://127.0.0.1:8002/api/goods/save',data=a)
 
 
+proxies = {'http': 'http://tps125.kdlapi.com:15818'}
+headers = {
+     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
+}
+
+response = requests.get('http://dev.kdlapi.com/testproxy', proxies=proxies)
+print(response.content)
