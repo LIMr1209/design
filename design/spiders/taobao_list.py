@@ -19,9 +19,9 @@ class TaobaoSpider(SeleniumSpider):
     list_url = []
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = key_words
-        self.price_range = "[459,750]"
-        self.page = 1
+        self.key_words = '果蔬干'
+        self.price_range = ""
+        self.page = 10
         self.data_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
         self.browser.get('https://www.taobao.com/')
@@ -51,11 +51,13 @@ class TaobaoSpider(SeleniumSpider):
         time.sleep(2)
 
     def start_requests(self):
-        self.update_cookie()
-        url = self.data_url.format(name=self.key_words, price_range=self.price_range, page_count="0")
-        yield scrapy.Request(url, meta={'usedSelenium': True, "page": 1}, callback=self.parse_list)
+        # self.update_cookie()
+        page_count = str((self.page) * 44)
+        url = self.data_url.format(name=self.key_words, price_range=self.price_range, page_count=page_count)
+        yield scrapy.Request(url, meta={'usedSelenium': True, "page": self.page}, callback=self.parse_list)
 
     def parse_list(self, response):
+        time.sleep(10)
         # ele = self.browser.find_element_by_xpath('//div[@class="inner clearfix"]')
         # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
         list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
