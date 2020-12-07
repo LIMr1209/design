@@ -1,8 +1,120 @@
-2020-12-04 18:25:55 [root] ERROR: []
-2020-12-04 18:25:55 [root] ERROR: 25
-2020-12-04 18:40:44 [root] ERROR: []
-2020-12-04 18:40:44 [root] ERROR: 76
-2020-12-04 18:54:46 [root] ERROR: []
-2020-12-04 18:54:46 [root] ERROR: 125
-2020-12-04 19:08:22 [root] ERROR: []
-2020-12-04 19:08:22 [root] ERROR: 175
+2020-12-07 19:03:18 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:03:18 [root] ERROR: 行号 324
+2020-12-07 19:03:18 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:04:33 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:04:33 [root] ERROR: 行号 324
+2020-12-07 19:04:33 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:04:57 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:04:57 [root] ERROR: 行号 324
+2020-12-07 19:04:57 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:05:08 [root] ERROR: ['https://item.taobao.com/item.htm?id=628697504672&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627623797064&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628521515288&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627623117305&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail']
+2020-12-07 19:05:08 [root] ERROR: 32
+2020-12-07 19:08:41 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:08:41 [root] ERROR: 行号 324
+2020-12-07 19:08:41 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=628203405583&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:09:04 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:09:04 [root] ERROR: 行号 324
+2020-12-07 19:09:04 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=626612136512&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:10:12 [root] ERROR: ['https://item.taobao.com/item.htm?id=628697504672&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627623797064&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628521515288&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627623117305&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628203405583&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=626612136512&ns=1&abbucket=9#detail']
+2020-12-07 19:10:12 [root] ERROR: 80
+2020-12-07 19:12:30 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:12:30 [root] ERROR: 行号 324
+2020-12-07 19:12:30 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632383229396&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:13:51 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:13:51 [root] ERROR: 行号 324
+2020-12-07 19:13:51 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632096112624&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:14:05 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:14:05 [root] ERROR: 行号 324
+2020-12-07 19:14:05 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632096524172&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:15:35 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:15:35 [root] ERROR: 行号 324
+2020-12-07 19:15:35 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632443189169&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:15:46 [root] ERROR: ['https://item.taobao.com/item.htm?id=628697504672&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627623797064&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628521515288&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627623117305&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628203405583&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=626612136512&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632383229396&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632096112624&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632096524172&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632443189169&ns=1&abbucket=9#detail']
+2020-12-07 19:15:46 [root] ERROR: 130
+2020-12-07 19:20:05 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:05 [root] ERROR: 行号 324
+2020-12-07 19:20:05 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:08 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:08 [root] ERROR: 行号 324
+2020-12-07 19:20:08 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:10 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:10 [root] ERROR: 行号 324
+2020-12-07 19:20:10 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:10 [root] ERROR: ['https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail']
+2020-12-07 19:20:10 [root] ERROR: 0
+2020-12-07 19:20:18 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:18 [root] ERROR: 行号 324
+2020-12-07 19:20:18 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=628203405583&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:21 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:21 [root] ERROR: 行号 324
+2020-12-07 19:20:21 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=626612136512&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:21 [root] ERROR: ['https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628203405583&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=626612136512&ns=1&abbucket=9#detail']
+2020-12-07 19:20:21 [root] ERROR: 0
+2020-12-07 19:20:28 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:28 [root] ERROR: 行号 324
+2020-12-07 19:20:28 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632383229396&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:32 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:32 [root] ERROR: 行号 324
+2020-12-07 19:20:32 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632096112624&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:35 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:35 [root] ERROR: 行号 324
+2020-12-07 19:20:35 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632096524172&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:37 [root] ERROR: 文件 C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\taobao_detail.py
+2020-12-07 19:20:37 [root] ERROR: 行号 324
+2020-12-07 19:20:37 [root] ERROR: 产品爬取失败 https://item.taobao.com/item.htm?id=632443189169&ns=1&abbucket=9#detail Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@id="J_TabBar"]"}
+  (Session info: chrome=86.0.4240.198)
+  (Driver info: chromedriver=71.0.3578.30 (5b78d137d0b64a11abb4e9e67c74ca0396bc59c6),platform=Windows NT 10.0.18362 x86_64)
+
+2020-12-07 19:20:37 [root] ERROR: ['https://item.taobao.com/item.htm?id=628304207964&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628201761410&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=627791494437&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=628203405583&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=626612136512&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632383229396&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632096112624&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632096524172&ns=1&abbucket=9#detail', 'https://item.taobao.com/item.htm?id=632443189169&ns=1&abbucket=9#detail']
+2020-12-07 19:20:37 [root] ERROR: 0

@@ -51,18 +51,28 @@ def comment_tmail_js(out_number):
                 comment['first'] = i['rateContent']
             comment['add'] = i['appendComment']['content'] if i['appendComment'] else ''
             comment['buyer'] = i['displayUserNick']
-            comment['style'] = i['pics']
+            comment['style'] = i['auctionSku']
             comment['date'] = i['rateDate']
-            res = requests.post(comment_url, data=comment)
-            if res.status_code != 200 or json.loads(res.content)['code']:
-                print(json.loads(res.content)['message'])
+            try:
+                res = requests.post(comment_url, data=comment)
+                if res.status_code != 200 or json.loads(res.content)['code']:
+                    print(json.loads(res.content)['message'])
+            except Exception as e:
+                import time
+                time.sleep(3)
+                res = requests.post(comment_url, data=comment)
+                if res.status_code != 200 or json.loads(res.content)['code']:
+                    print(json.loads(res.content)['message'])
 
         pages = result['rateDetail']['paginator']['lastPage']
         if comment_page >= pages:
             comment = {}
             comment['end'] = 1
             comment['good_url'] = headers['Referer']
-            res = requests.post(comment_url, data=comment)
+            try:
+                res = requests.post(comment_url, data=comment)
+            except Exception as e:
+                res = requests.post(comment_url, data=comment)
             break
         comment_page += 1
 
@@ -127,7 +137,7 @@ def comment_taobao_js(out_number):
             res = requests.post(comment_url, data=comment)
             break
         comment_page += 1
-res = requests.get('https://opalus.d3ingo.com/api/good_comment/?site_from=9')
+res = requests.get('https://opalus.d3ingo.com/api/good_comment/?site_from=9&category=吹风机')
 res = json.loads(res.content)
 for i in res['data']:
     comment_tmail_js(str(i['number']))

@@ -19,7 +19,7 @@ class TaobaoSpider(SeleniumSpider):
     list_url = []
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = '果蔬干'
+        self.key_words = key_words
         self.price_range = ""
         self.page = 10
         self.data_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
@@ -61,6 +61,8 @@ class TaobaoSpider(SeleniumSpider):
         # ele = self.browser.find_element_by_xpath('//div[@class="inner clearfix"]')
         # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
         list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
+        list_cover_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/img/@data-src').extract()
+
         mc = MongoClient("127.0.0.1", 27017)
         test_db = mc["test"]
         data = {
@@ -69,9 +71,10 @@ class TaobaoSpider(SeleniumSpider):
             'key_words': self.key_words,
             'is_suc' :0
         }
-        for i in list_url:
+        for j,i in enumerate(list_url):
             temp = copy.deepcopy(data)
             temp['link'] = i
+            temp['cover_url'] = 'https:'+list_cover_url[j]
             test_db.taobao.insert(temp)
         if self.page < self.max_page:
             page_count = str((self.page) * 44)
