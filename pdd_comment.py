@@ -3,8 +3,8 @@ import time, datetime
 import requests
 from fake_useragent import UserAgent
 
-comment_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
-# comment_url = 'https://opalus.d3ingo.com/api/comment/save'
+# comment_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
+comment_url = 'https://opalus.d3ingo.com/api/comment/save'
 comment_data_url = 'http://yangkeduo.com/proxy/api/api/engels/reviews/sku/review/list?&goods_id=%s&page=%s&size=10&sku_id=0'
 proxies = {'http': ''}
 
@@ -33,7 +33,7 @@ def comment_pdd_js(out_number):
             comment['first'] = i['comment']
             comment['add'] = i['append']['content'] if i['append'] else ''
             comment['buyer'] = i['name']
-            '[{"spec_key":"款式","spec_value":"发廊大师专用版送1"}]'
+            comment['site_from'] = 10
             if i['specs']:
                 style = json.loads(i['specs'])[0]
                 style_str = style['spec_key'] +":"+ style['spec_value']
@@ -62,7 +62,7 @@ def comment_pdd_js(out_number):
             break
         comment_page += 1
 
-res = requests.get('http://opalus-dev.taihuoniao.com/api/good_comment?site_from=10&category=吹风机')
+res = requests.get('https://opalus.d3ingo.com/api/good_comment?site_from=10&category=吹风机')
 res = json.loads(res.content)
 for i in res['data']:
     comment_pdd_js(str(i['number']))

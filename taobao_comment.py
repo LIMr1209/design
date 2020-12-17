@@ -46,6 +46,7 @@ def comment_tmail_js(out_number):
             comment['impression'] = impression
             comment['type'] = 1 if i['anony'] else 0
             comment['good_url'] = headers['Referer']
+            comment['site_from'] = 9
             if i['rateContent'] == '此用户没有填写评论!':
                 comment['first'] = ''
             else:
@@ -115,6 +116,7 @@ def comment_taobao_js(out_number):
                 comment['type'] = 1
             comment['impression'] = impression
             comment['good_url'] = headers['Referer']
+            comment['site_from'] = 8
             if i['content'] == '此用户没有填写评论!':
                 comment['first'] = ''
             elif i['content'] == '评价方未及时做出评价,系统默认好评!':

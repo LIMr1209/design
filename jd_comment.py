@@ -57,6 +57,7 @@ def comment_jd_js(out_number):
             elif i['score'] in [1]:
                 comment['type'] = 1
             comment['impression'] = impression
+            comment['site_from'] = 11
             comment['good_url'] = headers['Referer']
             if i['content'] == '此用户没有填写评论!':
                 comment['first'] = ''
