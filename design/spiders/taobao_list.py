@@ -65,9 +65,14 @@ class TaobaoSpider(SeleniumSpider):
 
         mc = MongoClient("127.0.0.1", 27017)
         test_db = mc["test"]
+        tmp = self.price_range.replace('[','').replace(']','').split(',')
+        if len(tmp) == 1:
+            price_page = tmp[0]+'以上'
+        else:
+            price_page = tmp[0]+'-'+tmp[1]
         data = {
             'page': self.page,
-            'price_range': self.price_range,
+            'price_range': price_page,
             'key_words': self.key_words,
             'is_suc' :0
         }

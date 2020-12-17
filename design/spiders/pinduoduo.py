@@ -1,10 +1,15 @@
+import logging
 import re
 from urllib.parse import urlencode
 import json
 
+import requests
+from pymongo import MongoClient
+
+from design.utils.antiContent_Js import js
 import execjs
 import scrapy
-from design.items import ProduceItem
+from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
 
 
@@ -14,41 +19,29 @@ class PddSpider(SeleniumSpider):
     allowed_domains = ['yangkeduo.com']
     # 商品信息API
     search_url = 'http://apiv3.yangkeduo.com/search?'
+    goods_url = 'http://opalus-dev.taihuoniao.com/api/goods/save'
+    fail_url = []
+    suc_count = 0
+    # mc = MongoClient("127.0.0.1", 27017)
+    # test_db = mc["test"]
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'VUYECGCH4CUCRUN3QHEU2KCRX2HJ53AAMGFGSUOLNIXCLEBMB7WA1128855',
+        'AccessToken': 'LNS3FWZT3NFTMA7TWYZJWGPQ6KL24ZZ6PYX4VZ7HRBOS6SYW6F5Q1128855',
         'VerifyAuthToken': '1GOiKCrZqy8OtXkhOmD-nQ5a78a1501eec267f6'
+    }
+
+    custom_settings = {
+        'DOWNLOAD_DELAY': 10,
+        'DOWNLOADER_MIDDLEWARES': {
+            'design.middlewares.SeleniumMiddleware': 543,
+        }
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words
-        self.cookie = "api_uid=rBTZeV9pkS+MZwBRTyx6Ag==; _nano_fp=XpEoX0mjXqgon5TxXC_vzR~BXj_x6NvFC8UiAPB2; ua=Mozilla%2F5.0%20(Windows%20NT%2010.0%3B%20Win64%3B%20x64)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F85.0.4183.102%20Safari%2F537.36; webp=1; chat_list_rec_list=chat_list_rec_list_oPtfEa; msec=1800000; quick_entrance_click_record=20200924%2C1; PDDAccessToken=VUYECGCH4CUCRUN3QHEU2KCRX2HJ53AAMGFGSUOLNIXCLEBMB7WA1128855; pdd_user_id=9575597704; pdd_user_uin=DM2PLOFMXZMZ4YU45DJ5BRMRDQ_GEXDA; JSESSIONID=2D0AE5F2A5904F8ACDFF833B97AF0423; pdd_vds=gaLLNIbOEybboytPobQObtmGQOQiQPynyPOnaiaPPQPNtImLIGQGEiGNtNan"
-        self.browser.get('http://yangkeduo.com/')
-        cookies = self.stringToDict()
-        for i in cookies:
-            self.browser.add_cookie(i)
+        self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
-
-    def stringToDict(self):
-        '''
-        将从浏览器上Copy来的cookie字符串转化为Scrapy能使用的Dict
-        :return:
-        '''
-        cookies = []
-        items = self.cookie.split(';')
-        for item in items:
-            itemDict = {}
-            key = item.split('=')[0].replace(' ', '')
-            value = item.split('=')[1]
-            itemDict['name'] = key
-            itemDict['value'] = value
-            itemDict['path'] = '/'
-            itemDict['domain'] = 'yangkeduo.com'
-            itemDict['expires'] = None
-            cookies.append(itemDict)
-        return cookies
-
 
     def start_requests(self):
         """
@@ -63,13 +56,10 @@ class PddSpider(SeleniumSpider):
         """
         list_id = re.findall('"listID":"(.*?)"', response.text, re.S)[0]
         flip = re.findall('"flip":"(.*?)"', response.text, re.S)[0]
-        # with open('./utils/anti_content.js', 'r', encoding='gbk') as f:
-        #     js = f.read()
-        from design.utils.antiContent_Js import js
-        for page in range(1, 20):
-            ctx = execjs.compile(js)
-            anti_content = ctx.call('result', response.url)
-            # anti_content = execjs.compile(js).call('get_anti', response.url)
+        ctx = execjs.compile(js)
+        anti_content = ctx.call('result', response.url)
+        list_url = []
+        for i in range(1, 21):
             data = {
                 'gid': '',
                 'item_ver': 'lzqq',
@@ -81,16 +71,16 @@ class PddSpider(SeleniumSpider):
                 'filter': '',
                 'track_data': 'refer_page_id,10002_1600936236168_2wdje7q7ue;refer_search_met_pos,0',
                 'q': self.key_words,
-                'page': page,
+                'page': i,
                 'size': '50',
                 'flip': flip,
                 'anti_content': anti_content,
                 'pdduid': '9575597704'
             }
             yield scrapy.Request(url=self.search_url + urlencode(data),
-                          headers=self.headers,
-                          callback=self.parse_list,
-                          dont_filter=True)
+                                 headers=self.headers,
+                                 callback=self.parse_list,
+                                 dont_filter=True, meta={"list_url": list_url})
 
     def parse_list(self, response):
         """
@@ -99,20 +89,56 @@ class PddSpider(SeleniumSpider):
         if response:
             items = json.loads(response.text)['items']
             for item in items:
-                if 'link_url' in item['item_data']['goods_model']:
-                    yield scrapy.Request('http://yangkeduo.com/{}'.format(item['item_data']['goods_model']['link_url']), meta={'usedSelenium': True}, callback=self.parse_detail, dont_filter=True)
+                item_data = TaobaoItem()
+                item_data['cover_url'] = item['item_data']['goods_model']['thumb_url']
+                item_data['title'] = item['item_data']['goods_model']['goods_name']
+                item_data['category'] = self.key_words
+                item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
+                item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
+                item_data['out_number'] = item['item_data']['goods_model']['goods_id']
+                item_data['price_range'] = self.price_range
+                item_data['sale_count'] = item['item_data']['goods_model']['sales']
+                # service_list = []
+                # for i in items['item_data']['goods_model']['tag_list']:
+                #     service_list.append(i['text'])
+                # item_data['service'] = ','.join(service_list)
+                item_data['site_from'] = 10
+                item_data['site_type'] = 1
+                url = 'http://yangkeduo.com/{}'.format(item['item_data']['goods_model']['link_url'])
+                item_data['url'] = url
+                yield scrapy.Request(url, meta={'usedSelenium': True, "item": item_data}, callback=self.parse_detail,
+                                     dont_filter=True)
 
         else:
             self.logger.debug("No data obtained!")
 
     def parse_detail(self, response):
-        item = ProduceItem()
-        data = re.findall('"topGallery":(\[.*?\])', response.text)[0]
-        data = json.loads(data)
-        img_urls = []
-        for i in data:
-            img_urls.append(i['url'])
-        item['tag'] = self.key_words
-        item['img_urls'] = img_urls
-        item['channel'] = 'pdd'
-        yield item
+        item = response.meta['item']
+        service_list = response.xpath('//div[@class="fsI_SU5H"]/div/text()').extract()
+        item['service'] = ','.join(service_list)
+        comment_text = response.xpath('//div[@class="ccIhLMdm"]/text()').extract()[0]
+        comment_text = re.findall('商品评价\((.*)\)', comment_text)[0]
+        index = comment_text.find('万')
+        if index != -1:
+            item['comment_count'] = int(float(comment_text[:index]) * 10000)
+        else:
+            comment_count = re.search('\d+', comment_text)
+            item['comment_count'] = int(comment_count.group())
+        detail_keys = response.xpath('//div[@class="_8rUS_gSm"]/div[1]/text()').extract()
+        detail_values = response.xpath('//div[@class="_8rUS_gSm"]/div[2]/text()').extract()
+        detail_dict = {}
+        detail_str_list = []
+        for i in range(len(detail_keys)):
+            detail_str_list.append(detail_keys[i] + ':' + detail_values[i])
+            detail_dict[detail_keys[i]] = detail_values[i]
+        item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
+        item['detail_str'] = ', '.join(detail_str_list)
+        good_data = dict(item)
+        res = requests.post(url=self.goods_url, data=good_data)
+        if res.status_code != 200 or json.loads(res.content)['code']:
+            logging.error("产品保存失败" + response.url)
+            logging.error(json.loads(res.content)['message'])
+            self.fail_url.append(response.url)
+        else:
+            self.suc_count += 1
+

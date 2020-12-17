@@ -32,11 +32,21 @@ import requests
 # import requests
 
 
+#
+# proxies = {'http': 'http://tps125.kdlapi.com:15818'}
+# headers = {
+#      'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
+# }
+#
+# response = requests.get('http://dev.kdlapi.com/testproxy', proxies=proxies)
+# print(response.content)
 
-proxies = {'http': 'http://tps125.kdlapi.com:15818'}
-headers = {
-     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
-}
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
-response = requests.get('http://dev.kdlapi.com/testproxy', proxies=proxies)
-print(response.content)
+l = [1,2,3,4,5,6,7,8,9,10,11]
+n = 10000
+
+print([l[i:i + n] for i in range(0, len(l), n)])

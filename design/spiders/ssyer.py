@@ -9,10 +9,10 @@ import re
 class DesignCaseSpider(scrapy.Spider):
     name = 'ssyer'
     allowed_domains = ['www.ssyer.com']
-    year = 2019
+    year = 2020
     yearid = 'undefined'
     year_list = {
-        '2017': "6281", "2018": "7223", "2019": "undefined",
+        '2017': "6281", "2018": "7223", "2019": "8442", "2020": 'undefined',
         '2016': '5452', '2015': '4475', '2014': '3398', '2013': '2653', '2012': '804',
         '2011': '803', '2010': '802', '2009': '807', '2008': '808', '2007': '809', '2006': '810'
     }

@@ -61,11 +61,11 @@ class TaobaoSpider(SeleniumSpider):
     test_db = mc["test"]
 
     def __init__(self, key_words, *args, **kwargs):
-        self.page = 9
+        self.page = 10
         self.max_page = 10
         self.fail_url = []
         self.suc_count = 0
-        self.key_words = "真无线蓝牙耳机 降噪 入耳式"
+        self.key_words = "果蔬干"
         # self.cookie = 'cookie2=1e1329c204b483965c50f4aea175989c; t=27342fccaf0252611c51fc03fa4e7ac6; _tb_token_=f353e3600a381; hng=CN%7Czh-CN%7CCNY%7C156; thw=cn; _samesite_flag_=true; xlly_s=1; enc=MIfEinE%2BUqe%2FrOAJ4kSL2sf8sPaGqMfQhs3fJI6jVi9whtay9lqef7PafAH8YbF%2Bpb%2FPiEz6i%2FJP%2B7yEO0dpYA%3D%3D; lLtC1_=1; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az9h5Tq7%2Bg%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; _m_h5_tk=6ccde694cfdbc1922b28debd3c328878_1606968670174; _m_h5_tk_enc=a5534a7aa9920b87606b4df020bf73f7; tfstk=cCxAB_2ebbcDOl6JLE3u5zLb7qLAZrqA6-1UXvR2soXxpsrOi4-Hvhbil9FA2YC..; l=eBjqXoucQKR1CZ0kBOfZourza77tIIRYouPzaNbMiOCPOqC950zhWZROM0LpCnGVhssJR3oVpXawBeYBqn4xIghne5DDwIMmn; isg=BJKSTHvrGeWwvmT7yvjYunE041h0o5Y9lxlgOFzrtsUwbzJpRDEeTWCN28vTGQ7V'
         self.cookie = 'hng=CN%7Czh-CN%7CCNY%7C156; t=27342fccaf0252611c51fc03fa4e7ac6; enc=MIfEinE%2BUqe%2FrOAJ4kSL2sf8sPaGqMfQhs3fJI6jVi9whtay9lqef7PafAH8YbF%2Bpb%2FPiEz6i%2FJP%2B7yEO0dpYA%3D%3D; _tb_token_=f353e3600a381; cookie2=1e1329c204b483965c50f4aea175989c; xlly_s=1; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cna=zasMF12t3zoCATzCuQKpN3kO; uc1=existShop=false&cookie21=UtASsssmeW6lpyd%2BB%2B3t&cookie14=Uoe0az9h5Ti4KA%3D%3D&pas=0&cookie15=VFC%2FuZ9ayeYq2g%3D%3D&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D; uc3=lg2=UIHiLt3xD8xYTw%3D%3D&vt3=F8dCuf2CSp7DjbEF1as%3D&id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSdvtCI6XCk%2F&nk4=0%400AdtZS03tnds0llDWCRcSihqN1jxbD1O2opb; sgcookie=E100PSo4OpJklR8obNtKBryUufO195A5YSzyXhka2trDZeXqTdHNTDWmqifymuuq1627cAyn3cQnqskk9ztKGfP43g%3D%3D; csg=2a17af03; pnm_cku822=098%23E1hv%2F9vUvbpvUvCkvvvvvjiWP2dyQjnmn2dwgj1VPmPO6jr8RFswzj3WPFSv0jYURvhvCvvvvvvUvpCWCRbXvvaF9W2%2BFfmtEpcZTWexRdIAcUmxfwofd56Ofa3lKbh6UxWnSXVxI2iI27zh1j7ZHkx%2F1RBlYb8rwZXlJXxreC9aWXxr1WmK5I9CvvOUvvVvJhTIvpvUvvmvR0nopE4gvpvIvvvvvhCvvvvvvUUvphvUbpvv99Cvpv32vvmmvhCvmWIvvUUvphvUA9vCvvOvCvvvphvRvpvhvv2MMTOCvvpvvUmm; _m_h5_tk=b89879a97398b54808462f75f2281c05_1606972762508; _m_h5_tk_enc=27f9ec8ed65873154cb5f358e7cc2baf; tfstk=cplGB7MRRAy_J-2nFCNsruEv8P-dZrtabjltTXaIUF2atkGFigBFUcbp-koiMt1..; l=eBQJ2fCIQDOlzshQBOfZlurza77OhIRYouPzaNbMiOCPOT5e5omlWZROa_TwCnGVh6cBR3oVpXaaBeYBqhvQ5O95a6Fy_pHmn; isg=BPv7i6eNIMq3nB1mTJyyKlytit9lUA9SVto5X-24ufoRTBsudSELooqGZuwC6mdK; cq=ccp%3D1'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
@@ -141,8 +141,8 @@ class TaobaoSpider(SeleniumSpider):
         # self.update_cookie()
         # self.stringToDict()
         data = self.test_db.taobao.find({'page': self.page, 'is_suc': 0, 'key_words': self.key_words})
-        # data = [i for i in data if "detail.tmall.com" in i['link']]
-        data = [i for i in data if "item.taobao.com" in i['link']]
+        data = [i for i in data if "detail.tmall.com" in i['link']]
+        # data = [i for i in data if "item.taobao.com" in i['link']]
         list_url = [i['link'] for i in data]
         if list_url:
             yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail,
@@ -167,8 +167,8 @@ class TaobaoSpider(SeleniumSpider):
             if self.page < self.max_page:
                 self.page += 1
                 data = self.test_db.taobao.find({'page': self.page, 'is_suc': 0, 'key_words': self.key_words})
-                # data = [i for i in data if "detail.tmall.com" in i['link']]
-                data = [i for i in data if "item.taobao.com" in i['link']]
+                data = [i for i in data if "detail.tmall.com" in i['link']]
+                # data = [i for i in data if "item.taobao.com" in i['link']]
                 list_url = [i['link'] for i in data]
                 if list_url:
                     yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail,
@@ -195,109 +195,111 @@ class TaobaoSpider(SeleniumSpider):
                         time.sleep(0.5)
                     # ele = self.browser.find_element_by_xpath('//div[@class="tm-layout"]')
                     # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-                    elem = WebDriverWait(self.browser, 10, 0.5).until(
-                        EC.presence_of_element_located(
-                            (By.ID, 'side-shop-info')
-                        )
-                    )
-                    if elem.is_displayed:
-                        item = TaobaoItem()
-                        item['title'] = self.browser.find_element_by_xpath(
-                            '//div[@class="tb-detail-hd"]/h1').text.strip()
-                        try:
-                            item['original_price'] = self.browser.find_element_by_xpath(
-                                '//dl[@id="J_StrPriceModBox"]//span').text
-                        except:
-                            item['original_price'] = self.browser.find_element_by_xpath(
-                                '//span[@class="tm-price"]').text
-                        try:
-                            item['promotion_price'] = self.browser.find_element_by_xpath(
-                                '//dl[@id="J_PromoPrice"]//span').text
-                        except:
-                            item['promotion_price'] = ''
-
-                        service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
-                        item['service'] = ','.join([i.text for i in service])
-                        try:
-                            reputation = self.browser.find_elements_by_xpath('//span[@class="shopdsr-score-con"]')
-                            item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                                reputation[0].text.strip(), reputation[1].text.strip(), reputation[2].text.strip())
-                        except:
-                            pass
-                        try:
-                            item['comment_count'] = self.browser.find_element_by_xpath(
-                                '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').text
-                        except:
-                            pass
-                        sale_xpath = self.browser.find_element_by_xpath(
-                            '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]').text
-                        if sale_xpath:
-                            index = sale_xpath.find('万')
-                            if index != -1:
-                                item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
-                            else:
-                                sale_count = re.search('\d+', sale_xpath)
-                                if sale_count:
-                                    item['sale_count'] = int(sale_count.group())
-                        try:
-                            elem = WebDriverWait(self.browser, 20, 0.5).until(
-                                EC.presence_of_element_located(
-                                    (By.ID, 'J_CollectCount')
-                                )
+                    try:
+                        elem = WebDriverWait(self.browser, 10, 0.5).until(
+                            EC.presence_of_element_located(
+                                (By.ID, 'side-shop-info')
                             )
-                            if elem.is_displayed:
-                                favorite_count_text = self.browser.find_element_by_xpath('//span[@id="J_CollectCount"]')
-                                d = re.search("\d+", favorite_count_text.text)
-                                if d:
-                                    item['favorite_count'] = int(d.group())
-                        except:
-                            item['favorite_count'] = 0
-                        detail_list = response.xpath('//ul[@id="J_AttrUL"]/li/text()').extract()
-                        detail_str_list = []
-                        for j, i in enumerate(detail_list):
-                            s = i.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
-                                                                                                                 '')
-                            if s.endswith('：') or s.endswith(':'):
-                                detail_str_list.append(s + detail_list[j + 1])
-                                continue
-                            if ':' in s or '：' in s:
-                                detail_str_list.append(s)
-                        item['detail_str'] = ', '.join(detail_str_list)
-                        detail_dict_list = []
-                        for i in detail_str_list:
-                            tmp = re.split('[:：]', i)
-                            temp = {tmp[0]: tmp[1].replace('\xa0', '')}
-                            detail_dict_list.append(temp)
-                        item['detail_dict'] = json.dumps(detail_dict_list, ensure_ascii=False)
+                        )
+                    except:
+                        pass
 
-                        try:
-                            cover_url = self.browser.find_element_by_xpath(
-                                '//ul[@id="J_UlThumb"]/li//img').get_attribute(
-                                'src')
-                            if not cover_url.startswith("http"):
-                                cover_url = "https:" + cover_url
-                            cover_url = cover_url.rsplit('_', 1)[0]
-                        except:
-                            cover_url = ''
-                        item['cover_url'] = cover_url
-                        itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
+                    item = TaobaoItem()
+                    item['title'] = self.browser.find_element_by_xpath(
+                        '//div[@class="tb-detail-hd"]/h1').text.strip()
+                    try:
+                        item['original_price'] = self.browser.find_element_by_xpath(
+                            '//dl[@id="J_StrPriceModBox"]//span').text
+                    except:
+                        item['original_price'] = self.browser.find_element_by_xpath(
+                            '//span[@class="tm-price"]').text
+                    try:
+                        item['promotion_price'] = self.browser.find_element_by_xpath(
+                            '//dl[@id="J_PromoPrice"]//span').text
+                    except:
+                        item['promotion_price'] = ''
 
-                        item['site_from'] = 9
-                        item['site_type'] = 1
-                        item['price_range'] = data[0]['price_range']
-                        item['out_number'] = itemId
-                        # item['cover_url'] = data[0]['cover_url']
-                        item['category'] = data[0]['key_words']
-                        item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
-                        good_data = dict(item)
-                        res = requests.post(url=self.goods_url, data=good_data)
-                        if res.status_code != 200 or json.loads(res.content)['code']:
-                            logging.error("产品保存失败" + response.url)
-                            logging.error(json.loads(res.content)['message'])
-                            self.fail_url.append(response.url)
+                    service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
+                    item['service'] = ','.join([i.text for i in service])
+                    try:
+                        reputation = self.browser.find_elements_by_xpath('//span[@class="shopdsr-score-con"]')
+                        item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
+                            reputation[0].text.strip(), reputation[1].text.strip(), reputation[2].text.strip())
+                    except:
+                        pass
+                    try:
+                        item['comment_count'] = self.browser.find_element_by_xpath(
+                            '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').text
+                    except:
+                        pass
+                    sale_xpath = self.browser.find_element_by_xpath(
+                        '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]').text
+                    if sale_xpath:
+                        index = sale_xpath.find('万')
+                        if index != -1:
+                            item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
                         else:
-                            self.test_db.taobao.update_many({'link': data[0]['link']}, {"$set": {'is_suc': 1}})
-                            self.suc_count += 1
+                            sale_count = re.search('\d+', sale_xpath)
+                            if sale_count:
+                                item['sale_count'] = int(sale_count.group())
+                    try:
+                        elem = WebDriverWait(self.browser, 20, 0.5).until(
+                            EC.presence_of_element_located(
+                                (By.ID, 'J_CollectCount')
+                            )
+                        )
+                        if elem.is_displayed:
+                            favorite_count_text = self.browser.find_element_by_xpath('//span[@id="J_CollectCount"]')
+                            d = re.search("\d+", favorite_count_text.text)
+                            if d:
+                                item['favorite_count'] = int(d.group())
+                    except:
+                        item['favorite_count'] = 0
+                    detail_list = response.xpath('//ul[@id="J_AttrUL"]/li/text()').extract()
+                    detail_str_list = []
+                    for j, i in enumerate(detail_list):
+                        s = i.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
+                                                                                                             '')
+                        if s.endswith('：') or s.endswith(':'):
+                            detail_str_list.append(s + detail_list[j + 1])
+                            continue
+                        if ':' in s or '：' in s:
+                            detail_str_list.append(s)
+                    item['detail_str'] = ', '.join(detail_str_list)
+                    detail_dict = {}
+                    for i in detail_str_list:
+                        tmp = re.split('[:：]', i)
+                        detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
+                    item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
+
+                    try:
+                        cover_url = self.browser.find_element_by_xpath(
+                            '//ul[@id="J_UlThumb"]/li//img').get_attribute(
+                            'src')
+                        if not cover_url.startswith("http"):
+                            cover_url = "https:" + cover_url
+                        cover_url = cover_url.rsplit('_', 1)[0]
+                    except:
+                        cover_url = ''
+                    item['cover_url'] = cover_url
+                    itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
+
+                    item['site_from'] = 9
+                    item['site_type'] = 1
+                    item['price_range'] = data[0]['price_range']
+                    item['out_number'] = itemId
+                    # item['cover_url'] = data[0]['cover_url']
+                    item['category'] = data[0]['key_words']
+                    item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
+                    good_data = dict(item)
+                    res = requests.post(url=self.goods_url, data=good_data)
+                    if res.status_code != 200 or json.loads(res.content)['code']:
+                        logging.error("产品保存失败" + response.url)
+                        logging.error(json.loads(res.content)['message'])
+                        self.fail_url.append(response.url)
+                    else:
+                        self.test_db.taobao.update_many({'link': data[0]['link']}, {"$set": {'is_suc': 1}})
+                        self.suc_count += 1
 
                 except Exception as e:
                     logging.error(
@@ -393,12 +395,11 @@ class TaobaoSpider(SeleniumSpider):
                             if ':' in s or '：' in s:
                                 detail_str_list.append(s)
                     item['detail_str'] = ', '.join(detail_str_list)
-                    detail_dict_list = []
+                    detail_dict = {}
                     for i in detail_str_list:
                         tmp = re.split('[:：]', i)
-                        temp = {tmp[0]: tmp[1].replace('\xa0', '')}
-                        detail_dict_list.append(temp)
-                    item['detail_dict'] = json.dumps(detail_dict_list, ensure_ascii=False)
+                        detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
+                    item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
                     try:
                         cover_url = self.browser.find_element_by_xpath('//ul[@id="J_UlThumb"]/li//img').get_attribute(
                             'src')
