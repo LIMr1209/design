@@ -7,6 +7,7 @@ import time
 import requests
 import scrapy
 from fake_useragent import UserAgent
+from requests.adapters import HTTPAdapter
 
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
@@ -49,11 +50,16 @@ class JdSpider(SeleniumSpider):
     def parse_detail(self, response):
         item = TaobaoItem()
         item['title'] = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
-        item['promotion_price'] = response.xpath('//span[@class="p-price"]/span[2]/text()').extract()[0]
         item['sku_ids'] = ','.join(response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
-        original_text = response.xpath('//del[@id="page_origin_price" or @id="page_opprice"]/text()').extract()
+        promotion_price = response.xpath('//span[@class="p-price"]/span[2]/text()').extract()[0]
+        original_text = response.xpath('//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]/text()').extract()
         if original_text:
             item['original_price'] = original_text[0][1:]
+        if not 'original_price' in item:
+            item['original_price'] = promotion_price
+            item['promotion_price'] = ''
+        else:
+            item['promotion_price'] = promotion_price
         comment_text = response.xpath('//a[contains(@class,"count J-comm")]/text()').extract()
         if comment_text:
             comment_count = comment_text[0]
@@ -109,24 +115,27 @@ class JdSpider(SeleniumSpider):
         item['img_urls'] = ','.join(img_urls)
         good_data = dict(item)
 
-        # ua = UserAgent().random
-        # headers = {
-        #     'Referer': 'https://item.jd.com/%s.html' % itemId,
-        #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-        #     'Cookie': 'JSESSIONID=068CE69BEB8E77E7FF7D415202926236.s1; Path=/',
-        # }
-        # url = self.comment_data_url % (itemId,0)
-        # comment_res = requests.get(url, headers=headers, verify=False)
-        # rex = re.compile('({.*})')
-        # result = json.loads(rex.findall(comment_res.text)[0])
-        # good_data['positive_review'] = result['productCommentSummary']['goodCount']
-        # good_data['comment_count'] = result['productCommentSummary']['commentCount']
-        # impression = ''
-        # for j in result['hotCommentTagStatistics']:
-        #     impression += j['name'] + '(' + str(j['count']) + ')  '
-        # good_data['impression'] = impression
+        ua = UserAgent().random
+        headers = {
+            'Referer': 'https://item.jd.com/%s.html' % itemId,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+            'Cookie': 'JSESSIONID=068CE69BEB8E77E7FF7D415202926236.s1; Path=/',
+        }
+        s = requests.Session()
+        s.mount('http://', HTTPAdapter(max_retries=5))
+        s.mount('https://', HTTPAdapter(max_retries=5))
+        url = self.comment_data_url % (itemId,0)
+        comment_res = s.get(url, headers=headers, verify=False, timeout=10)
+        rex = re.compile('({.*})')
+        result = json.loads(rex.findall(comment_res.text)[0])
+        good_data['positive_review'] = result['productCommentSummary']['goodCount']
+        good_data['comment_count'] = result['productCommentSummary']['commentCount']
+        impression = ''
+        for j in result['hotCommentTagStatistics']:
+            impression += j['name'] + '(' + str(j['count']) + ')  '
+        good_data['impression'] = impression
         print(good_data)
-        res = requests.post(url=self.goods_url, data=good_data)
+        res = s.post(url=self.goods_url, data=good_data)
         if res.status_code != 200 or json.loads(res.content)['code']:
             logging.error("产品保存失败" + response.url)
             logging.error(json.loads(res.content)['message'])

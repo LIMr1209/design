@@ -19,7 +19,7 @@ def comment_pdd_js(out_number):
         headers = {
             'Referer': 'http://yangkeduo.com/goods_comments.html?goods_id=%s' % out_number,
             'User-Agent': ua,
-            'AccessToken': 'VWP6N6J2U7IYBIGAPO5Z2J2K4KUITLLBYNG5XXSRG2V6UEOUA33A1128855',
+            'AccessToken': 'OSAR37W2Z26BM7JKEJAZMFDXNFNO3IKEMINREDOO3SEA7DITK7VQ1128855',
             'VerifyAuthToken': 'yiNF63KwVYtT3frnBC1Rvw9a0471827507f365b',
         }
         comment_res = requests.get(comment_data_url % (out_number, comment_page), headers=headers,

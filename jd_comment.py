@@ -2,7 +2,7 @@ import json
 import random
 import re
 import time
-
+from requests.adapters import HTTPAdapter
 import requests
 from fake_useragent import UserAgent
 
@@ -28,8 +28,17 @@ def comment_jd_js(out_number):
             'Cookie': 'JSESSIONID=046620E1D8BC6E9E973E8C7BFC57A6D3.s1; Path=/',
         }
         url = comment_data_url % (out_number,comment_page)
-        comment_res = requests.get(url, headers=headers,
-                                   proxies=proxies, verify=False)
+
+        s = requests.Session()
+        s.mount('http://', HTTPAdapter(max_retries=5))
+        s.mount('https://', HTTPAdapter(max_retries=5))
+
+        try:
+            comment_res = s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
+        except requests.exceptions.RequestException as e:
+            print('被限制')
+            print(out_number)
+            break
 
         # 54 好评 3 2 中评 1 差评
         rex = re.compile('({.*})')
@@ -64,7 +73,7 @@ def comment_jd_js(out_number):
             if 'afterUserComment' in i and i['afterUserComment']:
                 comment['add'] = i['afterUserComment']['content']
             comment['buyer'] = i['nickname']
-            comment['style'] = i['productColor']
+            comment['style'] = i['productColor'] if 'productColor' in i else ''
             comment['date'] = i['creationTime']
             try:
                 res = requests.post(comment_url, data=comment)
