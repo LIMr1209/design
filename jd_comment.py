@@ -1,4 +1,5 @@
 import json
+import random
 import re
 import time
 
@@ -8,33 +9,23 @@ from fake_useragent import UserAgent
 comment_url = 'https://opalus.d3ingo.com/api/comment/save'
 # comment_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
 # comment_url = 'https://opalus.d3ingo.com/api/comment/save'
-comment_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+# comment_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+# 当前sku 评论
+comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
 proxies = {'http': ''}
 
 
 def comment_jd_js(out_number):
     comment_page = 0
     while True:
+        num = random.randint(5, 10)
+        time.sleep(num)
         ua = UserAgent().random
         headers = {
             'Referer': 'https://item.jd.com/%s.html'%out_number,
             # 'User-Agent': ua,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-            # 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            # 'Accept-Encoding': 'gzip, deflate, br',
-            # 'Accept-Language': 'zh-CN,zh;q=0.9',
-            # 'Cache-Control': 'no-cache',
-            # 'Connection': 'keep-alive',
-            'Cookie': 'JSESSIONID=068CE69BEB8E77E7FF7D415202926236.s1; Path=/',
-            # 'Host': 'club.jd.com',
-            # 'Pragma': 'no-cache',
-            # 'sec-ch-ua': '"Google Chrome";v="87", " Not;A Brand";v="99", "Chromium";v="87"',
-            # 'sec-ch-ua-mobile': '?0',
-            # 'Sec-Fetch-Dest': 'document',
-            # 'Sec-Fetch-Mode': 'navigate',
-            # 'Sec-Fetch-Site': 'none',
-            # 'Sec-Fetch-User': '?1',
-            # 'Upgrade-Insecure-Requests': '1',
+            'Cookie': 'JSESSIONID=046620E1D8BC6E9E973E8C7BFC57A6D3.s1; Path=/',
         }
         url = comment_data_url % (out_number,comment_page)
         comment_res = requests.get(url, headers=headers,
@@ -42,7 +33,12 @@ def comment_jd_js(out_number):
 
         # 54 好评 3 2 中评 1 差评
         rex = re.compile('({.*})')
-        result = json.loads(rex.findall(comment_res.text)[0])
+        try:
+            result = json.loads(rex.findall(comment_res.text)[0])
+        except:
+            print('被限制')
+            print(out_number)
+            break
         for i in result['comments']:
             comment = {}
             comment['positive_review'] = result['productCommentSummary']['goodCount']
@@ -70,16 +66,16 @@ def comment_jd_js(out_number):
             comment['buyer'] = i['nickname']
             comment['style'] = i['productColor']
             comment['date'] = i['creationTime']
-            # try:
-            #     res = requests.post(comment_url, data=comment)
-            # except:
-            #     time.sleep(3)
-            #     res = requests.post(comment_url, data=comment)
-            # if res.status_code != 200 or json.loads(res.content)['code']:
-            #     print(json.loads(res.content)['message'])
+            try:
+                res = requests.post(comment_url, data=comment)
+            except:
+                time.sleep(3)
+                res = requests.post(comment_url, data=comment)
+            if res.status_code != 200 or json.loads(res.content)['code']:
+                print(json.loads(res.content)['message'])
 
         pages = result['maxPage']
-        if comment_page >= pages or not result['maxPage']:
+        if comment_page >= pages or not result['comments']:
             comment = {}
             comment['end'] = 1
             comment['good_url'] = headers['Referer']
@@ -90,9 +86,9 @@ def comment_jd_js(out_number):
                 res = requests.post(comment_url, data=comment)
             break
         comment_page += 1
-
-comment_jd_js(70645352770)
-# res = requests.get('http://opalus-dev.taihuoniao.com/api/good_comment?site_from=10&category=吹风机')
-# res = json.loads(res.content)
-# for i in res['data']:
-#     comment_jd_js(str(i['number']))
+import urllib3
+urllib3.disable_warnings()
+res = requests.get('https://opalus.d3ingo.com/api/good_comment?site_from=11&category=吹风机')
+res = json.loads(res.content)
+for i in res['data']:
+    comment_jd_js(str(i['number']))

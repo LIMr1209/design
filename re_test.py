@@ -1,3 +1,4 @@
+import json
 import re
 
 # a = '<noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050" <noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050"</noscript><noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050" <noscript>&lt;img class="alignnone size-full wp-image-283133" src="https://www.yankodesign.com/images/design_news/2020/10/RGKitPlay_a_motion_control_kit.jpg" alt="" width="1050"</noscript>'
@@ -47,15 +48,15 @@ a = '''
 
 b = re.findall('"image": \["(.*)"\]', a)
 c = b[0].split('","')
-print(c)
+# print(c)
 
 text = ' Communication Design Category, 2010 - 2011.'
 rex = re.compile(r'Category, (\d+) - (\d+)')
 prize_time = rex.findall(text)
-print(prize_time)
+# print(prize_time)
 
 
 
 s = '商品评价(10万+)'
 a = re.findall('商品评价\((.*)\)',s)
-print(a)
+# print(a)

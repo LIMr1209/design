@@ -147,6 +147,8 @@ class TaobaoItem(scrapy.Item):
     title = scrapy.Field()  # 名称
     original_price = scrapy.Field()  # 原价
     out_number = scrapy.Field() # 淘宝商品id
+    sku_ids = scrapy.Field() # sku  ids
+    img_urls = scrapy.Field()
     promotion_price = scrapy.Field()  # 优惠价
     price_range = scrapy.Field()  # 价格范围
     sale_count = scrapy.Field()  # 成交量

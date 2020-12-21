@@ -31,8 +31,8 @@ class PddSpider(SeleniumSpider):
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'LNS3FWZT3NFTMA7TWYZJWGPQ6KL24ZZ6PYX4VZ7HRBOS6SYW6F5Q1128855',
-        'VerifyAuthToken': '1GOiKCrZqy8OtXkhOmD-nQ5a78a1501eec267f6'
+        'AccessToken': 'VWP6N6J2U7IYBIGAPO5Z2J2K4KUITLLBYNG5XXSRG2V6UEOUA33A1128855',
+        'VerifyAuthToken': 'yiNF63KwVYtT3frnBC1Rvw9a0471827507f365b'
     }
 
     custom_settings = {
@@ -112,8 +112,14 @@ class PddSpider(SeleniumSpider):
 
     def parse_detail(self, response):
         time.sleep(3)
+        data = re.findall('"topGallery":(\[.*?\])', response.text)[0]
+        data = json.loads(data)
+        img_urls = []
+        for i in data:
+            img_urls.append(i['url'])
         items_list = response.meta['items_list']
         item = items_list.pop(0)
+        item['img_urls'] = ','.join(img_urls)
         service_list = self.browser.find_elements_by_xpath('//div[@class="fsI_SU5H"]/div')
         service_list = [i.text for i in service_list if i.text]
         item['service'] = ','.join(service_list)

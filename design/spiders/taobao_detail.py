@@ -273,15 +273,19 @@ class TaobaoSpider(SeleniumSpider):
                     item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
 
                     try:
-                        cover_url = self.browser.find_element_by_xpath(
-                            '//ul[@id="J_UlThumb"]/li//img').get_attribute(
-                            'src')
-                        if not cover_url.startswith("http"):
-                            cover_url = "https:" + cover_url
-                        cover_url = cover_url.rsplit('_', 1)[0]
+                        img_urls = []
+                        img_urls_ele = self.browser.find_elements_by_xpath(
+                            '//ul[@id="J_UlThumb"]/li//img')
+                        for i in img_urls_ele:
+                            img_url = i.get_attribute( 'src')
+                            if not img_url.startswith("http"):
+                                img_url = "https:" + img_url
+                            img_url = img_url.rsplit('_', 1)[0]
+                            img_urls.append(img_url)
+                        item['cover_url'] = img_urls[0]
+                        item['img_urls'] = ','.join(img_urls)
                     except:
-                        cover_url = ''
-                    item['cover_url'] = cover_url
+                        pass
                     itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
 
                     item['site_from'] = 9
@@ -401,15 +405,19 @@ class TaobaoSpider(SeleniumSpider):
                         detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
                     item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
                     try:
-                        cover_url = self.browser.find_element_by_xpath('//ul[@id="J_UlThumb"]/li//img').get_attribute(
-                            'src')
-                        if not cover_url.startswith("http"):
-                            cover_url = "https:" + cover_url
-
-                        cover_url = cover_url.rsplit('_', 1)[0]
-                    except Exception as e:
-                        cover_url = ''
-                    item['cover_url'] = cover_url
+                        img_urls = []
+                        img_urls_ele = self.browser.find_elements_by_xpath(
+                            '//ul[@id="J_UlThumb"]/li//img')
+                        for i in img_urls_ele:
+                            img_url = i.get_attribute( 'src')
+                            if not img_url.startswith("http"):
+                                img_url = "https:" + img_url
+                            img_url = img_url.rsplit('_', 1)[0]
+                            img_urls.append(img_url)
+                        item['cover_url'] = img_urls[0]
+                        item['img_urls'] = img_urls
+                    except:
+                        pass
                     item['site_from'] = 8
                     item['site_type'] = 1
                     item['price_range'] = data[0]['price_range']
