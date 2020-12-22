@@ -23,6 +23,8 @@ class CommentSpider:
         self.random_sleep_end = 10
         if name == 'jd':
             self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+            # 有的商品 当前sku 无评论 切换url
+            self.switch = False
         elif name == 'pdd':
             self.comment_data_url = 'http://yangkeduo.com/proxy/api/reviews/%s/list?pdduid=9575597704&page=%s&size=20&enable_video=1&enable_group_review=1&label_id=0'
         elif name == 'taobao':
@@ -30,8 +32,8 @@ class CommentSpider:
         elif name == 'tmall':
             self.comment_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
         self.comment_save_url = 'https://opalus.d3ingo.com/api/comment/save'
-        self.comment_save_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
-        self.comment_save_url = 'http://127.0.0.1:8002/api/comment/save'
+        # self.comment_save_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
+        # self.comment_save_url = 'http://127.0.0.1:8002/api/comment/save'
 
     # 保存评论
     def comment_save(self, out_number, data):
@@ -56,40 +58,47 @@ class CommentSpider:
 
     def data_handle(self, out_number):
         if self.name == 'jd':
-            self.data_jd_handle(out_number)
+            res = self.data_jd_handle(out_number)
         elif self.name == 'pdd':
-            self.data_pdd_handle(out_number)
+            res = self.data_pdd_handle(out_number)
         elif self.name == 'tmall':
-            self.data_tmall_handle(out_number)
+            res = self.data_tmall_handle(out_number)
         elif self.name == 'taobao':
-            self.data_taobao_handle(out_number)
+            res = self.data_taobao_handle(out_number)
+        return res
 
     def data_jd_handle(self, out_number):
         comment_page = 0
         while True:
+            comment_res = ''
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
                 # 'User-Agent': ua,
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-                'Cookie': 'JSESSIONID=046620E1D8BC6E9E973E8C7BFC57A6D3.s1; Path=/',
+                'Cookie': '__jdv=76161171|direct|-|none|-|1608255795687; areaId=1; PCSYCityID=CN_110000_110100_110105; shshshfpa=1ea06a98-4acf-4194-8612-1f53aa095576-1608255797; shshshfpb=ptjkzrtRv%2FGXDRxvbTmMhXQ%3D%3D; ipLoc-djd=1-72-55653-0; jwotest_product=99; __jdu=16082557956851132232680; __jda=122270672.16082557956851132232680.1608255796.1608528276.1608546540.6; __jdc=122270672; shshshfp=e617994739299fc7d65b757f312bf7d1; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; shshshsID=fc4275835fb93217e88bce5600d92c29_5_1608547125459; __jdb=122270672.5.16082557956851132232680|6.1608546540; JSESSIONID=02182E6AC1F7B1F35FA6123414378436.s1',
             }
+            # if comment_res:
+            #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
             url = self.comment_data_url % (out_number, comment_page)
 
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
             except requests.exceptions.RequestException as e:
-                print({'success': False, 'message': "反爬限制", 'out_number': out_number})
-                break
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
 
             # 54 好评 3 2 中评 1 差评
             rex = re.compile('({.*})')
             try:
                 result = json.loads(rex.findall(comment_res.text)[0])
             except:
-                print({'success': False, 'message': "反爬限制", 'out_number': out_number})
-                break
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
+            if comment_page == 0 and not result['comments'] and not self.switch:
+                self.comment_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+                self.switch = True
+                continue
+
             for i in result['comments']:
                 comment = {}
                 comment['positive_review'] = result['productCommentSummary']['goodCount']
@@ -121,7 +130,7 @@ class CommentSpider:
             pages = result['maxPage']
             if comment_page >= pages or not result['comments']:
                 self.comment_end(out_number, headers)
-                break
+                return {'success': True, 'message': "爬取完成", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             time.sleep(num)
             comment_page += 1
@@ -142,12 +151,10 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
             except requests.exceptions.RequestException as e:
-                print({'success': False, 'message': "反爬限制", 'out_number': out_number})
-                break
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
             result = json.loads(comment_res.content)
             if 'empty_comment_text' not in result:
-                print({'success': False, 'message': "反爬限制", 'out_number': out_number})
-                break
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
 
             for i in result['data']:
                 comment = {}
@@ -184,7 +191,7 @@ class CommentSpider:
                 self.comment_save(out_number, comment)
             if not result['data']:
                 self.comment_end(out_number, headers)
-                break
+                return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             time.sleep(num)
             comment_page += 1
@@ -219,8 +226,7 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
             except requests.exceptions.RequestException as e:
-                print({'success': False, 'message': "反爬限制", 'out_number': out_number})
-                break
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
             rex = re.compile('({.*})')
             result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
             for i in result['rateDetail']['rateList']:
@@ -241,7 +247,7 @@ class CommentSpider:
             pages = result['rateDetail']['paginator']['lastPage']
             if comment_page >= pages:
                 self.comment_end(out_number, headers)
-                break
+                return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             time.sleep(num)
             comment_page += 1
@@ -276,8 +282,7 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
             except requests.exceptions.RequestException as e:
-                print({'success': False, 'message': "反爬限制", 'out_number': out_number})
-                break
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
             rex = re.compile('({.*})')
             result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
             for i in result['comments']:
@@ -305,7 +310,7 @@ class CommentSpider:
             pages = result['maxPage']
             if comment_page >= pages or not result['maxPage']:
                 self.comment_end(out_number, headers)
-                break
+                return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             time.sleep(num)
             comment_page += 1
@@ -317,19 +322,23 @@ import sys
 def comment_spider(name, category):
     params = {'category': category}
     if name == 'jd':
-        params = {'site_from': 11}
+        params['site_from'] = 11
     elif name == 'pdd':
-        params = {'site_from': 10}
+        params['site_from'] = 10
     elif name == 'tmall':
-        params = {'site_from': 9}
+        params['site_from'] = 9
     elif name == 'taobao':
-        params = {'site_from': 8}
+        params['site_from'] = 8
     res = requests.get('https://opalus.d3ingo.com/api/good_comment', params=params)
     res = json.loads(res.content)
     spider = CommentSpider(name=name)
     for i in res['data']:
-        spider.data_handle(str(i['number']))
-
+        res = spider.data_handle(str(i['number']))
+        print(res)
+        if not res['success']:
+            break
 
 if __name__ == '__main__':
+    import urllib3
+    urllib3.disable_warnings()
     comment_spider(sys.argv[1], sys.argv[2])
