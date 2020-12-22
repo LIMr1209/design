@@ -1,0 +1,28 @@
+2020-12-22 12:36:54 [twisted] CRITICAL: Unhandled error in Deferred:
+2020-12-22 12:36:54 [twisted] CRITICAL: 
+Traceback (most recent call last):
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\twisted\internet\defer.py", line 1418, in _inlineCallbacks
+    result = g.send(result)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\crawler.py", line 79, in crawl
+    self.spider = self._create_spider(*args, **kwargs)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\crawler.py", line 102, in _create_spider
+    return self.spidercls.from_crawler(self, *args, **kwargs)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\spiders\__init__.py", line 51, in from_crawler
+    spider = cls(*args, **kwargs)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\jd_good.py", line 37, in __init__
+    super(JdSpider, self).__init__(*args, **kwargs)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\selenium.py", line 37, in __init__
+    self.browser = webdriver.Chrome(options=chrome_options)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 81, in __init__
+    desired_capabilities=desired_capabilities)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 157, in __init__
+    self.start_session(capabilities, browser_profile)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 252, in start_session
+    response = self.execute(Command.NEW_SESSION, parameters)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 321, in execute
+    self.error_handler.check_response(response)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 242, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.WebDriverException: Message: unknown error: cannot connect to chrome at 127.0.0.1:9222
+from chrome not reachable
+

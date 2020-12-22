@@ -77,7 +77,7 @@ class JdSpider(SeleniumSpider):
         reputation_list = []
         for i in range(len(reputation_keys)):
             reputation_list.append(reputation_keys[i]+": "+reputation_values[i])
-        item['url'] = response.url
+        item['url'] = response.url.replace('http:','https:')
         item['reputation'] =' '.join(reputation_list)
         detail_keys = response.xpath('//dl[@class="clearfix"]/dt/text()').extract()
         detail_values = response.xpath('//dl[@class="clearfix"]/dd/text()').extract()

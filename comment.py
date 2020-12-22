@@ -329,7 +329,7 @@ def comment_spider(name, category):
         params['site_from'] = 9
     elif name == 'taobao':
         params['site_from'] = 8
-    res = requests.get('https://opalus.d3ingo.com/api/good_comment', params=params)
+    res = requests.get('https://opalus.d3ingo.com/api/good_comment', params=params,verify=False)
     res = json.loads(res.content)
     spider = CommentSpider(name=name)
     for i in res['data']:
