@@ -7,8 +7,8 @@ import re
 
 # 2016 319  2015  309  2014 286 2013 301 2012 277 2011 247 2010 203 2009 100 2008 143 2007 105 2006 19
 class DesignCaseSpider(scrapy.Spider):
-    name = 'ssyer'
-    allowed_domains = ['www.ssyer.com']
+    name = 'redstaraward'
+    # allowed_domains = ['www.ssyer.com']
     year = 2020
     yearid = 'undefined'
     year_list = {

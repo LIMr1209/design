@@ -3,7 +3,7 @@ import json
 
 import scrapy
 from design.items import DesignItem
-from .selenium import SeleniumSpider
+from design.spiders.selenium import SeleniumSpider
 
 # 澳大利亚国际设计大奖
 data = {

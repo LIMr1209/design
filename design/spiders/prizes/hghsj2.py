@@ -3,7 +3,7 @@ from copy import copy
 import scrapy
 import copy
 from design.items import DesignItem
-from .selenium import SeleniumSpider
+from design.spiders.selenium import SeleniumSpider
 import json, time
 import datetime
 

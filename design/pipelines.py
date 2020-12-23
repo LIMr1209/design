@@ -95,7 +95,7 @@ class ImagePipeline(object):
 
     def process_item(self, item, spider):
         dict_item = dict(item)
-        response = requests.post(self.url, data=dict_item)
+        response = requests.post(self.url, data=dict_item, verify=False)
         res = json.loads(response.content.decode('utf-8'))
         if res['code'] == 3011:
             b = 1

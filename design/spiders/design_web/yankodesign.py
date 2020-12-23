@@ -3,7 +3,7 @@ import re
 import scrapy
 from design.items import DesignItem
 # scrapy 信号相关库
-from .selenium import SeleniumSpider
+from design.spiders.selenium import SeleniumSpider
 
 data = {
     'channel': 'yankodesign',

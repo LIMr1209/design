@@ -39,6 +39,7 @@ class JdsjSpider(scrapy.spiders.Spider):
         level = response.meta['level']
         detail_list = response.xpath('//figure/a[1]/@href').extract()
         for i in detail_list:
+            # yield scrapy.Request('https://www.goldenpin.org.tw/project/vsr-aerobike/', callback=self.parse_detail, meta={'level': level})
             yield scrapy.Request(i, callback=self.parse_detail, meta={'level': level})
         page += 1
         yield scrapy.Request(self.url%(level,page), callback=self.parse_list, meta={'page': page,'level':level})
@@ -65,6 +66,10 @@ class JdsjSpider(scrapy.spiders.Spider):
             item['designer'] = ''.join(designer).strip()
         except:
             pass
+        description_list = response.xpath('//div[contains(@class,"wpb_text_column wpb_content_element")][2]//text()').extract()
+        description_list = [i.replace('\n','').replace('\t','') for i in description_list]
+        description_list = [i for i in description_list if i]
+        item['description'] = '\n'.join(description_list)
         item['prize'] = json.dumps(prize)
         # print(item)
         yield item

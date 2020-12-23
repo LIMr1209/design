@@ -1,28 +1,21 @@
-2020-12-22 12:36:54 [twisted] CRITICAL: Unhandled error in Deferred:
-2020-12-22 12:36:54 [twisted] CRITICAL: 
+2020-12-23 11:18:35 [scrapy.core.scraper] ERROR: Spider error processing <GET https://www.goldenpin.org.tw/> (referer: None)
 Traceback (most recent call last):
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\twisted\internet\defer.py", line 1418, in _inlineCallbacks
-    result = g.send(result)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\crawler.py", line 79, in crawl
-    self.spider = self._create_spider(*args, **kwargs)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\crawler.py", line 102, in _create_spider
-    return self.spidercls.from_crawler(self, *args, **kwargs)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\spiders\__init__.py", line 51, in from_crawler
-    spider = cls(*args, **kwargs)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\jd_good.py", line 37, in __init__
-    super(JdSpider, self).__init__(*args, **kwargs)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\selenium.py", line 37, in __init__
-    self.browser = webdriver.Chrome(options=chrome_options)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 81, in __init__
-    desired_capabilities=desired_capabilities)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 157, in __init__
-    self.start_session(capabilities, browser_profile)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 252, in start_session
-    response = self.execute(Command.NEW_SESSION, parameters)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 321, in execute
-    self.error_handler.check_response(response)
-  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 242, in check_response
-    raise exception_class(message, screen, stacktrace)
-selenium.common.exceptions.WebDriverException: Message: unknown error: cannot connect to chrome at 127.0.0.1:9222
-from chrome not reachable
-
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\utils\defer.py", line 102, in iter_errback
+    yield next(it)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\spidermiddlewares\offsite.py", line 30, in process_spider_output
+    for x in result:
+  File "C:\Users\aaa10\Desktop\project\spiders\design\design\middlewares.py", line 93, in process_spider_output
+    for i in result:
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\spidermiddlewares\referer.py", line 339, in <genexpr>
+    return (_set_referer(r) for r in result or ())
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\spidermiddlewares\urllength.py", line 37, in <genexpr>
+    return (r for r in result or () if _filter(r))
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\spidermiddlewares\depth.py", line 58, in <genexpr>
+    return (r for r in result or () if _filter(r))
+  File "C:\Users\aaa10\Desktop\project\spiders\design\design\spiders\jdsj-new.py", line 43, in parse_list
+    yield scrapy.Request(i, callback=self.parse_detail, meta={'level': level})
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\http\request\__init__.py", line 25, in __init__
+    self._set_url(url)
+  File "C:\Users\aaa10\Desktop\project\spiders\design\venv\lib\site-packages\scrapy\http\request\__init__.py", line 62, in _set_url
+    raise ValueError('Missing scheme in request url: %s' % self._url)
+ValueError: Missing scheme in request url: www.dbcsingapore.org

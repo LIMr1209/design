@@ -3,7 +3,7 @@ from design.items import DesignItem
 import json
 
 
-
+# 中国优秀工业设计奖
 class CeidAwardSpider(scrapy.Spider):
     name = 'ceid-award'
     allowed_domains = ['www.ceid-award.cn/']

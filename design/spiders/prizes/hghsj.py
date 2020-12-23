@@ -2,7 +2,7 @@
 import scrapy
 import re
 from design.items import DesignItem
-from .selenium import SeleniumSpider
+from design.spiders.selenium import SeleniumSpider
 import json ,time
 from urllib.parse import urlparse, parse_qs
 import datetime
