@@ -11,15 +11,14 @@ class MzSpider(scrapy.spiders.Spider):
         'DOWNLOADER_MIDDLEWARES': None
     }
     page = 1
-    start_url = 'https://www.mzitu.com/zipai/'
     url = 'https://www.mzitu.com/page/%s/'
-    start_urls = [start_url]
 
-    def parse(self, response):
+    def start_requests(self):
         headers = {
-            'referer': response.url,
+            'referer': 'http://51wz.net/',
         }
         yield scrapy.Request(url='https://www.mzitu.com/', callback=self.pages, headers=headers)
+
 
     def pages(self, response):
         urls = response.xpath(
