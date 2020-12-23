@@ -33,16 +33,22 @@ class JdsjSpider(scrapy.spiders.Spider):
     def start_requests(self):
         for i in self.prize_level_list:
             yield scrapy.Request(self.url%(i,1), callback=self.parse_list, meta={'page': 1,'level':i})
-
+        # yield scrapy.Request(self.url % ('年度最佳設計獎-金點', 1), callback=self.parse_list, meta={'page': 1, 'level': '年度最佳設計獎-金點'})
     def parse_list(self, response):
         page = response.meta['page']
         level = response.meta['level']
         detail_list = response.xpath('//figure/a[1]/@href').extract()
+        print(page, level)
+        print(detail_list)
         for i in detail_list:
             # yield scrapy.Request('https://www.goldenpin.org.tw/project/vsr-aerobike/', callback=self.parse_detail, meta={'level': level})
             yield scrapy.Request(i, callback=self.parse_detail, meta={'level': level})
-        page += 1
-        yield scrapy.Request(self.url%(level,page), callback=self.parse_list, meta={'page': page,'level':level})
+        page_text_list = response.xpath('//div[@class="paginator"]/a/@data-page-num').extract()
+        page_text_list = [int(i) for i in page_text_list]
+        page_text_list.sort()
+        if page_text_list and page < page_text_list[-1]:
+            page += 1
+            yield scrapy.Request(self.url%(level,page), callback=self.parse_list, meta={'page': page,'level':level})
 
     def parse_detail(self, response):
         level = response.meta['level']
