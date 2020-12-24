@@ -78,7 +78,7 @@ class TaobaoSpider(SeleniumSpider):
             'page': self.page,
             'price_range': price_page,
             'key_words': self.key_words,
-            'is_suc' :0
+            'is_suc': 0
         }
         for j,i in enumerate(list_url):
             temp = copy.deepcopy(data)
