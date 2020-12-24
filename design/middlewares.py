@@ -53,17 +53,17 @@ class SeleniumMiddleware():
                 # searchRes = spider.wait.until(
                 #     EC.presence_of_element_located((By.XPATH, '//div[@class="detail detail_p"]//img'))
                 # )
-            except Exception as e:
-                print(f"chrome getting page error, Exception = {e}",request.url)
-                return HtmlResponse(url=request.url, status=500, request=request)
-            else:
-                # 页面爬取成功，构造一个成功的Response对象(HtmlResponse是它的子类)
-                return HtmlResponse(url=request.url,
-                                    body=spider.browser.page_source,
-                                    request=request,
-                                    # 最好根据网页的具体编码而定
-                                    encoding='utf-8',
-                                    status=200)
+            except Exception:
+                spider.browser.execute_script('window.stop()')
+                # print(f"chrome getting page error, Exception = {e}",request.url)
+                # return HtmlResponse(url=request.url, status=500, request=request)
+            # 页面爬取成功，构造一个成功的Response对象(HtmlResponse是它的子类)
+            return HtmlResponse(url=request.url,
+                                body=spider.browser.page_source,
+                                request=request,
+                                # 最好根据网页的具体编码而定
+                                encoding='utf-8',
+                                status=200)
 
 
 class DesignSpiderMiddleware(object):
