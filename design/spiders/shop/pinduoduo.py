@@ -115,7 +115,6 @@ class PddSpider(SeleniumSpider):
 
 
     def parse_detail(self, response):
-        time.sleep(3)
         data = re.findall('"topGallery":(\[.*?\])', response.text)[0]
         data = json.loads(data)
         img_urls = []
@@ -156,6 +155,7 @@ class PddSpider(SeleniumSpider):
             self.fail_url.append(response.url)
         else:
             self.suc_count += 1
+        time.sleep(3)
         if items_list:
             yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                                  callback=self.parse_detail,

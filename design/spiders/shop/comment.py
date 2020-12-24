@@ -17,8 +17,9 @@ class CommentSpider:
         # 代理列表
         self.proxies_list = [{'http': ''}]
         # pdd 用户认证列表
-        self.pdd_accessToken_list = ['OSAR37W2Z26BM7JKEJAZMFDXNFNO3IKEMINREDOO3SEA7DITK7VQ1128855']
+        self.pdd_accessToken_list = ['VOXUP7WZAR6KHZVNUFEY7AP3KJA3HTEOYBQTEDHYYQRJMBJOHUBQ1128855']
         self.time_out = 10
+        self.sleep = False
         self.random_sleep_start = 5
         self.random_sleep_end = 10
         if name == 'jd':
@@ -86,14 +87,14 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
             except requests.exceptions.RequestException as e:
-                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
 
             # 54 好评 3 2 中评 1 差评
             rex = re.compile('({.*})')
             try:
                 result = json.loads(rex.findall(comment_res.text)[0])
             except:
-                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             if comment_page == 0 and not result['comments'] and not self.switch:
                 self.comment_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
                 self.switch = True
@@ -132,7 +133,8 @@ class CommentSpider:
                 self.comment_end(out_number, headers)
                 return {'success': True, 'message': "爬取完成", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
-            time.sleep(num)
+            if self.sleep:
+                time.sleep(num)
             comment_page += 1
 
     def data_pdd_handle(self, out_number):
@@ -153,6 +155,8 @@ class CommentSpider:
             except requests.exceptions.RequestException as e:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number}
             result = json.loads(comment_res.content)
+            if 'error_msg' in result and result['error_msg']:
+                return {'success': False, 'message': result['error_msg'], 'out_number': out_number, 'page': comment_page}
             if 'empty_comment_text' not in result:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number}
 
@@ -193,7 +197,8 @@ class CommentSpider:
                 self.comment_end(out_number, headers)
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
-            time.sleep(num)
+            if self.sleep:
+                time.sleep(num)
             comment_page += 1
 
     def data_tmall_handle(self, out_number):
@@ -226,7 +231,7 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
             except requests.exceptions.RequestException as e:
-                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             rex = re.compile('({.*})')
             result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
             for i in result['rateDetail']['rateList']:
@@ -249,7 +254,8 @@ class CommentSpider:
                 self.comment_end(out_number, headers)
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
-            time.sleep(num)
+            if self.sleep:
+                time.sleep(num)
             comment_page += 1
 
     def data_taobao_handle(self, out_number):
@@ -282,7 +288,7 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
             except requests.exceptions.RequestException as e:
-                return {'success': False, 'message': "反爬限制", 'out_number': out_number}
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             rex = re.compile('({.*})')
             result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
             for i in result['comments']:
@@ -312,7 +318,8 @@ class CommentSpider:
                 self.comment_end(out_number, headers)
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
-            time.sleep(num)
+            if self.sleep:
+                time.sleep(num)
             comment_page += 1
 
 
@@ -333,9 +340,9 @@ def comment_spider(name, category):
     res = json.loads(res.content)
     spider = CommentSpider(name=name)
     for i in res['data']:
-        res = spider.data_handle(str(i['number']))
-        print(res)
-        if not res['success']:
+        result = spider.data_handle(str(i['number']))
+        print(result)
+        if not result['success']:
             break
 
 if __name__ == '__main__':
