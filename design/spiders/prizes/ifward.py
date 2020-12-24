@@ -20,19 +20,59 @@ class RedDotSpider(scrapy.spiders.Spider):
             'design.middlewares.DesignDownloaderMiddleware': 543,
         }
     }
-    url = 'https://ifworlddesignguide.com/api/v2/articles/design_excellence?cursor=%s&lang=en&count=30&orderby=date&filter={"filters":[{"type":"awards","ids":[1]}]}&time_min=%s&time_max=%s'
+    url = 'https://ifworlddesignguide.com/api/v2/articles/design_excellence?cursor=%s&lang=en&count=30&orderby=date&filter={"filters":[{"type":"categories","ids":[%s]},{"type":"awards","ids":[1]}]}&time_min=%s&time_max=%s'
 
-    # url = 'https://ifworlddesignguide.com/api/v2/articles/design_excellence?cursor=60&lang=en&count=30&orderby=date&filter={"filters":[{"type":"awards","ids":[1]},{"type":"gold_awarded","ids":[1]}]}&time_min=%s&time_max=%s'
+    # url = 'https://ifworlddesignguide.com/api/v2/articles/design_excellence?cursor=60&lang=en&count=30&orderby=date&filter={"filters":[{"type":"categories","ids":[%s]},{"type":"awards","ids":[1]},{"type":"gold_awarded","ids":[1]}]}&time_min=%s&time_max=%s'
+    category_list = [
+        {'name': 'Audio', 'opalus_id': 276, 'tag': '音频', 'if_id': 56},
+        {'name': 'Automobiles', 'opalus_id': 282, 'tag': '汽车', 'if_id': 587},
+        {'name': 'Aviation', 'opalus_id': 282, 'tag': '航空业', 'if_id': 583},
+        {'name': 'Babies/Kids', 'opalus_id': 285, 'tag': '婴儿儿童', 'if_id': 44},
+        {'name': 'Office', 'opalus_id': 277, 'tag': '办公', 'if_id': 118},
+        {'name': 'Music', 'opalus_id': 276, 'tag': '音乐', 'if_id': 558},
+        {'name': 'Motorbikes', 'opalus_id': 282, 'tag': '摩托车', 'if_id': 608},
+        {'name': 'Luggage/Bags', 'opalus_id': 285, 'tag': '行李/包', 'if_id': 615},
+        {'name': 'Lighting', 'opalus_id': 288, 'tag': '灯具', 'if_id': 129},
+        {'name': 'Kitchen', 'opalus_id': 278, 'tag': '厨房', 'if_id': 142},
+        {'name': 'Industry', 'opalus_id': 280, 'tag': '工业', 'if_id': 233},
+        {'name': 'Home Furniture', 'opalus_id': 281, 'tag': '家庭家具', 'if_id': 135},
+        {'name': 'Home Appliances', 'opalus_id': 286, 'tag': '家用电器', 'if_id': 542},
+        {'name': 'Health/Medical', 'opalus_id': 284, 'tag': '健康医疗', 'if_id': 224},
+        {'name': 'Garden', 'opalus_id': 285, 'tag': '花园', 'if_id': 559},
+        {'name': 'Fashion', 'opalus_id': 285, 'tag': '时装', 'if_id': 425},
+        {'name': 'Eyeglasses', 'opalus_id': 285, 'tag': '眼镜', 'if_id': 618},
+        {'name': 'Erotic Toys', 'opalus_id': 285, 'tag': '情趣玩具', 'if_id': 561},
+        {'name': 'Computer', 'opalus_id': 276, 'tag': '计算机', 'if_id': 93},
+        {'name': 'Commercial Vehicles', 'opalus_id': 282, 'tag': '商用车', 'if_id': 602},
+        {'name': 'Cameras', 'opalus_id': 276, 'tag': '摄像机', 'if_id': 74},
+        {'name': 'Building Technology', 'opalus_id': 317, 'tag': '建筑技术', 'if_id': 179},
+        {'name': 'Bicycles', 'opalus_id': 282, 'tag': '自行车', 'if_id': 522},
+        {'name': 'Bath', 'opalus_id': 316, 'tag': '卫浴', 'if_id': 168},
+        {'name': 'Outdoor', 'opalus_id': 290, 'tag': '户外', 'if_id': 466},
+        {'name': 'Personal Use', 'opalus_id': 285, 'tag': '个人使用', 'if_id': 736},
+        {'name': 'Pet supplies', 'opalus_id': 285, 'tag': '宠物', 'if_id': 617},
+        {'name': 'Public Transport', 'opalus_id': 282, 'tag': '公共设计', 'if_id': 590},
+        {'name': 'Ships/Boats', 'opalus_id': 282, 'tag': '船舶', 'if_id': 611},
+        {'name': 'Sports', 'opalus_id': 278, 'tag': '运动', 'if_id': 560},
+        {'name': 'Tableware', 'opalus_id': 282, 'tag': '餐具', 'if_id': 548},
+        {'name': 'Telecoms', 'opalus_id': 276, 'tag': '电信', 'if_id': 82},
+        {'name': 'Tools', 'opalus_id': 280, 'tag': '工具', 'if_id': 673},
+        {'name': 'TV/Video', 'opalus_id': 279, 'tag': '电视', 'if_id': 68},
+        {'name': 'Walls/Floor', 'opalus_id': 281, 'tag': '墙壁/地板', 'if_id': 247},
+        {'name': 'Watches/Jewelry', 'opalus_id': 285, 'tag': '钟表/珠宝', 'if_id': 52}
+    ]
 
     def start_requests(self):
-        for i in range(2015, 2021):
+        for i in range(1954, 2021):
             year = str(i)
-            yield scrapy.Request(self.url % (0, year, year), callback=self.body_response, meta={'year': year})
+            for j in self.category_list:
+                yield scrapy.Request(self.url % (0,j['if_id'], year, year), callback=self.body_response, meta={'year': year,"data":j})
         # yield scrapy.Request(self.url % (0, 1954, 1954), callback=self.body_response, meta={'year': 1954})
 
     def body_response(self, response):
         year = response.meta['year']
         body = json.loads(response.text)
+        cate_data = response.meta['data']
         for data in body['data']:
             url = data['href']
             if data['type'] == 'goldaward':
@@ -53,14 +93,15 @@ class RedDotSpider(scrapy.spiders.Spider):
             item['url'] = url
             item['evt'] = 3
             item['channel'] = 'iF Design Award'
-            yield scrapy.Request(url, callback=self.item_deal, meta={'item': item, 'prize': prize})
+            yield scrapy.Request(url, callback=self.item_deal, meta={'item': item, 'prize': prize, 'data':cate_data})
         if body['meta']['next_cursor']:
             next_cursor = body['meta']['next_cursor']
-            yield scrapy.Request(self.url % (next_cursor, year, year), callback=self.body_response,meta={'year': year})
+            yield scrapy.Request(self.url % (next_cursor, cate_data['if_id'], year, year), callback=self.body_response, meta={'year': year, 'data':cate_data})
 
     def item_deal(self, response):
         item = response.meta['item']
         prize = response.meta['prize']
+        data = response.meta['data']
         statement = response.xpath("//div[@class='text-quote-wrapper']/div[1]/text()").extract()
         if statement:
             statement = statement[0]
@@ -68,7 +109,11 @@ class RedDotSpider(scrapy.spiders.Spider):
             statement = ''
         prize['statement'] = statement
         item['prize'] = json.dumps(prize, ensure_ascii=False)
-        item['tags'] = ','.join(response.xpath("//span[@itemprop='alternateName']/text()").extract())
+
+        item['category_id'] = data['opalus_id']
+        tag_list = response.xpath("//span[@itemprop='alternateName']/text()").extract()
+        tag_list = tag_list + [data['tag']]
+        item['tags'] = ','.join(tag_list)
         # 备注
         remark_list = response.xpath("//div[@class='profile-text-box-wrapper']/ul/li").extract()
         remark = ''
@@ -83,6 +128,7 @@ class RedDotSpider(scrapy.spiders.Spider):
                     remark = remark + '目标区域:{}\n'.format(html.xpath('//span/text()')[1])
                 elif html.xpath('//span/text()')[0] == 'TARGET GROUPS':
                     remark = remark + '目标群体:{}\n'.format(html.xpath('//span/text()')[1])
+        remark += '分类名称:{}\n'.format(data['name'])
         item['remark'] = remark
         # 设计师，品牌，生产者
         item['company'] = ''

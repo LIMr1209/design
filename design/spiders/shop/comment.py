@@ -19,7 +19,7 @@ class CommentSpider:
         # pdd 用户认证列表
         self.pdd_accessToken_list = ['VOXUP7WZAR6KHZVNUFEY7AP3KJA3HTEOYBQTEDHYYQRJMBJOHUBQ1128855']
         self.time_out = 10
-        self.sleep = False
+        self.sleep = True
         self.random_sleep_start = 5
         self.random_sleep_end = 10
         if name == 'jd':
