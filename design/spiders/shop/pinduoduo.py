@@ -26,8 +26,6 @@ class PddSpider(SeleniumSpider):
     suc_count = 0
     page = 16
     max_page = 20
-    # mc = MongoClient("127.0.0.1", 27017)
-    # test_db = mc["test"]
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
@@ -110,9 +108,9 @@ class PddSpider(SeleniumSpider):
             url = 'http://yangkeduo.com/{}'.format(item['item_data']['goods_model']['link_url'])
             item_data['url'] = url
             items_list.append(item_data)
-        yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list}, callback=self.parse_detail,
+        yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
+                             callback=self.parse_detail,
                              dont_filter=True)
-
 
     def parse_detail(self, response):
         data = re.findall('"topGallery":(\[.*?\])', response.text)[0]

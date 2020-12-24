@@ -20,6 +20,9 @@ class TaobaoSpider(SeleniumSpider):
     }
     max_page = 10
     list_url = []
+    mc = MongoClient(
+        'mongodb://{}:{}@{}:{}/?authSource={}'.format("root", "123456", "120.132.59.206", "27017", "admin"))
+    test_db = mc["test"]
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words
@@ -65,26 +68,25 @@ class TaobaoSpider(SeleniumSpider):
         # ele = self.browser.find_element_by_xpath('//div[@class="inner clearfix"]')
         # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
         list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
-        list_cover_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/img/@data-src').extract()
+        list_cover_url = response.xpath(
+            '//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/img/@data-src').extract()
 
-        mc = MongoClient("127.0.0.1", 27017)
-        test_db = mc["test"]
-        tmp = self.price_range.replace('[','').replace(']','').split(',')
+        tmp = self.price_range.replace('[', '').replace(']', '').split(',')
         if len(tmp) == 1:
-            price_page = tmp[0]+'以上'
+            price_page = tmp[0] + '以上'
         else:
-            price_page = tmp[0]+'-'+tmp[1]
+            price_page = tmp[0] + '-' + tmp[1]
         data = {
             'page': self.page,
             'price_range': price_page,
             'key_words': self.key_words,
-            'is_suc' :0
+            'is_suc': 0
         }
-        for j,i in enumerate(list_url):
+        for j, i in enumerate(list_url):
             temp = copy.deepcopy(data)
             temp['link'] = i
-            temp['cover_url'] = 'https:'+list_cover_url[j]
-            test_db.taobao.insert(temp)
+            temp['cover_url'] = 'https:' + list_cover_url[j]
+            self.test_db.taobao.insert(temp)
         if self.page < self.max_page:
             page_count = str((self.page) * 44)
             self.page += 1

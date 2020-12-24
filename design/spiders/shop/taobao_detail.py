@@ -60,7 +60,8 @@ class TaobaoSpider(SeleniumSpider):
         'LOG_FILE': 'log/%s.log' % name
     }
     goods_url = 'https://opalus.d3ingo.com/api/goods/save'
-    mc = MongoClient("127.0.0.1", 27017)
+    mc = MongoClient(
+        'mongodb://{}:{}@{}:{}/?authSource={}'.format("root", "123456", "120.132.59.206", "27017", "admin"))
     test_db = mc["test"]
 
     def __init__(self, key_words, *args, **kwargs):
@@ -281,7 +282,7 @@ class TaobaoSpider(SeleniumSpider):
                         img_urls_ele = self.browser.find_elements_by_xpath(
                             '//ul[@id="J_UlThumb"]/li//img')
                         for i in img_urls_ele:
-                            img_url = i.get_attribute( 'src')
+                            img_url = i.get_attribute('src')
                             if not img_url.startswith("http"):
                                 img_url = "https:" + img_url
                             img_url = img_url.rsplit('_', 1)[0]
@@ -414,7 +415,7 @@ class TaobaoSpider(SeleniumSpider):
                         img_urls_ele = self.browser.find_elements_by_xpath(
                             '//ul[@id="J_UlThumb"]/li//img')
                         for i in img_urls_ele:
-                            img_url = i.get_attribute( 'src')
+                            img_url = i.get_attribute('src')
                             if not img_url.startswith("http"):
                                 img_url = "https:" + img_url
                             img_url = img_url.rsplit('_', 1)[0]
