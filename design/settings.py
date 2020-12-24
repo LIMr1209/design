@@ -22,7 +22,7 @@ ROBOTSTXT_OBEY = False
 
 LOG_LEVEL = 'ERROR'
 
-LOG_FILE = 'log.txt'
+LOG_FILE = 'log/ERROR.log'
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32 #并发请求数
 

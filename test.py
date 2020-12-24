@@ -50,3 +50,16 @@ l = [1,2,3,4,5,6,7,8,9,10,11]
 n = 10000
 
 print([l[i:i + n] for i in range(0, len(l), n)])
+from scrapy.http import HtmlResponse
+
+import requests
+
+res = requests.get('https://opalus.d3ingo.com/')
+
+
+html = HtmlResponse(url=res.url,
+            body=res.content,
+            request=res.request,
+            # 最好根据网页的具体编码而定
+            encoding='utf-8',
+            status=200)

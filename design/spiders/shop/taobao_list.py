@@ -13,7 +13,10 @@ class TaobaoSpider(SeleniumSpider):
         'DOWNLOAD_DELAY': 10,
         'DOWNLOADER_MIDDLEWARES': {
             'design.middlewares.SeleniumMiddleware': 543,
-        }
+        },
+        # 设置log日志
+        'LOG_LEVEL': 'ERROR',
+        'LOG_FILE': 'log/%s.log' % name
     }
     max_page = 10
     list_url = []
@@ -24,6 +27,7 @@ class TaobaoSpider(SeleniumSpider):
         self.page = 10
         self.data_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
+        self.browser.switch_to_window('window.open()')  # 切换新窗口
         self.browser.get('https://www.taobao.com/')
 
     # 更换登陆信息

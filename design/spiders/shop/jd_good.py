@@ -21,7 +21,10 @@ class JdSpider(SeleniumSpider):
         'COOKIES_ENABLED': False,  # enabled by default
         'DOWNLOADER_MIDDLEWARES': {
             'design.middlewares.SeleniumMiddleware': 543,
-        }
+        },
+        # 设置log日志
+        'LOG_LEVEL': 'ERROR',
+        'LOG_FILE': 'log/%s.log' % name
     }
     # goods_url = 'http://opalus-dev.taihuoniao.com/api/goods/save'
     goods_url = 'https://opalus.d3ingo.com/api/goods/save'
@@ -35,6 +38,8 @@ class JdSpider(SeleniumSpider):
         self.page = 6
         self.max_page = 20
         super(JdSpider, self).__init__(*args, **kwargs)
+        print(self.browser.window_handles)
+        self.browser.switch_to_window(self.browser.window_handles[0])  # 切换新窗口
 
     def start_requests(self):
         self.browser.get(

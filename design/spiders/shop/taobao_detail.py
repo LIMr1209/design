@@ -54,7 +54,10 @@ class TaobaoSpider(SeleniumSpider):
         'DOWNLOAD_DELAY': 10,
         'DOWNLOADER_MIDDLEWARES': {
             'design.middlewares.SeleniumMiddleware': 543,
-        }
+        },
+        # 设置log日志
+        'LOG_LEVEL': 'ERROR',
+        'LOG_FILE': 'log/%s.log' % name
     }
     goods_url = 'https://opalus.d3ingo.com/api/goods/save'
     mc = MongoClient("127.0.0.1", 27017)
@@ -69,6 +72,7 @@ class TaobaoSpider(SeleniumSpider):
         # self.cookie = 'cookie2=1e1329c204b483965c50f4aea175989c; t=27342fccaf0252611c51fc03fa4e7ac6; _tb_token_=f353e3600a381; hng=CN%7Czh-CN%7CCNY%7C156; thw=cn; _samesite_flag_=true; xlly_s=1; enc=MIfEinE%2BUqe%2FrOAJ4kSL2sf8sPaGqMfQhs3fJI6jVi9whtay9lqef7PafAH8YbF%2Bpb%2FPiEz6i%2FJP%2B7yEO0dpYA%3D%3D; lLtC1_=1; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az9h5Tq7%2Bg%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; _m_h5_tk=6ccde694cfdbc1922b28debd3c328878_1606968670174; _m_h5_tk_enc=a5534a7aa9920b87606b4df020bf73f7; tfstk=cCxAB_2ebbcDOl6JLE3u5zLb7qLAZrqA6-1UXvR2soXxpsrOi4-Hvhbil9FA2YC..; l=eBjqXoucQKR1CZ0kBOfZourza77tIIRYouPzaNbMiOCPOqC950zhWZROM0LpCnGVhssJR3oVpXawBeYBqn4xIghne5DDwIMmn; isg=BJKSTHvrGeWwvmT7yvjYunE041h0o5Y9lxlgOFzrtsUwbzJpRDEeTWCN28vTGQ7V'
         self.cookie = 'hng=CN%7Czh-CN%7CCNY%7C156; t=27342fccaf0252611c51fc03fa4e7ac6; enc=MIfEinE%2BUqe%2FrOAJ4kSL2sf8sPaGqMfQhs3fJI6jVi9whtay9lqef7PafAH8YbF%2Bpb%2FPiEz6i%2FJP%2B7yEO0dpYA%3D%3D; _tb_token_=f353e3600a381; cookie2=1e1329c204b483965c50f4aea175989c; xlly_s=1; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cna=zasMF12t3zoCATzCuQKpN3kO; uc1=existShop=false&cookie21=UtASsssmeW6lpyd%2BB%2B3t&cookie14=Uoe0az9h5Ti4KA%3D%3D&pas=0&cookie15=VFC%2FuZ9ayeYq2g%3D%3D&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D; uc3=lg2=UIHiLt3xD8xYTw%3D%3D&vt3=F8dCuf2CSp7DjbEF1as%3D&id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSdvtCI6XCk%2F&nk4=0%400AdtZS03tnds0llDWCRcSihqN1jxbD1O2opb; sgcookie=E100PSo4OpJklR8obNtKBryUufO195A5YSzyXhka2trDZeXqTdHNTDWmqifymuuq1627cAyn3cQnqskk9ztKGfP43g%3D%3D; csg=2a17af03; pnm_cku822=098%23E1hv%2F9vUvbpvUvCkvvvvvjiWP2dyQjnmn2dwgj1VPmPO6jr8RFswzj3WPFSv0jYURvhvCvvvvvvUvpCWCRbXvvaF9W2%2BFfmtEpcZTWexRdIAcUmxfwofd56Ofa3lKbh6UxWnSXVxI2iI27zh1j7ZHkx%2F1RBlYb8rwZXlJXxreC9aWXxr1WmK5I9CvvOUvvVvJhTIvpvUvvmvR0nopE4gvpvIvvvvvhCvvvvvvUUvphvUbpvv99Cvpv32vvmmvhCvmWIvvUUvphvUA9vCvvOvCvvvphvRvpvhvv2MMTOCvvpvvUmm; _m_h5_tk=b89879a97398b54808462f75f2281c05_1606972762508; _m_h5_tk_enc=27f9ec8ed65873154cb5f358e7cc2baf; tfstk=cplGB7MRRAy_J-2nFCNsruEv8P-dZrtabjltTXaIUF2atkGFigBFUcbp-koiMt1..; l=eBQJ2fCIQDOlzshQBOfZlurza77OhIRYouPzaNbMiOCPOT5e5omlWZROa_TwCnGVh6cBR3oVpXaaBeYBqhvQ5O95a6Fy_pHmn; isg=BPv7i6eNIMq3nB1mTJyyKlytit9lUA9SVto5X-24ufoRTBsudSELooqGZuwC6mdK; cq=ccp%3D1'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
+        self.browser.switch_to_window(self.browser.window_handles[2])
         self.browser.get('https://www.taobao.com/')
         # self.browser.get('https://www.tmall.com/')
 
@@ -296,6 +300,7 @@ class TaobaoSpider(SeleniumSpider):
                     item['category'] = data[0]['key_words']
                     item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
                     good_data = dict(item)
+                    print(good_data)
                     res = requests.post(url=self.goods_url, data=good_data)
                     if res.status_code != 200 or json.loads(res.content)['code']:
                         logging.error("产品保存失败" + response.url)
@@ -426,6 +431,7 @@ class TaobaoSpider(SeleniumSpider):
                     item['category'] = data[0]['key_words']
                     item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
                     good_data = dict(item)
+                    print(good_data)
                     res = requests.post(url=self.goods_url, data=good_data)
                     if res.status_code != 200 or json.loads(res.content)['code']:
                         logging.error("产品保存失败" + response.url)

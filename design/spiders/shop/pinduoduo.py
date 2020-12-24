@@ -31,7 +31,7 @@ class PddSpider(SeleniumSpider):
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'VWP6N6J2U7IYBIGAPO5Z2J2K4KUITLLBYNG5XXSRG2V6UEOUA33A1128855',
+        'AccessToken': 'KRV3E645NGTOPPLITWI5WQCJGYTO736NEVCGTMTNAGS5UNQVESMQ1128855',
         'VerifyAuthToken': 'yiNF63KwVYtT3frnBC1Rvw9a0471827507f365b'
     }
 
@@ -39,13 +39,17 @@ class PddSpider(SeleniumSpider):
         'DOWNLOAD_DELAY': 10,
         'DOWNLOADER_MIDDLEWARES': {
             'design.middlewares.SeleniumMiddleware': 543,
-        }
+        },
+        # 设置log日志
+        'LOG_LEVEL': 'ERROR',
+        'LOG_FILE': 'log/%s.log' % name
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words
         self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
+        self.browser.switch_to_window(self.browser.window_handles[1])
 
     def start_requests(self):
         """
@@ -144,6 +148,7 @@ class PddSpider(SeleniumSpider):
         item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
         item['detail_str'] = ', '.join(detail_str_list)
         good_data = dict(item)
+        print(good_data)
         res = requests.post(url=self.goods_url, data=good_data)
         if res.status_code != 200 or json.loads(res.content)['code']:
             logging.error("产品保存失败" + response.url)
