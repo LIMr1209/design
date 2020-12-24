@@ -38,8 +38,10 @@ class JdSpider(SeleniumSpider):
         self.page = 6
         self.max_page = 20
         super(JdSpider, self).__init__(*args, **kwargs)
+        # self.browser.switch_to_window(self.browser.window_handles[0])  # 切换新窗口
         print(self.browser.window_handles)
-        self.browser.switch_to_window(self.browser.window_handles[0])  # 切换新窗口
+        js = 'window.open("https://www.jd.com/");'
+        self.browser.execute_script(js)
 
     def start_requests(self):
         self.browser.get(
