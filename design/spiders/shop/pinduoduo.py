@@ -29,7 +29,7 @@ class PddSpider(SeleniumSpider):
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'KRV3E645NGTOPPLITWI5WQCJGYTO736NEVCGTMTNAGS5UNQVESMQ1128855',
+        'AccessToken': 'ODXGRETKE3SQ257EJIEMCFDF642GHIHDX23TURGA5IFKW23ZELQA1128855',
         'VerifyAuthToken': 'yiNF63KwVYtT3frnBC1Rvw9a0471827507f365b'
     }
 
@@ -47,7 +47,7 @@ class PddSpider(SeleniumSpider):
         self.key_words = key_words
         self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
-        self.browser.switch_to_window(self.browser.window_handles[1])
+        # self.browser.switch_to_window(self.browser.window_handles[1])
 
     def start_requests(self):
         """
@@ -105,8 +105,8 @@ class PddSpider(SeleniumSpider):
             item_data['sale_count'] = item['item_data']['goods_model']['sales']
             item_data['site_from'] = 10
             item_data['site_type'] = 1
-            url = 'http://yangkeduo.com/{}'.format(item['item_data']['goods_model']['link_url'])
-            item_data['url'] = url
+            # url = 'http://yangkeduo.com/{}'.format(item['item_data']['goods_model']['link_url'])
+            item_data['url'] = 'http://yangkeduo.com/goods.html?goods_id=%s'%item['item_data']['goods_model']['goods_id']
             items_list.append(item_data)
         yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                              callback=self.parse_detail,
