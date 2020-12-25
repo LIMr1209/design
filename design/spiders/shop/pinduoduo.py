@@ -47,7 +47,8 @@ class PddSpider(SeleniumSpider):
         self.key_words = key_words
         self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
-        # self.browser.switch_to_window(self.browser.window_handles[1])
+        js = 'window.open("http://yangkeduo.com/");'
+        self.browser.execute_script(js)
 
     def start_requests(self):
         """

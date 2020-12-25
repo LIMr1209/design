@@ -27,11 +27,11 @@ class TaobaoSpider(SeleniumSpider):
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words
         self.price_range = ""
-        self.page = 10
+        self.page = 1
         self.data_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
-        self.browser.switch_to_window('window.open()')  # 切换新窗口
-        self.browser.get('https://www.taobao.com/')
+        js = 'window.open("https://www.taobao.com/")'  # 切换新窗口
+        self.browser.execute_script(js)
 
     # 更换登陆信息
     def update_cookie(self):
@@ -59,7 +59,7 @@ class TaobaoSpider(SeleniumSpider):
 
     def start_requests(self):
         # self.update_cookie()
-        page_count = str((self.page) * 44)
+        page_count = str((self.page-1) * 44)
         url = self.data_url.format(name=self.key_words, price_range=self.price_range, page_count=page_count)
         yield scrapy.Request(url, meta={'usedSelenium': True, "page": self.page}, callback=self.parse_list)
 
@@ -70,12 +70,14 @@ class TaobaoSpider(SeleniumSpider):
         list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
         list_cover_url = response.xpath(
             '//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/img/@data-src').extract()
-
-        tmp = self.price_range.replace('[', '').replace(']', '').split(',')
-        if len(tmp) == 1:
-            price_page = tmp[0] + '以上'
+        if self.price_range:
+            tmp = self.price_range.replace('[', '').replace(']', '').split(',')
+            if len(tmp) == 1:
+                price_page = tmp[0] + '以上'
+            else:
+                price_page = tmp[0] + '-' + tmp[1]
         else:
-            price_page = tmp[0] + '-' + tmp[1]
+            price_page = self.price_range
         data = {
             'page': self.page,
             'price_range': price_page,
