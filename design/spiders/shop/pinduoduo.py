@@ -24,7 +24,7 @@ class PddSpider(SeleniumSpider):
     goods_url = 'https://opalus.d3ingo.com/api/goods/save'
     fail_url = []
     suc_count = 0
-    page = 16
+    page = 1
     max_page = 20
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

@@ -206,18 +206,17 @@ class RedDotSpider(scrapy.spiders.Spider):
             item[3] = ''
         if item[4] == None:
             item[4] = ''
-        title = ['信息来源地址', '公司名称', '联系电话', '公司邮箱', '公司网站', 'iF奖获得情况']
-        filename = './0company_info.csv'
-        if os.path.exists(filename):
-            with open(filename, 'a', newline='', encoding='gb18030') as fw:
-                wr = csv.writer(fw)
-                wr.writerow(item)
-                fw.close()
-        else:
-            with open(filename, 'a', newline='', encoding='gb18030') as fw:
-                wr = csv.writer(fw)
-                wr.writerow(title)
-                wr.writerow(item)
-                fw.close()
-        print('保存信息成功')
+        # title = ['信息来源地址', '公司名称', '联系电话', '公司邮箱', '公司网站', 'iF奖获得情况']
+        # filename = './0company_info.csv'
+        # if os.path.exists(filename):
+        #     with open(filename, 'a', newline='', encoding='gb18030') as fw:
+        #         wr = csv.writer(fw)
+        #         wr.writerow(item)
+        #         fw.close()
+        # else:
+        #     with open(filename, 'a', newline='', encoding='gb18030') as fw:
+        #         wr = csv.writer(fw)
+        #         wr.writerow(title)
+        #         wr.writerow(item)
+        #         fw.close()
         return company_name

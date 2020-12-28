@@ -6,6 +6,8 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 #
 from pymongo import MongoClient
+from requests.adapters import HTTPAdapter
+
 from design.settings import MONGODB_HOST, MONGODB_PORT, MONGODB_DBNAME, SHEETE_NAME
 import random
 import requests
@@ -89,20 +91,28 @@ class ImagePipeline(object):
         self.url = 'https://www.taihuoniao.com/api/product/submit'
         # self.url = 'http://dev.taihuoniao.com/api/product/submit'
         # self.url = 'http://127.0.0.1:8004/api/product/submit'
+        self.fail_url = []
 
     def open_spider(self, spider):
         pass
 
     def process_item(self, item, spider):
         dict_item = dict(item)
-        response = requests.post(self.url, data=dict_item, verify=False)
-        res = json.loads(response.content.decode('utf-8'))
-        if res['code'] == 3011:
-            b = 1
-        print(res)
+        s = requests.Session()
+        s.mount('http://', HTTPAdapter(max_retries=5))  # 重试次数
+        s.mount('https://', HTTPAdapter(max_retries=5))
+        try:
+            response = s.post(self.url, data=dict_item, verify=False, timeout=10)
+            res = json.loads(response.content.decode('utf-8'))
+            if res['message'] != '更新成功!':
+                print(res['message'])
+                print(dict_item['title'], dict_item['url'])
+        except:
+            self.fail_url.append(dict_item['url'])
+        # print(res)
 
     def close_spider(self, spider):
-        pass
+        print(self.fail_url)
 
 
 class EasyDlPipeline(object):

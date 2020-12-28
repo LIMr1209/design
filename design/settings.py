@@ -20,17 +20,22 @@ ROBOTSTXT_OBEY = False
 # HTTPERROR_ALLOWED_CODES = [404]
 
 
-LOG_LEVEL = 'ERROR'
-
+# LOG_LEVEL = 'ERROR'
+#
 LOG_FILE = 'log/ERROR.log'
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-# CONCURRENT_REQUESTS = 32 #并发请求数
+# Scrapy下载器将执行的最大并发（即并发）请求数。
+CONCURRENT_REQUESTS = 16 #并发请求数
+# 在项目管道中并行处理的最大并发项目数（每个响应）
+CONCURRENT_ITEMS = 100
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 DOWNLOAD_DELAY = 0  # 下载延迟
 # The download delay setting will honor only one of:
+
+# CONCURRENT_REQUESTS_PER_DOMAIN 是每个域的并发请求数量 默认是8 设置了该参数应该会更有效的防止爬虫被屏蔽。还有一个参数CONCURRENT_REQUESTS_PER_IP 他是作用到每个IP上，并不是作用到域了。
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16  # 多线程
 # CONCURRENT_REQUESTS_PER_IP = 16 # 多线程
 
@@ -144,11 +149,11 @@ DEPTH_LIMIT = 0
 
 # 爬取时，0表示深度优先Lifo(默认)；1表示广度优先FiFo
 # 后进先出，深度优先
-DEPTH_PRIORITY = 0
-SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleLifoDiskQueue'
-SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.LifoMemoryQueue'
+# DEPTH_PRIORITY = 0
+# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleLifoDiskQueue'
+# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.LifoMemoryQueue'
 
 # 先进先出，广度优先
-# DEPTH_PRIORITY = 1
-# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
-# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+DEPTH_PRIORITY = 1
+SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
+SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
