@@ -64,18 +64,9 @@ n = 10000
 #             encoding='utf-8',
 #             status=200)
 
-from pymongo import MongoClient
-#建立和数据库系统的连接,指定host及port参数
-client = MongoClient('120.132.59.206', 27017)
-#连接mydb数据库,账号密码认证
-db = client.admin
-db.authenticate("root", "123456",mechanism='SCRAM-SHA-1')
 
-client = MongoClient('mongodb://{}:{}@{}:{}/?authSource={}'.format("root","123456","120.132.59.206","27017","admin"))
-#连接表
-test = client.ingo
-
-a = test.brand.find()
-for i in a:
-    print(a)
-
+import os
+os.environ["EXECJS_RUNTIME"] = 'Phantomjs'
+ctx = execjs.compile(js)
+print(execjs.get().name)
+# anti_content = ctx.call('result', 'http://mobile.yangkeduo.com/search_result.html?search_key=%E5%AD%A6%E7%94%9F%E6%96%87%E5%85%B7%E7%94%A8%E5%93%81%E7%AC%94')

@@ -57,7 +57,7 @@ class TaobaoSpider(SeleniumSpider):
         },
         # 设置log日志
         'LOG_LEVEL': 'INFO',
-        'LOG_FILE': ''
+        'LOG_FILE': 'log/%s.log' % name
     }
     goods_url = 'https://opalus.d3ingo.com/api/goods/save'
     mc = MongoClient(

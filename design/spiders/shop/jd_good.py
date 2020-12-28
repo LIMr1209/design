@@ -35,11 +35,10 @@ class JdSpider(SeleniumSpider):
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words
         self.price_range = ''
-        self.page = 6
+        self.page = 1
         self.max_page = 20
         super(JdSpider, self).__init__(*args, **kwargs)
         # self.browser.switch_to_window(self.browser.window_handles[0])  # 切换新窗口
-        print(self.browser.window_handles)
         js = 'window.open("https://www.jd.com/");'
         self.browser.execute_script(js)
 
