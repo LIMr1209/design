@@ -107,9 +107,9 @@ class ImagePipeline(object):
             if res['message'] != '更新成功!':
                 print(res['message'])
                 print(dict_item['title'], dict_item['url'])
+            print(res)
         except:
             self.fail_url.append(dict_item['url'])
-        # print(res)
 
     def close_spider(self, spider):
         print(self.fail_url)

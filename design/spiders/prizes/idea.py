@@ -4,7 +4,6 @@ import scrapy
 import json
 from design.items import DesignItem
 from lxml import etree
-import time
 
 
 class RedDotSpider(scrapy.spiders.Spider):
@@ -19,17 +18,55 @@ class RedDotSpider(scrapy.spiders.Spider):
             'design.middlewares.DesignDownloaderMiddleware': 543,
         }
     }
+    category_list = [
+        {'name': 'Commercial & Industrial Products', 'tag': '商业和工业产品', 'opalus_id': 276},
+        {'name': 'Consumer Technology', 'tag': '', 'opalus_id': 276},
+        {'name': 'Communication Tools', 'tag': '通讯工具', 'opalus_id': 276},
+        {'name': 'Computer Equipment', 'tag': '计算机设备', 'opalus_id': 276},
+        {'name': 'Design Strategy', 'opalus_id': 276},
+        {'name': 'Digital Design', 'tag': '数码设计', 'opalus_id': 276},
+        {'name': 'Digital Interaction', 'opalus_id': 276},
+        {'name': 'Interactive Product Experiences', 'tag': '互动产品体验', 'opalus_id': 276},
+        {'name': 'Entertainment', 'tag': '娱乐', 'opalus_id': 276},
+        {'name': 'Automotive & Transportation', 'tag': '汽车&交通', 'opalus_id': 282},
+        {'name': 'Kitchen & Accessories', 'tag': '厨房&配件', 'opalus_id': 278},
+        {'name': 'Kitchens', 'tag': '厨房', 'opalus_id': 278},
+        {'name': 'Medical & Health', 'opalus_id': 284},
+        {'name': 'Medical & Scientific Products', 'tag': '医疗和科学产品', 'opalus_id': 284},
+        {'name': "Children's Products", 'tag': '儿童产品', 'opalus_id': 285},
+        {'name': 'Lifestyle & Accessories', 'opalus_id': 285},
+        {'name': 'Personal Accessories', 'tag': '个人配件', 'opalus_id': 285},
+        {'name': 'Gardens & Patio', 'tag': '花园&庭院', 'opalus_id': 285},
+        {'name': 'Home Furnishings', 'tag': '家装', 'opalus_id': 281},
+        {'name': 'Living Room & Bedroom', 'tag': '客厅&卧室', 'opalus_id': 281},
+        {'name': 'Environments', 'tag': '环境', 'opalus_id': 277},
+        {'name': 'Office & Accessories', 'opalus_id': '277'},
+        {'name': 'Office & Productivity', 'tag': '办公&生产力', 'opalus_id': 277},
+        {'name': 'Home', 'opalus_id': 281},
+        {'name': 'Bathrooms, Spas, Wellness', 'tag': '卫浴、温泉、健康', 'opalus_id': 316},
+        {'name': 'Home & Bath', 'tag': '家居&卫浴', 'opalus_id': 316},
+        {'name': 'Furniture & Lighting', 'tag': '家具&照明', 'opalus_id': 288},
+        {'name': 'Sports, Leisure & Recreation', 'tag': '体育、休闲&娱乐', 'opalus_id': 289},
+        {'name': 'Outdoor & Garden', 'opalus_id': 290},
+        {'name': 'Outdoor Products', 'tag': '户外用品', 'opalus_id': 290},
+        {'name': 'Branding', 'tag': '品牌建设', 'opalus_id': 317},
+        {'name': 'Research', 'tag': '研究', 'opalus_id': 317},
+        {'name': 'Packaging', 'opalus_id': 317},
+        {'name': 'Packaging & Graphics', 'tag': '包装&图形', 'opalus_id': 317},
+        {'name': 'Service Design', 'tag': '服务设计', 'opalus_id': 317},
+        {'name': 'Social Impact Design', 'opalus_id': 317},
+        {'name': 'Ecodesign', 'tag': '生态设计', 'opalus_id': 317},
+        {'name': 'Student Designs', 'tag': '学生设计', 'opalus_id': 317}
+
+    ]
 
     def start_requests(self):
-        # for page in range(0, 35):
-        #     url = "https://www.idsa.org/awards/idea/gallery?term_node_tid_depth=All&field_year_value=All&field_idea_award_level_value=All&page={}".format(
-        #         page)
-        #     yield scrapy.Request(url, callback=self.body_response)
-        #     break
-        urls = ['https://www.idsa.org/awards/idea/digital-design/heffernan-icons', 'https://www.idsa.org/awards/idea/g-glass-compendium-skyline-design', 'https://www.idsa.org/awards/idea/naver-music-mobile-app','https://www.idsa.org/awards/idea/home/c-ge-smart-dimmer-switches']
-        for url in urls:
-            yield scrapy.Request(url, callback=self.item_deal)
+        for page in range(0, 35):
+            url = "https://www.idsa.org/awards/idea/gallery?term_node_tid_depth=All&field_year_value=All&field_idea_award_level_value=All&page={}".format(
+                page)
+            yield scrapy.Request(url, callback=self.body_response)
 
+    #
     def body_response(self, response):
         urls = response.xpath('//div[@class="tile-container"]/a/@href').extract()
         for url in urls:
@@ -55,7 +92,13 @@ class RedDotSpider(scrapy.spiders.Spider):
         item['prize'] = json.dumps({'id': 298, 'name': '美国IDEA工业设计奖', 'level': prize_level, 'time': prize_year},
                                    ensure_ascii=False)
         images = response.xpath("//div[@class='field--idea-image']//img/@src").extract()
-        item['tags'] = response.xpath('//div[@class="fieldset-wrapper"]/div[2]//text()').extract()[0]
+        category = response.xpath('//div[@class="fieldset-wrapper"]/div[2]//text()').extract()[0]
+        if category:
+            for j in self.category_list:
+                if category == j['name']:
+                    item['category_id'] = j['opalus_id']
+                    item['tags'] = j['tags'] if 'tags' in j else ''
+                    break
         res = response.xpath('//div[@class="field__item even"]//p').extract()
         item['description'] = ''
         for i in res:
@@ -107,6 +150,9 @@ class RedDotSpider(scrapy.spiders.Spider):
         remark = ''
         if email:
             remark = 'Email:' + email[0]
+            remark += '\n'
+        if category:
+            remark += '分类:' + category
             remark += '\n'
         Website = response.xpath('//div[@class="field__item even"]/p/a[text()="Website"]/@href').extract()
         if Website:
