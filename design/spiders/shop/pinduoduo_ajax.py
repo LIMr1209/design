@@ -129,23 +129,12 @@ class PddSpider(SeleniumSpider):
         item = items_list.pop(0)
         detail_data = json.loads(response.text)
         img_urls = []
-
         item['img_urls'] = ','.join(img_urls)
         service_list = []
         for i in detail_data['service_promise']:
             service_list.append(i['type'])
         item['service'] = ','.join(service_list)
-        try:
-            comment_text = self.browser.find_element_by_xpath('//div[@class="ccIhLMdm"]')
-            comment_text = re.findall('商品评价\((.*)\)', comment_text.text)[0]
-            index = comment_text.find('万')
-            if index != -1:
-                item['comment_count'] = int(float(comment_text[:index]) * 10000)
-            else:
-                comment_count = re.search('\d+', comment_text)
-                item['comment_count'] = int(comment_count.group())
-        except:
-            item['comment_count'] = 0
+        item['comment_count'] = item['review']['review_num']
         detail_dict = {}
         detail_str_list = []
         for i in detail_data['goods']['goods_property']:
