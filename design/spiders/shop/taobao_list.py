@@ -30,8 +30,10 @@ class TaobaoSpider(SeleniumSpider):
         self.page = 1
         self.data_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
-        js = 'window.open("https://www.taobao.com/")'  # 切换新窗口
+        old_num = len(self.browser.window_handles)
+        js = 'window.open("https://www.taobao.com/");'
         self.browser.execute_script(js)
+        self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     # 更换登陆信息
     def update_cookie(self):
