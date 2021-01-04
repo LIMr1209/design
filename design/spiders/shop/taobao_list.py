@@ -25,7 +25,7 @@ class TaobaoSpider(SeleniumSpider):
     test_db = mc["test"]
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = key_words
+        self.key_words = ['水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ""
         self.page = 1
         self.data_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
@@ -59,8 +59,8 @@ class TaobaoSpider(SeleniumSpider):
 
     def start_requests(self):
         # self.update_cookie()
-        page_count = str((self.page-1) * 44)
-        url = self.data_url.format(name=self.key_words, price_range=self.price_range, page_count=page_count)
+        page_count = str((self.page - 1) * 44)
+        url = self.data_url.format(name=self.key_words[0], price_range=self.price_range, page_count=page_count)
         yield scrapy.Request(url, meta={'usedSelenium': True, "page": self.page}, callback=self.parse_list)
 
     def parse_list(self, response):
@@ -81,7 +81,7 @@ class TaobaoSpider(SeleniumSpider):
         data = {
             'page': self.page,
             'price_range': price_page,
-            'key_words': self.key_words,
+            'key_words': self.key_words[0],
             'is_suc': 0
         }
         for j, i in enumerate(list_url):
@@ -94,3 +94,9 @@ class TaobaoSpider(SeleniumSpider):
             self.page += 1
             url = self.data_url.format(name=self.key_words, price_range=self.price_range, page_count=page_count)
             yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list)
+        else:
+            self.key_words.pop(0)
+            self.page = 1
+            page_count = str((self.page - 1) * 44)
+            url = self.data_url.format(name=self.key_words[0], price_range=self.price_range, page_count=page_count)
+            yield scrapy.Request(url, meta={'usedSelenium': True, "page": self.page}, callback=self.parse_list)

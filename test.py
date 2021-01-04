@@ -66,7 +66,8 @@ n = 10000
 
 
 import os
-os.environ["EXECJS_RUNTIME"] = 'Phantomjs'
-ctx = execjs.compile(js)
+# os.environ["EXECJS_RUNTIME"] = 'Node'
 print(execjs.get().name)
-# anti_content = ctx.call('result', 'http://mobile.yangkeduo.com/search_result.html?search_key=%E5%AD%A6%E7%94%9F%E6%96%87%E5%85%B7%E7%94%A8%E5%93%81%E7%AC%94')
+ctx = execjs.compile(js)
+anti_content = ctx.call('result', 'http://yangkeduo.com/search_result.html?search_key=拉杆箱')
+print(anti_content )

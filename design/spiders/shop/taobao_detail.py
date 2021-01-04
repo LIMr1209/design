@@ -96,7 +96,7 @@ class TaobaoSpider(SeleniumSpider):
             for x in tracks:
                 action.move_by_offset(xoffset=x, yoffset=0).perform()
             time.sleep(0.5)
-        self.browser.switch_to.default_content()
+        self.browser.switch_to_default_content()
 
     def stringToDict(self):
         '''

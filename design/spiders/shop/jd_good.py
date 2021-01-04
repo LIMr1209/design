@@ -33,7 +33,7 @@ class JdSpider(SeleniumSpider):
     suc_count = 0
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = key_words
+        self.key_words = ['水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
         self.page = 1
         self.max_page = 20
@@ -45,20 +45,22 @@ class JdSpider(SeleniumSpider):
     def start_requests(self):
         self.browser.get(
             "https://search.jd.com/Search?keyword=%s&page=%d&s=53" % (
-                self.key_words, 1))
+                self.key_words[0], 1))
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
         list_url = []
         for i in urls:
             list_url.append(i.get_attribute('href'))
-        yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True,'list_url':list_url})
+        yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url})
         # yield scrapy.Request('https://item.jd.com/68579675243.html', callback=self.parse_detail, meta={'usedSelenium': True})
 
     def parse_detail(self, response):
         item = TaobaoItem()
         item['title'] = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
-        item['sku_ids'] = ','.join(response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
+        item['sku_ids'] = ','.join(
+            response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
         promotion_price = response.xpath('//span[@class="p-price"]/span[2]/text()').extract()[0]
-        original_text = response.xpath('//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]/text()').extract()
+        original_text = response.xpath(
+            '//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]/text()').extract()
         if original_text:
             item['original_price'] = original_text[0][1:]
         if not 'original_price' in item:
@@ -76,15 +78,16 @@ class JdSpider(SeleniumSpider):
                 comment_count = re.search('\d+', comment_count)
                 if comment_count:
                     item['comment_count'] = int(comment_count.group())
-        item['category'] = self.key_words
-        item['service'] = ','.join(response.xpath('//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a/text()').extract())
+        item['category'] = self.key_words[0]
+        item['service'] = ','.join(
+            response.xpath('//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a/text()').extract())
         reputation_keys = response.xpath('//span[@class="score-desc"]/text()').extract()
         reputation_values = response.xpath('//span[contains(@class,"score-detail")]/em/text()').extract()
         reputation_list = []
         for i in range(len(reputation_keys)):
-            reputation_list.append(reputation_keys[i]+": "+reputation_values[i])
-        item['url'] = response.url.replace('http:','https:')
-        item['reputation'] =' '.join(reputation_list)
+            reputation_list.append(reputation_keys[i] + ": " + reputation_values[i])
+        item['url'] = response.url.replace('http:', 'https:')
+        item['reputation'] = ' '.join(reputation_list)
         detail_keys = response.xpath('//dl[@class="clearfix"]/dt/text()').extract()
         detail_values = response.xpath('//dl[@class="clearfix"]/dd/text()').extract()
         detail_dict = {}
@@ -110,7 +113,7 @@ class JdSpider(SeleniumSpider):
         item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
         item['detail_str'] = ', '.join(detail_str_list)
         item['price_range'] = self.price_range
-        itemId = re.findall('\d+',response.url)[0]
+        itemId = re.findall('\d+', response.url)[0]
         item['out_number'] = itemId
         item['site_from'] = 11
         item['site_type'] = 1
@@ -130,7 +133,7 @@ class JdSpider(SeleniumSpider):
         s = requests.Session()
         s.mount('http://', HTTPAdapter(max_retries=5))
         s.mount('https://', HTTPAdapter(max_retries=5))
-        url = self.comment_data_url % (itemId,0)
+        url = self.comment_data_url % (itemId, 0)
         comment_res = s.get(url, headers=headers, verify=False, timeout=10)
         rex = re.compile('({.*})')
         result = json.loads(rex.findall(comment_res.text)[0])
@@ -160,7 +163,19 @@ class JdSpider(SeleniumSpider):
             if self.page <= self.max_page:
                 self.browser.get(
                     "https://search.jd.com/Search?keyword=%s&page=%d&s=53" % (
-                        self.key_words, self.page))
+                        self.key_words[0], self.page))
+                urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
+                list_url = []
+                for i in urls:
+                    list_url.append(i.get_attribute('href'))
+                yield scrapy.Request(list_url[0], callback=self.parse_detail,
+                                     meta={'usedSelenium': True, 'list_url': list_url})
+            else:
+                self.key_words.pop(0)
+                self.page = 1
+                self.browser.get(
+                    "https://search.jd.com/Search?keyword=%s&page=%d&s=53" % (
+                        self.key_words[0], 1))
                 urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
                 list_url = []
                 for i in urls:
