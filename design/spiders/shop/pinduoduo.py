@@ -7,6 +7,8 @@ import json
 import requests
 import time
 
+from pydispatch import dispatcher
+from scrapy import signals
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -33,8 +35,8 @@ class PddSpider(SeleniumSpider):
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'YN7XCBDN6R5LLLZMLG26S6I5LR5LXWKB4TULUAPMQ5CR2VH5UHBA1128855',
-        'VerifyAuthToken': 'yiNF63KwVYtT3frnBC1Rvw9a0471827507f365b'
+        'AccessToken': 'JAYDMQVKKPWSHFFVFJDQG64XFQD6K27LIVK6PU2TPRPVYZ3CNVOQ1128855',
+        'VerifyAuthToken': 'CeySBEX_UMoMjS7_F5b4Egf8edac2fb3f33ca9e'
     }
 
     custom_settings = {
@@ -51,10 +53,17 @@ class PddSpider(SeleniumSpider):
         self.key_words = ['水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
+        dispatcher.connect(receiver=self.except_close,
+                           signal=signals.spider_closed
+                           )
         old_num = len(self.browser.window_handles)
         js = 'window.open("http://yangkeduo.com/");'
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
+
+    def except_close(self):
+        logging.error(self.key_words)
+        logging.error(self.page)
 
     def start_requests(self):
         """

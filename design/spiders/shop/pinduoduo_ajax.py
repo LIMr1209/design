@@ -34,7 +34,7 @@ class PddSpider(SeleniumSpider):
     headers = {
         # 'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         #               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'YN7XCBDN6R5LLLZMLG26S6I5LR5LXWKB4TULUAPMQ5CR2VH5UHBA1128855',
+        'AccessToken': 'JAYDMQVKKPWSHFFVFJDQG64XFQD6K27LIVK6PU2TPRPVYZ3CNVOQ1128855',
         'VerifyAuthToken': 'CeySBEX_UMoMjS7_F5b4Egf8edac2fb3f33ca9e',
         'Content-Type': 'application/json'
     }
@@ -77,7 +77,6 @@ class PddSpider(SeleniumSpider):
 
         self.data = {
             'gid': '',
-            'item_ver': 'lzqq',
             'source': 'index',
             'search_met': 'history',
             'requery': '0',
@@ -105,19 +104,18 @@ class PddSpider(SeleniumSpider):
         items_list = []
         for item in items:
             item_data = TaobaoItem()
-            item_data['cover_url'] = item['item_data']['goods_model']['thumb_url']
-            item_data['title'] = item['item_data']['goods_model']['goods_name']
+            item_data['cover_url'] = item['thumb_url']
+            item_data['title'] = item['goods_name']
             item_data['category'] = self.key_words[0]
-            item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
-            item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
-            item_data['out_number'] = item['item_data']['goods_model']['goods_id']
+            item_data['original_price'] = str(item['normal_price'] / 100)
+            item_data['promotion_price'] = str(item['price'] / 100)
+            item_data['out_number'] = item['goods_id']
             item_data['price_range'] = self.price_range
-            item_data['sale_count'] = item['item_data']['goods_model']['sales']
+            item_data['sale_count'] = item['sales']
             item_data['site_from'] = 10
             item_data['site_type'] = 1
             # url = 'http://yangkeduo.com/{}'.format(item['item_data']['goods_model']['link_url'])
-            item_data['url'] = 'http://yangkeduo.com/goods.html?goods_id=%s' % item['item_data']['goods_model'][
-                'goods_id']
+            item_data['url'] = 'http://yangkeduo.com/goods.html?goods_id=%s' % item['goods_id']
             items_list.append(item_data)
         formdata = {"goods_id": items_list[0]['out_number']}
         yield scrapy.Request(self.detail_url, method='POST', meta={"items_list": items_list},
@@ -129,6 +127,8 @@ class PddSpider(SeleniumSpider):
         item = items_list.pop(0)
         detail_data = json.loads(response.text)
         img_urls = []
+        item['original_price'] = str(detail_data['price']['min_on_sale_normal_price'])+'-'+str(detail_data['price']['max_on_sale_normal_price'])
+        item['promotion_price'] = str(detail_data['price']['min_on_sale_group_price'])+'-'+str(detail_data['price']['max_on_sale_group_price'])
         item['img_urls'] = ','.join(img_urls)
         service_list = []
         for i in detail_data['service_promise']:

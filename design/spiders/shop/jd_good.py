@@ -7,10 +7,15 @@ import time
 import requests
 import scrapy
 from fake_useragent import UserAgent
+from pydispatch import dispatcher
 from requests.adapters import HTTPAdapter
+from scrapy import signals
 
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
+import urllib3
+
+urllib3.disable_warnings()
 
 
 class JdSpider(SeleniumSpider):
@@ -23,7 +28,7 @@ class JdSpider(SeleniumSpider):
             'design.middlewares.SeleniumMiddleware': 543,
         },
         # 设置log日志
-        'LOG_LEVEL': 'ERROR',
+        'LOG_LEVEL': 'INFO',
         'LOG_FILE': 'log/%s.log' % name
     }
     # goods_url = 'http://opalus-dev.taihuoniao.com/api/goods/save'
@@ -33,15 +38,22 @@ class JdSpider(SeleniumSpider):
     suc_count = 0
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = ['水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
-        self.page = 1
+        self.page = 7
         self.max_page = 20
         super(JdSpider, self).__init__(*args, **kwargs)
+        dispatcher.connect(receiver=self.except_close,
+                           signal=signals.spider_closed
+                           )
         old_num = len(self.browser.window_handles)
         js = 'window.open("https://www.jd.com/");'
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
+
+    def except_close(self):
+        logging.error(self.key_words)
+        logging.error(self.page)
 
     def start_requests(self):
         self.browser.get(

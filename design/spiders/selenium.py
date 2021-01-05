@@ -49,10 +49,10 @@ class SeleniumSpider(scrapy.Spider):
         self.browser.set_page_load_timeout(5)  # 页面加载超时时间
         self.wait = WebDriverWait(self.browser, 30)  # 指定元素加载超时时间
         # 设置信号量，当收到spider_closed信号时，调用mySpiderCloseHandle方法，关闭chrome
-        dispatcher.connect(receiver=self.mySpiderCloseHandle,
-                           signal=signals.spider_closed
-                           )
-        super(SeleniumSpider, self).__init__(*args, **kwargs)
+        # dispatcher.connect(receiver=self.mySpiderCloseHandle,
+        #                    signal=signals.spider_closed
+        #                    )
+        # super(SeleniumSpider, self).__init__(*args, **kwargs)
 
 
     def mySpiderCloseHandle(self, spider):
