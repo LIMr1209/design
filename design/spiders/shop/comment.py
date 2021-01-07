@@ -8,8 +8,7 @@ from requests.adapters import HTTPAdapter
 
 
 class CommentSpider:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
         s = requests.Session()
         s.mount('http://', HTTPAdapter(max_retries=5))  # 重试次数
         s.mount('https://', HTTPAdapter(max_retries=5))
@@ -22,16 +21,12 @@ class CommentSpider:
         self.sleep = True
         self.random_sleep_start = 5
         self.random_sleep_end = 10
-        if name == 'jd':
-            self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
-            # 有的商品 当前sku 无评论 切换url
-            self.switch = False
-        elif name == 'pdd':
-            self.comment_data_url = 'http://yangkeduo.com/proxy/api/reviews/%s/list?pdduid=9575597704&page=%s&size=20&enable_video=1&enable_group_review=1&label_id=0'
-        elif name == 'taobao':
-            self.comment_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=sort_weight&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'
-        elif name == 'tmall':
-            self.comment_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
+        self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+        # 有的商品 当前sku 无评论 切换url
+        self.switch = False  # jd
+        self.comment_pdd_data_url = 'http://yangkeduo.com/proxy/api/reviews/%s/list?pdduid=9575597704&page=%s&size=20&enable_video=1&enable_group_review=1&label_id=0'
+        self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=sort_weight&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'
+        self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
         self.comment_save_url = 'https://opalus.d3ingo.com/api/comment/save'
         # self.comment_save_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
         # self.comment_save_url = 'http://127.0.0.1:8002/api/comment/save'
@@ -57,21 +52,22 @@ class CommentSpider:
             return {'success': False, 'message': "终止爬取评论失败", 'out_number': out_number}
         return {'success': True}
 
-    def data_handle(self, out_number):
-        if self.name == 'jd':
-            res = self.data_jd_handle(out_number)
-        elif self.name == 'pdd':
-            res = self.data_pdd_handle(out_number)
-        elif self.name == 'tmall':
-            res = self.data_tmall_handle(out_number)
-        elif self.name == 'taobao':
-            res = self.data_taobao_handle(out_number)
+    def data_handle(self, i):
+        if i['site_from'] == 8:
+            res = self.data_taobao_handle(i['out_number'])
+        elif i['site_from'] == 9:
+            res = self.data_tmall_handle(i['out_number'])
+        elif i['site_from'] == 10:
+            res = self.data_pdd_handle(i['out_number'])
+        elif i['site_from'] == 11:
+            res = self.data_jd_handle(i['out_number'])
+        else:
+            res = '渠道错误'
         return res
 
     def data_jd_handle(self, out_number):
         comment_page = 0
         while True:
-            comment_res = ''
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
@@ -82,7 +78,7 @@ class CommentSpider:
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
-            url = self.comment_data_url % (out_number, comment_page)
+            url = self.comment_jd_data_url % (out_number, comment_page)
 
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
@@ -96,7 +92,7 @@ class CommentSpider:
             except:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             if comment_page == 0 and not result['comments'] and not self.switch:
-                self.comment_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+                self.comment_jd_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
                 self.switch = True
                 continue
 
@@ -148,7 +144,7 @@ class CommentSpider:
                 'AccessToken': random.choice(self.pdd_accessToken_list),
                 'VerifyAuthToken': 'yiNF63KwVYtT3frnBC1Rvw9a0471827507f365b',
             }
-            url = self.comment_data_url % (out_number, comment_page)
+            url = self.comment_pdd_data_url % (out_number, comment_page)
 
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
@@ -156,7 +152,8 @@ class CommentSpider:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number}
             result = json.loads(comment_res.content)
             if 'error_msg' in result and result['error_msg']:
-                return {'success': False, 'message': result['error_msg'], 'out_number': out_number, 'page': comment_page}
+                return {'success': False, 'message': result['error_msg'], 'out_number': out_number,
+                        'page': comment_page}
             if 'empty_comment_text' not in result:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number}
 
@@ -206,7 +203,7 @@ class CommentSpider:
         proxies = random.choice(self.proxies_list)
         ua = UserAgent().random
         headers = {
-            'Referer': 'https://detail.tmall.com/item.htm?id=%s'% out_number,
+            'Referer': 'https://detail.tmall.com/item.htm?id=%s' % out_number,
             'User-Agent': ua,
             'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
         }
@@ -222,11 +219,11 @@ class CommentSpider:
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
-                'Referer': 'https://detail.tmall.com/item.htm?id=%s'%out_number,
+                'Referer': 'https://detail.tmall.com/item.htm?id=%s' % out_number,
                 'User-Agent': ua,
                 'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
             }
-            url = self.comment_data_url % (out_number, comment_page)
+            url = self.comment_tm_data_url % (out_number, comment_page)
 
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
@@ -283,7 +280,7 @@ class CommentSpider:
                 'User-Agent': ua,
                 'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
             }
-            url = self.comment_data_url % (out_number, comment_page)
+            url = self.comment_tb_data_url % (out_number, comment_page)
 
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
@@ -327,7 +324,10 @@ import sys
 
 
 def comment_spider(name, category):
-    params = {'category': category}
+    if category == 'all':
+        params = {'category': ''}
+    else:
+        params = {'category': category}
     if name == 'jd':
         params['site_from'] = 11
     elif name == 'pdd':
@@ -336,16 +336,20 @@ def comment_spider(name, category):
         params['site_from'] = 9
     elif name == 'taobao':
         params['site_from'] = 8
-    res = requests.get('https://opalus.d3ingo.com/api/good_comment', params=params,verify=False)
+    else:
+        params['site_from'] = ''
+    res = requests.get('https://opalus.d3ingo.com/api/good_comment', params=params, verify=False)
     res = json.loads(res.content)
     spider = CommentSpider(name=name)
     for i in res['data']:
-        result = spider.data_handle(str(i['number']))
+        result = spider.data_handle(i)
         print(result)
         if not result['success']:
             break
 
+
 if __name__ == '__main__':
     import urllib3
+
     urllib3.disable_warnings()
     comment_spider(sys.argv[1], sys.argv[2])

@@ -38,9 +38,9 @@ class JdSpider(SeleniumSpider):
     suc_count = 0
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = ['剃须刀', '电动牙刷']
+        self.key_words = ['电动牙刷']
         self.price_range = ''
-        self.page = 7
+        self.page = 18
         self.max_page = 20
         super(JdSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -71,123 +71,126 @@ class JdSpider(SeleniumSpider):
         if not 'pcitem.jd.hk' in self.browser.current_url:
             item = TaobaoItem()
             try:
-                promotion_price = self.browser.find_element_by_xpath('//span[@class="p-price"]/span[2]').text.strip()
-            except:
-                self.browser.refresh()
-                promotion_price = self.browser.find_element_by_xpath('//span[@class="p-price"]/span[2]').text.strip()
-            item['title'] = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
-            item['sku_ids'] = ','.join(
-                response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
-            try:
-                original_text = self.browser.find_element_by_xpath(
-                    '//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]').text.strip()
-            except:
-                original_text = ''
-            if original_text:
-                item['original_price'] = original_text
-            if not 'original_price' in item:
-                item['original_price'] = promotion_price
-                item['promotion_price'] = ''
-            else:
-                item['promotion_price'] = promotion_price
-            try:
-                comment_text = self.browser.find_element_by_xpath('//a[contains(@class,"count J-comm")]').text.strip()
-            except:
-                comment_text = self.browser.find_element_by_xpath('//li[@data-anchor="#comment"]/s').text.strip()
-                comment_text = comment_text.replace('(', '').replace(')', '')
-            if comment_text:
-                index = comment_text.find('万')
-                if index != -1:
-                    item['comment_count'] = int(float(comment_text[:index]) * 10000)
+                try:
+                    promotion_price = self.browser.find_element_by_xpath('//span[@class="p-price"]/span[2]').text.strip()
+                except:
+                    self.browser.refresh()
+                    promotion_price = self.browser.find_element_by_xpath('//span[@class="p-price"]/span[2]').text.strip()
+                item['title'] = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
+                item['sku_ids'] = ','.join(
+                    response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
+                try:
+                    original_text = self.browser.find_element_by_xpath(
+                        '//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]').text.strip()
+                except:
+                    original_text = ''
+                if original_text:
+                    item['original_price'] = original_text
+                if not 'original_price' in item:
+                    item['original_price'] = promotion_price
+                    item['promotion_price'] = ''
                 else:
-                    comment_count = re.search('\d+', comment_text)
-                    if comment_count:
-                        item['comment_count'] = int(comment_count.group())
-            item['category'] = self.key_words[0]
-            service_ele = self.browser.find_elements_by_xpath('//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
-            service = []
-            for i in service_ele:
-                service.append(i.text)
-            item['service'] = ','.join(service)
-            reputation_keys = self.browser.find_elements_by_xpath('//span[@class="score-desc"]')
-            reputation_values = self.browser.find_elements_by_xpath('//span[contains(@class,"score-detail")]/em')
-            reputation_list = []
-            for j, i in enumerate(reputation_keys):
-                reputation_list.append(i.text + ": " + reputation_values[j].text)
-            item['url'] = response.url.replace('http:', 'https:')
-            item['reputation'] = ' '.join(reputation_list)
-            self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
-            detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt')
-            detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd')
-            detail_dict = {}
-            detail_str_list = []
-            for j, i in enumerate(detail_keys):
-                detail_str_list.append(i.text + ':' + detail_values[j].text)
-                detail_dict[i.text] = detail_values[j].text
-            if not detail_dict:
-                detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
-                for j, i in enumerate(detail_list):
-                    s = i.text.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
-                                                                                                              '')
-                    if s.endswith('：') or s.endswith(':'):
-                        detail_str_list.append(s + detail_list[j + 1])
-                        continue
-                    if ':' in s or '：' in s:
-                        detail_str_list.append(s)
+                    item['promotion_price'] = promotion_price
+                try:
+                    comment_text = self.browser.find_element_by_xpath('//a[contains(@class,"count J-comm")]').text.strip()
+                except:
+                    comment_text = self.browser.find_element_by_xpath('//li[@data-anchor="#comment"]/s').text.strip()
+                    comment_text = comment_text.replace('(', '').replace(')', '')
+                if comment_text:
+                    index = comment_text.find('万')
+                    if index != -1:
+                        item['comment_count'] = int(float(comment_text[:index]) * 10000)
+                    else:
+                        comment_count = re.search('\d+', comment_text)
+                        if comment_count:
+                            item['comment_count'] = int(comment_count.group())
+                item['category'] = self.key_words[0]
+                service_ele = self.browser.find_elements_by_xpath('//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
+                service = []
+                for i in service_ele:
+                    service.append(i.text)
+                item['service'] = ','.join(service)
+                reputation_keys = self.browser.find_elements_by_xpath('//span[@class="score-desc"]')
+                reputation_values = self.browser.find_elements_by_xpath('//span[contains(@class,"score-detail")]/em')
+                reputation_list = []
+                for j, i in enumerate(reputation_keys):
+                    reputation_list.append(i.text + ": " + reputation_values[j].text)
+                item['url'] = response.url.replace('http:', 'https:')
+                item['reputation'] = ' '.join(reputation_list)
+                self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
+                detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt')
+                detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd')
+                detail_dict = {}
+                detail_str_list = []
+                for j, i in enumerate(detail_keys):
+                    detail_str_list.append(i.text + ':' + detail_values[j].text)
+                    detail_dict[i.text] = detail_values[j].text
+                if not detail_dict:
+                    detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
+                    for j, i in enumerate(detail_list):
+                        s = i.text.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
+                                                                                                                  '')
+                        if s.endswith('：') or s.endswith(':'):
+                            detail_str_list.append(s + detail_list[j + 1])
+                            continue
+                        if ':' in s or '：' in s:
+                            detail_str_list.append(s)
+                    item['detail_str'] = ', '.join(detail_str_list)
+                    for i in detail_str_list:
+                        tmp = re.split('[:：]', i)
+                        detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
+                item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
                 item['detail_str'] = ', '.join(detail_str_list)
-                for i in detail_str_list:
-                    tmp = re.split('[:：]', i)
-                    detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
-            item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
-            item['detail_str'] = ', '.join(detail_str_list)
-            item['price_range'] = self.price_range
-            itemId = re.findall('\d+', response.url)[0]
-            item['out_number'] = itemId
-            item['site_from'] = 11
-            item['site_type'] = 1
-            img_urls = []
-            img_ele = self.browser.find_elements_by_xpath('//div[@id="spec-list"]/ul/li/img')
-            for i in img_ele:
-                img_urls.append('http://img10.360buyimg.com/n12/%s' % i.get_attribute('data-url'))
-            item['cover_url'] = img_urls[0]
-            item['img_urls'] = ','.join(img_urls)
-            good_data = dict(item)
+                item['price_range'] = self.price_range
+                itemId = re.findall('\d+', response.url)[0]
+                item['out_number'] = itemId
+                item['site_from'] = 11
+                item['site_type'] = 1
+                img_urls = []
+                img_ele = self.browser.find_elements_by_xpath('//div[@id="spec-list"]/ul/li/img')
+                for i in img_ele:
+                    img_urls.append('http://img10.360buyimg.com/n12/%s' % i.get_attribute('data-url'))
+                item['cover_url'] = img_urls[0]
+                item['img_urls'] = ','.join(img_urls)
+                good_data = dict(item)
 
-            ua = UserAgent().random
-            headers = {
-                'Referer': 'https://item.jd.com/%s.html' % itemId,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-                'Cookie': 'JSESSIONID=068CE69BEB8E77E7FF7D415202926236.s1; Path=/',
-            }
-            s = requests.Session()
-            s.mount('http://', HTTPAdapter(max_retries=5))
-            s.mount('https://', HTTPAdapter(max_retries=5))
-            url = self.comment_data_url % (itemId, 0)
-            try:
-                comment_res = s.get(url, headers=headers, verify=False, timeout=10)
+                ua = UserAgent().random
+                headers = {
+                    'Referer': 'https://item.jd.com/%s.html' % itemId,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+                    'Cookie': 'JSESSIONID=068CE69BEB8E77E7FF7D415202926236.s1; Path=/',
+                }
+                s = requests.Session()
+                s.mount('http://', HTTPAdapter(max_retries=5))
+                s.mount('https://', HTTPAdapter(max_retries=5))
+                url = self.comment_data_url % (itemId, 0)
+                try:
+                    comment_res = s.get(url, headers=headers, verify=False, timeout=10)
+                except:
+                    time.sleep(10)
+                    comment_res = s.get(url, headers=headers, verify=False, timeout=10)
+                rex = re.compile('({.*})')
+                result = json.loads(rex.findall(comment_res.text)[0])
+                good_data['positive_review'] = result['productCommentSummary']['goodCount']
+                good_data['comment_count'] = result['productCommentSummary']['commentCount']
+                impression = ''
+                for j in result['hotCommentTagStatistics']:
+                    impression += j['name'] + '(' + str(j['count']) + ')  '
+                good_data['impression'] = impression
+                print(good_data)
+                try:
+                    res = s.post(url=self.goods_url, data=good_data)
+                except:
+                    time.sleep(10)
+                    res = s.post(url=self.goods_url, data=good_data)
+                if res.status_code != 200 or json.loads(res.content)['code']:
+                    logging.error("产品保存失败" + response.url)
+                    logging.error(json.loads(res.content)['message'])
+                    self.fail_url.append(response.url)
+                else:
+                    self.suc_count += 1
             except:
-                time.sleep(10)
-                comment_res = s.get(url, headers=headers, verify=False, timeout=10)
-            rex = re.compile('({.*})')
-            result = json.loads(rex.findall(comment_res.text)[0])
-            good_data['positive_review'] = result['productCommentSummary']['goodCount']
-            good_data['comment_count'] = result['productCommentSummary']['commentCount']
-            impression = ''
-            for j in result['hotCommentTagStatistics']:
-                impression += j['name'] + '(' + str(j['count']) + ')  '
-            good_data['impression'] = impression
-            print(good_data)
-            try:
-                res = s.post(url=self.goods_url, data=good_data)
-            except:
-                time.sleep(10)
-                res = s.post(url=self.goods_url, data=good_data)
-            if res.status_code != 200 or json.loads(res.content)['code']:
-                logging.error("产品保存失败" + response.url)
-                logging.error(json.loads(res.content)['message'])
-                self.fail_url.append(response.url)
-            else:
-                self.suc_count += 1
+                pass
         list_url = response.meta['list_url']
         list_url.pop(0)
         time.sleep(3)
