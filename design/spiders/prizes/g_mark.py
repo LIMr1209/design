@@ -116,7 +116,7 @@ class GMarkSpider(scrapy.spiders.Spider):
     def item_deal(self, response):
         level = response.meta['level']
         item = DesignItem()
-        item['url'] = response.url
+        item['url'] = response.url.split('?')[0]
         # 产品名称
         title = response.xpath("//dt/span[text()='Award-winning item']/following::dd[1]//text()").extract()
         if title and title[0].strip():

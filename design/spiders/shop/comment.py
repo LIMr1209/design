@@ -103,6 +103,15 @@ class CommentSpider:
                 impression = ''
                 for j in result['hotCommentTagStatistics']:
                     impression += j['name'] + '(' + str(j['count']) + ')  '
+
+                img_urls = []
+                if 'images' in i:
+                    for j in i['images']:
+                        img_urls.append('https:' + j['imgUrl'].replace('s128x96_jfs', 's616x405_jfs'))
+                comment['images'] = ','.join(img_urls)
+                comment['love_count'] = i['usefulVoteCount']
+                comment['reply_count'] = i['replyCount']
+                comment['score'] = i['score']
                 if i['score'] in [4, 5]:
                     comment['type'] = 0
                 elif i['score'] in [3, 2]:
