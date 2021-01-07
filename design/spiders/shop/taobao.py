@@ -64,10 +64,10 @@ class TaobaoSpider(SeleniumSpider):
     search_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
 
     def __init__(self, key_words, *args, **kwargs):
-        self.page = 2
+        self.page = 1
         self.max_page = 20
         self.price_range = ""
-        self.key_words = ['水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['电动牙刷']
         self.fail_url = []
         self.suc_count = 0
 
@@ -155,12 +155,12 @@ class TaobaoSpider(SeleniumSpider):
         # self.stringToDict()
         page_count = str((self.page - 1) * 44)
         url = self.search_url.format(name=self.key_words[0], price_range=self.price_range, page_count=page_count)
-        yield scrapy.Request(url, meta={'usedSelenium': True, "page": self.page}, callback=self.parse_list)
+        yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list, dont_filter=True)
 
     def parse_list(self, response):
         list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
         if list_url:
-            yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail,
+            yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail, dont_filter=True,
                                  meta={'usedSelenium': True, 'list_url': list_url})
 
     def parse_detail(self, response):
@@ -183,7 +183,7 @@ class TaobaoSpider(SeleniumSpider):
         list_url.pop(0)
         if list_url:
             yield scrapy.Request('https:' + list_url[0], callback=self.parse_detail,
-                                 meta={'usedSelenium': True, "list_url": list_url})
+                                 meta={'usedSelenium': True, "list_url": list_url}, dont_filter=True, )
         else:
             if self.page < self.max_page:
                 self.page += 1
@@ -194,7 +194,7 @@ class TaobaoSpider(SeleniumSpider):
                 page_count = str((self.page - 1) * 44)
                 url = self.search_url.format(name=self.key_words[0], price_range=self.price_range,
                                              page_count=page_count)
-                yield scrapy.Request(url, meta={'usedSelenium': True, "page": self.page}, callback=self.parse_list)
+                yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list, dont_filter=True)
 
     def save_tmall_data(self, response):
         time.sleep(2)
@@ -423,7 +423,7 @@ class TaobaoSpider(SeleniumSpider):
                         for i in img_urls_ele:
                             img_url = i.get_attribute('src')
                             if not img_url.startswith("http"):
-                                img_url = "https:" + img_url
+                                img_url = "https:" + img_url.replace("_50x50.jpg",'')
                             img_url = img_url.rsplit('_', 1)[0]
                             img_urls.append(img_url)
                         item['cover_url'] = img_urls[0]
