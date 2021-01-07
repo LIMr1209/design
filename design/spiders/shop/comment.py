@@ -54,13 +54,13 @@ class CommentSpider:
 
     def data_handle(self, i):
         if i['site_from'] == 8:
-            res = self.data_taobao_handle(i['out_number'])
+            res = self.data_taobao_handle(i['number'])
         elif i['site_from'] == 9:
-            res = self.data_tmall_handle(i['out_number'])
+            res = self.data_tmall_handle(i['number'])
         elif i['site_from'] == 10:
-            res = self.data_pdd_handle(i['out_number'])
+            res = self.data_pdd_handle(i['number'])
         elif i['site_from'] == 11:
-            res = self.data_jd_handle(i['out_number'])
+            res = self.data_jd_handle(i['number'])
         else:
             res = '渠道错误'
         return res
@@ -340,7 +340,7 @@ def comment_spider(name, category):
         params['site_from'] = ''
     res = requests.get('https://opalus.d3ingo.com/api/good_comment', params=params, verify=False)
     res = json.loads(res.content)
-    spider = CommentSpider(name=name)
+    spider = CommentSpider()
     for i in res['data']:
         result = spider.data_handle(i)
         print(result)
