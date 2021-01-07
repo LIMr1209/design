@@ -16,7 +16,7 @@ class CommentSpider:
         # 代理列表
         self.proxies_list = [{'http': ''}]
         # pdd 用户认证列表
-        self.pdd_accessToken_list = ['Q4ZBKMKLZ6TD4HNTUMQ6ABIPUICFTRXRNURMRSYBYERJVRBZTJCQ1128855']
+        self.pdd_accessToken_list = ['ZIKT77A7HUXB22YZFJWIQU5AGJCWL7OPX2QEH4MGR3VPT2CELPOQ1128855']
         self.time_out = 10
         self.sleep = True
         self.random_sleep_start = 5
@@ -151,7 +151,7 @@ class CommentSpider:
                 'Referer': 'http://yangkeduo.com/goods_comments.html?goods_id=%s' % out_number,
                 'User-Agent': ua,
                 'AccessToken': random.choice(self.pdd_accessToken_list),
-                'VerifyAuthToken': 'yiNF63KwVYtT3frnBC1Rvw9a0471827507f365b',
+                'VerifyAuthToken': 'CeySBEX_UMoMjS7_F5b4Egf8edac2fb3f33ca9e',
             }
             url = self.comment_pdd_data_url % (out_number, comment_page)
 
@@ -168,6 +168,14 @@ class CommentSpider:
 
             for i in result['data']:
                 comment = {}
+                img_urls = []
+                if 'pictures' in i:
+                    for j in i['pictures']:
+                        img_urls.append(j['url'])
+                comment['images'] = ','.join(img_urls)
+                comment['love_count'] = i['favor_count']
+                comment['reply_count'] = i['reply_count']
+                comment['score'] = i['comprehensive_dsr']
                 try:
                     if i['comprehensive_dsr'] < 3:
                         comment['type'] = 1
