@@ -246,6 +246,11 @@ class CommentSpider:
                 comment['type'] = 1 if i['anony'] else 0
                 comment['good_url'] = headers['Referer']
                 comment['site_from'] = 9
+                images = []
+                if 'pics' in i:
+                    for j in i['pics']:
+                        images.append('https:' + j['url'])
+                comment['images'] = ','.join(images)
                 if i['rateContent'] == '此用户没有填写评论!':
                     comment['first'] = ''
                 else:
@@ -305,6 +310,12 @@ class CommentSpider:
                     comment['type'] = 2
                 elif i['rate'] == "-1":
                     comment['type'] = 1
+                images = []
+                if 'photos' in i:
+                    for j in i['photos']:
+                        images.append('https:'+j['url'])
+                comment['images'] = ','.join(images)
+                comment['love_count'] = i['useful'] if 'useful' in i else 0
                 comment['impression'] = impression
                 comment['good_url'] = headers['Referer']
                 comment['site_from'] = 8
