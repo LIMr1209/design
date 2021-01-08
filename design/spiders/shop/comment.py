@@ -1,3 +1,5 @@
+#coding:utf-8
+
 import json
 import random
 import re
@@ -35,11 +37,11 @@ class CommentSpider:
     # 保存评论
     def comment_save(self, out_number, data):
         try:
-            res = self.s.post(self.comment_save_url, data={'data': data.encode('utf-8')})
+            res = self.s.post(self.comment_save_url, json=data)
         except requests.exceptions.RequestException as e:
             return {'success': False, 'message': "保存失败", 'out_number': out_number}
-        if res.status_code != 200 or json.loads(res.content)['code']:
-            message = json.loads(res.content)['message']
+        if res.status_code != 200 or res.json()['code']:
+            message = res.json()['message']
             return {'success': False, 'message': message, 'out_number': out_number}
         return {'success': True}
 
@@ -135,7 +137,7 @@ class CommentSpider:
                 comment['date'] = i['creationTime']
                 data.append(comment)
             if data:
-                data = json.dumps(data, ensure_ascii=False)
+                # data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
@@ -217,7 +219,7 @@ class CommentSpider:
                     comment['date'] = otherStyleTime
                 data.append(comment)
             if data:
-                data = json.dumps(data, ensure_ascii=False)
+                # data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
@@ -289,7 +291,7 @@ class CommentSpider:
                 comment['date'] = i['rateDate']
                 data.append(comment)
             if data:
-                data = json.dumps(data, ensure_ascii=False)
+                # data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
@@ -371,7 +373,7 @@ class CommentSpider:
                     comment['date'] = i['date'].replace('年', '-').replace('月', '-').replace('日', '')
                     data.append(comment)
             if data:
-                data = json.dumps(data, ensure_ascii=False)
+                # data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res

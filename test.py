@@ -1,3 +1,6 @@
+#coding:utf-8
+
+
 # import execjs
 # from design.utils.antiContent_Js import js
 # #
@@ -74,18 +77,36 @@
 import json
 
 import requests
-from requests.exceptions import ProxyError
+# from requests.exceptions import ProxyError
+#
+# porxy =  {'http': 'www.taihuoniao.com', 'https': 'www.taihuoniao.com:15818'}
+# url = 'https://ip.cn/api/index?ip=&type=0'
+# try:
+#     res = requests.get(url, proxies=porxy)
+# except requests.exceptions.RequestException as e:
+#     print(e)
+# except ProxyError as e:
+#     print(e)
+# # response = etree.HTML(res.content)
+# # print(response.xpath('//*[@id="tab0_ip"]/text()'))
+#
+# data = json.loads(res.content)
+# print(data)
 
-porxy =  {'http': 'www.taihuoniao.com', 'https': 'www.taihuoniao.com:15818'}
-url = 'https://ip.cn/api/index?ip=&type=0'
-try:
-    res = requests.get(url, proxies=porxy)
-except requests.exceptions.RequestException as e:
-    print(e)
-except ProxyError as e:
-    print(e)
-# response = etree.HTML(res.content)
-# print(response.xpath('//*[@id="tab0_ip"]/text()'))
+# data_list = [{'positive_review': 14364, 'comment_count': 28104, 'images': 'https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/24764/36/8363/94637/5c754466E5008e289/ab7bbe879a2d7314.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/10581/25/11920/75466/5c754467Edb597f62/c64abb35ece57b73.jpg', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '调动牙刷 飞利浦的非常好用，给女儿和朋友买了两支。质量好  刷的干净   非常喜欢', 'buyer': 'j***p', 'style': 'HX3216/01浅蓝色', 'date': '2019-02-26 21:51:35'}, {'positive_review': 14364, 'comment_count': 28104, 'images': 'https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/23748/29/1028/94032/5c0e699bE1693a90f/6dcfc53aa811bce1.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/27388/20/1006/112842/5c0e699cEf3b04b75/ba992e69ae2fbc50.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/27195/8/1002/111064/5c0e699cE3cdcb792/02a5d40a22f733bf.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/6980/40/8516/117916/5c0e699dEcd02ac72/caace1e6ed6479f2.jpg', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '本人其实是第一次用电动牙刷，室友说飞利浦用的感觉不错所以我也来买，客服的服务很好很耐心，牙刷的握感很好，样式也很好看。\n收到货以后晚上我就使用了一下，感觉振动的速度和强度是第一次使用可以接受的，不会震得头疼或者不能忍受之类的，而且刷的也比普通牙刷要干净，区域提醒也很贴心。\n而且店家还送了四个刷头和一个旅行收纳盒，可以说是非常超值了！\n感觉可以一直用很久了。\n充电是那种接触式的也比较放心，机身都是防水的可以放心冲。\n很满意！！', 'buyer': '欧阳小番茄', 'style': 'HX3216/01浅蓝色', 'date': '2018-12-10 21:26:53'}, {'positive_review': 14364, 'comment_count': 28104, 'images': '', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '电动牙刷形状很好看，防水性强，刷头比较柔软，不会牙龈出血，会它刷牙感觉比手动的刷得干净得多', 'buyer': 'j***a', 'style': '去除牙菌斑智能护龈 男女通用HX3216', 'date': '2019-06-20 13:53:14'}, {'positive_review': 14364, 'comment_count': 28104, 'images': '', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '静音效果很好，洗得也很干净，很划算，而且物流很快，当天下单当天到货，值得购买', 'buyer': 'j***1', 'style': 'HX3216/01浅蓝色', 'date': '2018-06-30 22:34:51'}, {'positive_review': 14364, 'comment_count': 28104, 'images': 'https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/77969/6/7058/223931/5d5120a7E77674dc6/022f268e8902f8b7.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/55929/39/7476/196846/5d5120a7E05f5a99f/4ac74f8870c1aecd.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/80406/7/7031/202152/5d5120a7E2d4d1b13/bfccf50be9773802.jpg', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '价格很便宜 注册之后再送刷头一只 声音也可以 用起来很方便 送盒子', 'buyer': '9***5', 'style': '去除牙菌斑智能护龈 男女通用HX3216', 'date': '2019-08-12 16:17:43'}, {'positive_review': 14364, 'comment_count': 28104, 'images': '', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '很精致的牙刷，手拿着很有质感舒服。刷头毛也不硬，功能和震动力度不错，清洁效果很棒。超级防水好用。', 'buyer': '维他命00000', 'style': '去除牙菌斑智能护龈 男女通用HX3216', 'date': '2019-08-03 10:49:09'}, {'positive_review': 14364, 'comment_count': 28104, 'images': 'https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/45778/15/16331/367656/5dd9cbabE10659759/7380c1bb9c15a879.jpg', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '使用起来很舒服，电动的肯定刷起来更干净，快捷方便', 'buyer': '你***宁', 'style': '去除牙菌斑智能护龈 男女通用HX3216', 'date': '2019-11-24 08:15:39'}, {'positive_review': 14364, 'comment_count': 28104, 'images': 'https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/11537/36/6505/89899/5c40709fE634549b3/773b16d6328d5ced.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/9040/22/13222/103486/5c4070a2E140185f9/eac2c6f79f8d0824.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/22367/3/5667/112562/5c4070a4E4e69c786/f59e0196e2bdcb36.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/14664/37/5666/90074/5c4070a6Ef37d9fbf/5d5c80db13e5c2f8.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/7522/15/12723/102874/5c4070a8E81444463/5108eeea105a86d6.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/7757/28/12965/97423/5c4070a9E16c83f0e/ec203732d9b2aae8.jpg', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '首先，快递非常快，两天不到就到了，京东的物流一向很给力。其次，包装很完整。\n收到货迫不及待打开了。感谢卖家送的四个刷头。一年都不用买了。试了下机子，声音不大。在接受范围内。颜色也是很简洁大方。总之，很满意的一次购物。一会用下感受感受。', 'buyer': 'v***泽', 'style': 'HX3216/01浅蓝色', 'date': '2019-01-17 20:10:18'}, {'positive_review': 14364, 'comment_count': 28104, 'images': 'https://img30.360buyimg.com/shaidan/s616x405_jfs/t26965/22/864742048/107028/e5f62182/5bbc1e97N6497b187.jpg,https://img30.360buyimg.com/shaidan/s616x405_jfs/t25357/2/1769158622/104994/cf253d8b/5bbc1e98N00ebad08.jpg', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '以前买过，质量很好，这次再买两把。做工细致，使用舒适，卖家发货很快，物流态度好。好评！', 'buyer': '打***8', 'style': 'HX3216/01浅蓝色', 'date': '2018-10-09 11:20:56'}, {'positive_review': 14364, 'comment_count': 28104, 'images': 'https://img30.360buyimg.com/shaidan/s616x405_jfs/t1/93076/1/8096/123119/5e021539E0f45abdf/e3e96156946312fe.jpg', 'love_count': 0, 'reply_count': 0, 'score': 5, 'type': 0, 'impression': '清洁能力强(33)  操作便捷(30)  方便省事(26)  使用舒适(18)  美观大气(16)  美观大方(12)  工艺精美(11)  耐用性佳(9)  声音很轻(7)  保护牙齿(6)  优质好用(2)  女士适用(2)  保修期长(1)  ', 'site_from': 11, 'good_url': 'https://item.jd.com/20623768031.html', 'first': '不错，质量很好，大牌子就是好，很稳定，比以前用的好', 'buyer': '李翔3758', 'style': '去除牙菌斑智能护龈 男女通用HX3216', 'date': '2019-12-24 21:40:09'}]
+#
+# res = requests.post('http://127.0.0.1:8002/api/comment/save',json=data_list, data={'good_url':1,'end':1},)
+#
+#
+# print(type(res.json()))
 
-data = json.loads(res.content)
-print(data)
+s = requests.Session()
+s.auth = ('user', 'pass')
+s.headers.update({'x-test': 'true'})
+
+# both 'x-test' and 'x-test2' are sent
+res = s.get('http://httpbin.org/headers', headers={'x-test2': 'true'})
+
+print(res.request.headers)
+res.iter_content()
+
