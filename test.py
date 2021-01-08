@@ -74,9 +74,16 @@
 import json
 
 import requests
-porxy =  {'http': 'tps198.kdlapi.com:15818', 'https': 'tps198.kdlapi.com:15818'}
+from requests.exceptions import ProxyError
+
+porxy =  {'http': 'www.taihuoniao.com', 'https': 'www.taihuoniao.com:15818'}
 url = 'https://ip.cn/api/index?ip=&type=0'
-res = requests.get(url, proxies=porxy)
+try:
+    res = requests.get(url, proxies=porxy)
+except requests.exceptions.RequestException as e:
+    print(e)
+except ProxyError as e:
+    print(e)
 # response = etree.HTML(res.content)
 # print(response.xpath('//*[@id="tab0_ip"]/text()'))
 

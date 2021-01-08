@@ -4,7 +4,7 @@ import re
 import time
 import requests
 from fake_useragent import UserAgent
-from requests.adapters import HTTPAdapter
+from requests.adapters import HTTPAdapter, ProxyError
 
 
 class CommentSpider:
@@ -27,6 +27,7 @@ class CommentSpider:
         self.comment_pdd_data_url = 'http://yangkeduo.com/proxy/api/reviews/%s/list?pdduid=9575597704&page=%s&size=20&enable_video=1&enable_group_review=1&label_id=0'
         self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=sort_weight&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'
         self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
+        self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
         self.comment_save_url = 'https://opalus.d3ingo.com/api/comment/save'
         # self.comment_save_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
         # self.comment_save_url = 'http://127.0.0.1:8002/api/comment/save'
@@ -74,17 +75,17 @@ class CommentSpider:
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
                 'User-Agent': ua,
-                # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
             url = self.comment_jd_data_url % (out_number, comment_page)
 
             try:
-                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
+                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
+            except ProxyError as e:
+                return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
-
             # 54 好评 3 2 中评 1 差评
             rex = re.compile('({.*})')
             try:
@@ -162,7 +163,9 @@ class CommentSpider:
             url = self.comment_pdd_data_url % (out_number, comment_page)
 
             try:
-                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
+                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
+            except ProxyError as e:
+                return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number}
             result = json.loads(comment_res.content)
@@ -228,7 +231,7 @@ class CommentSpider:
             comment_page += 1
 
     def data_tmall_handle(self, out_number):
-        comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
+        comment_page = 1
         proxies = random.choice(self.proxies_list)
         ua = UserAgent().random
         headers = {
@@ -236,14 +239,16 @@ class CommentSpider:
             'User-Agent': ua,
             'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
         }
-        impression_res = requests.get(comment_impression % out_number, stream=True, headers=headers, proxies=proxies,
-                                      verify=False, timeout=10)
+        try:
+            impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers, proxies=proxies,
+                                        verify=False, timeout=self.time_out)
+        except ProxyError as e:
+            return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
         rex = re.compile('({.*})')
         impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
         impression = ''
         for i in impression_data['tags']['tagClouds']:
             impression += i['tag'] + '(' + str(i['count']) + ')  '
-        comment_page = 1
         while True:
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
@@ -255,7 +260,9 @@ class CommentSpider:
             url = self.comment_tm_data_url % (out_number, comment_page)
 
             try:
-                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
+                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
+            except ProxyError as e:
+                return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             rex = re.compile('({.*})')
@@ -297,7 +304,7 @@ class CommentSpider:
             comment_page += 1
 
     def data_taobao_handle(self, out_number):
-        comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
+        comment_page = 1
         proxies = random.choice(self.proxies_list)
         ua = UserAgent().random
         headers = {
@@ -305,14 +312,16 @@ class CommentSpider:
             'User-Agent': ua,
             'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
         }
-        impression_res = requests.get(comment_impression % out_number, stream=True, headers=headers, proxies=proxies,
-                                      verify=False, timeout=10)
+        try:
+            impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers, proxies=proxies,
+                                        verify=False, timeout=self.time_out)
+        except ProxyError as e:
+            return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
         rex = re.compile('({.*})')
         impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
         impression = ''
         for i in impression_data['tags']['tagClouds']:
             impression += i['tag'] + '(' + str(i['count']) + ')  '
-        comment_page = 1
         while True:
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
@@ -324,7 +333,9 @@ class CommentSpider:
             url = self.comment_tb_data_url % (out_number, comment_page)
 
             try:
-                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=10)
+                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
+            except ProxyError as e:
+                return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             rex = re.compile('({.*})')
