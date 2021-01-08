@@ -330,34 +330,35 @@ class CommentSpider:
             rex = re.compile('({.*})')
             result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
             data = []
-            for i in result['comments']:
-                comment = {}
-                if i['rate'] == "1":
-                    comment['type'] = 0
-                elif i['rate'] == "0":
-                    comment['type'] = 2
-                elif i['rate'] == "-1":
-                    comment['type'] = 1
-                images = []
-                if 'photos' in i:
-                    for j in i['photos']:
-                        images.append('https:' + j['url'])
-                comment['images'] = ','.join(images)
-                comment['love_count'] = i['useful'] if 'useful' in i else 0
-                comment['impression'] = impression
-                comment['good_url'] = headers['Referer']
-                comment['site_from'] = 8
-                if i['content'] == '此用户没有填写评论!':
-                    comment['first'] = ''
-                elif i['content'] == '评价方未及时做出评价,系统默认好评!':
-                    comment['first'] = ''
-                else:
-                    comment['first'] = i['content']
-                comment['add'] = i['append']['content'] if i['append'] else ''
-                comment['buyer'] = i['user']['nick']
-                comment['style'] = i['auction']['sku']
-                comment['date'] = i['date'].replace('年', '-').replace('月', '-').replace('日', '')
-                data.append(comment)
+            if result['comments']:
+                for i in result['comments']:
+                    comment = {}
+                    if i['rate'] == "1":
+                        comment['type'] = 0
+                    elif i['rate'] == "0":
+                        comment['type'] = 2
+                    elif i['rate'] == "-1":
+                        comment['type'] = 1
+                    images = []
+                    if 'photos' in i:
+                        for j in i['photos']:
+                            images.append('https:' + j['url'])
+                    comment['images'] = ','.join(images)
+                    comment['love_count'] = i['useful'] if 'useful' in i else 0
+                    comment['impression'] = impression
+                    comment['good_url'] = headers['Referer']
+                    comment['site_from'] = 8
+                    if i['content'] == '此用户没有填写评论!':
+                        comment['first'] = ''
+                    elif i['content'] == '评价方未及时做出评价,系统默认好评!':
+                        comment['first'] = ''
+                    else:
+                        comment['first'] = i['content']
+                    comment['add'] = i['append']['content'] if i['append'] else ''
+                    comment['buyer'] = i['user']['nick']
+                    comment['style'] = i['auction']['sku']
+                    comment['date'] = i['date'].replace('年', '-').replace('月', '-').replace('日', '')
+                    data.append(comment)
             if data:
                 data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)
