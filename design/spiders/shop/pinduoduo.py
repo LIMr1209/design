@@ -35,7 +35,7 @@ class PddSpider(SeleniumSpider):
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'JAYDMQVKKPWSHFFVFJDQG64XFQD6K27LIVK6PU2TPRPVYZ3CNVOQ1128855',
+        'AccessToken': 'ZIKT77A7HUXB22YZFJWIQU5AGJCWL7OPX2QEH4MGR3VPT2CELPOQ1128855',
         'VerifyAuthToken': 'CeySBEX_UMoMjS7_F5b4Egf8edac2fb3f33ca9e'
     }
 
@@ -50,7 +50,7 @@ class PddSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = ['水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -92,7 +92,7 @@ class PddSpider(SeleniumSpider):
             'filter': '',
             'track_data': 'refer_page_id,10002_1600936236168_2wdje7q7ue;refer_search_met_pos,0',
             'q': self.key_words[0],
-            'page': 1,
+            'page': self.page,
             'size': '50',
             'flip': flip,
             'anti_content': anti_content,

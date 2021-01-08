@@ -14,13 +14,13 @@ class CommentSpider:
         s.mount('https://', HTTPAdapter(max_retries=5))
         self.s = s
         # 代理列表
-        self.proxies_list = [{'http': ''}]
+        self.proxies_list = [{'http': 'tps198.kdlapi.com:15818', 'https': 'tps198.kdlapi.com:15818'}]
         # pdd 用户认证列表
         self.pdd_accessToken_list = ['ZIKT77A7HUXB22YZFJWIQU5AGJCWL7OPX2QEH4MGR3VPT2CELPOQ1128855']
         self.time_out = 10
         self.sleep = True
-        self.random_sleep_start = 5
-        self.random_sleep_end = 10
+        self.random_sleep_start = 2
+        self.random_sleep_end = 5
         self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         # 有的商品 当前sku 无评论 切换url
         self.switch = False  # jd
@@ -34,12 +34,13 @@ class CommentSpider:
     # 保存评论
     def comment_save(self, out_number, data):
         try:
-            res = self.s.post(self.comment_save_url, data=data)
+            res = self.s.post(self.comment_save_url, data={'data': data.encode('utf-8')})
         except requests.exceptions.RequestException as e:
             return {'success': False, 'message': "保存失败", 'out_number': out_number}
         if res.status_code != 200 or json.loads(res.content)['code']:
             message = json.loads(res.content)['message']
             return {'success': False, 'message': message, 'out_number': out_number}
+        return {'success': True}
 
     # 终止爬取评论
     def comment_end(self, out_number, headers):
@@ -72,9 +73,8 @@ class CommentSpider:
             ua = UserAgent().random
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
-                # 'User-Agent': ua,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-                'Cookie': '__jdv=76161171|direct|-|none|-|1608255795687; areaId=1; PCSYCityID=CN_110000_110100_110105; shshshfpa=1ea06a98-4acf-4194-8612-1f53aa095576-1608255797; shshshfpb=ptjkzrtRv%2FGXDRxvbTmMhXQ%3D%3D; ipLoc-djd=1-72-55653-0; jwotest_product=99; __jdu=16082557956851132232680; __jda=122270672.16082557956851132232680.1608255796.1608528276.1608546540.6; __jdc=122270672; shshshfp=e617994739299fc7d65b757f312bf7d1; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; shshshsID=fc4275835fb93217e88bce5600d92c29_5_1608547125459; __jdb=122270672.5.16082557956851132232680|6.1608546540; JSESSIONID=02182E6AC1F7B1F35FA6123414378436.s1',
+                'User-Agent': ua,
+                # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
@@ -95,7 +95,7 @@ class CommentSpider:
                 self.comment_jd_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
                 self.switch = True
                 continue
-
+            data = []
             for i in result['comments']:
                 comment = {}
                 comment['positive_review'] = result['productCommentSummary']['goodCount']
@@ -132,7 +132,13 @@ class CommentSpider:
                 comment['buyer'] = i['nickname']
                 comment['style'] = i['productColor'] if 'productColor' in i else ''
                 comment['date'] = i['creationTime']
-                self.comment_save(out_number, comment)
+                data.append(comment)
+            if data:
+                data = json.dumps(data, ensure_ascii=False)
+                res = self.comment_save(out_number, data)
+                if not res['success']:
+                    return res
+                print("保存成功京东", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['comments']:
                 self.comment_end(out_number, headers)
@@ -165,7 +171,7 @@ class CommentSpider:
                         'page': comment_page}
             if 'empty_comment_text' not in result:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number}
-
+            data = []
             for i in result['data']:
                 comment = {}
                 img_urls = []
@@ -206,7 +212,13 @@ class CommentSpider:
                     timeArray = time.localtime(i['time'])
                     otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
                     comment['date'] = otherStyleTime
-                self.comment_save(out_number, comment)
+                data.append(comment)
+            if data:
+                data = json.dumps(data, ensure_ascii=False)
+                res = self.comment_save(out_number, data)
+                if not res['success']:
+                    return res
+                print("保存成功拼多多", comment_page, out_number)
             if not result['data']:
                 self.comment_end(out_number, headers)
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
@@ -248,6 +260,7 @@ class CommentSpider:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             rex = re.compile('({.*})')
             result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
+            data = []
             for i in result['rateDetail']['rateList']:
                 comment = {}
                 comment['impression'] = impression
@@ -267,7 +280,13 @@ class CommentSpider:
                 comment['buyer'] = i['displayUserNick']
                 comment['style'] = i['auctionSku']
                 comment['date'] = i['rateDate']
-                self.comment_save(out_number, comment)
+                data.append(comment)
+            if data:
+                data = json.dumps(data, ensure_ascii=False)
+                res = self.comment_save(out_number, data)
+                if not res['success']:
+                    return res
+                print("保存成功天猫", comment_page, out_number)
             pages = result['rateDetail']['paginator']['lastPage']
             if comment_page >= pages:
                 self.comment_end(out_number, headers)
@@ -310,6 +329,7 @@ class CommentSpider:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             rex = re.compile('({.*})')
             result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
+            data = []
             for i in result['comments']:
                 comment = {}
                 if i['rate'] == "1":
@@ -321,7 +341,7 @@ class CommentSpider:
                 images = []
                 if 'photos' in i:
                     for j in i['photos']:
-                        images.append('https:'+j['url'])
+                        images.append('https:' + j['url'])
                 comment['images'] = ','.join(images)
                 comment['love_count'] = i['useful'] if 'useful' in i else 0
                 comment['impression'] = impression
@@ -337,7 +357,13 @@ class CommentSpider:
                 comment['buyer'] = i['user']['nick']
                 comment['style'] = i['auction']['sku']
                 comment['date'] = i['date'].replace('年', '-').replace('月', '-').replace('日', '')
-                self.comment_save(out_number, comment)
+                data.append(comment)
+            if data:
+                data = json.dumps(data, ensure_ascii=False)
+                res = self.comment_save(out_number, data)
+                if not res['success']:
+                    return res
+                print("保存成功淘宝", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['maxPage']:
                 self.comment_end(out_number, headers)
