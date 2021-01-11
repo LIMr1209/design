@@ -289,7 +289,7 @@ class CommentSpider:
                 images = []
                 if 'pics' in i:
                     for j in i['pics']:
-                        images.append('https:' + j['url'])
+                        images.append('https:' + j)
                 comment['images'] = ','.join(images)
                 if i['rateContent'] == '此用户没有填写评论!':
                     comment['first'] = ''

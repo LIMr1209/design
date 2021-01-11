@@ -30,7 +30,7 @@ class PddSpider(SeleniumSpider):
     goods_url = 'https://opalus.d3ingo.com/api/goods/save'
     fail_url = []
     suc_count = 0
-    page = 12
+    page = 20
     max_page = 20
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -50,7 +50,7 @@ class PddSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = ['剃须刀', '电动牙刷']
+        self.key_words = ['电动牙刷']
         self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -159,6 +159,12 @@ class PddSpider(SeleniumSpider):
             service_list = self.browser.find_elements_by_xpath('//div[@class="fsI_SU5H"]/div')
             service_list = [i.text for i in service_list if i.text]
             item['service'] = ','.join(service_list)
+
+            # self.browser.find_element_by_xpath('//div[text()="单独购买"]/..').click()
+            # item['original_price'] = self.browser.find_element_by_xpath('//div[@class="_27FaiT3N"]').text
+            # self.browser.find_element_by_xpath('//span[text()="发起拼单"]/..').click()
+            # item['promotion_price'] = self.browser.find_element_by_xpath('//div[@class="_27FaiT3N"]').text
+
             try:
                 comment_text = self.browser.find_element_by_xpath('//div[@class="ccIhLMdm"]')
                 comment_text = re.findall('商品评价\((.*)\)', comment_text.text)[0]
