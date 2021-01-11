@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 import json
 import random
@@ -16,13 +16,18 @@ class CommentSpider:
         s.mount('https://', HTTPAdapter(max_retries=5))
         self.s = s
         # 代理列表
-        self.proxies_list = [{'http': 'tps198.kdlapi.com:15818', 'https': 'tps198.kdlapi.com:15818'}]
+        self.proxies_list = [{'http': '', 'https': ''}]
         # pdd 用户认证列表
-        self.pdd_accessToken_list = ['ZIKT77A7HUXB22YZFJWIQU5AGJCWL7OPX2QEH4MGR3VPT2CELPOQ1128855']
+        self.pdd_accessToken_list = [
+            {
+                'AccessToken': '4R2WP3CPRGXUPCQ5M4THDSQCCSMUQZBHYHKBDMEQ4XPU6TUSHPNA1128855',
+                'VerifyAuthToken': '7pgzUfownbk5pC-CmRJFegbb7f82801a86132c3'
+            }
+        ]
         self.time_out = 10
         self.sleep = True
-        self.random_sleep_start = 2
-        self.random_sleep_end = 5
+        self.random_sleep_start = 5
+        self.random_sleep_end = 10
         self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         # 有的商品 当前sku 无评论 切换url
         self.switch = False  # jd
@@ -77,6 +82,7 @@ class CommentSpider:
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
                 'User-Agent': ua,
+                'Cookie': '__jdv=76161171|direct|-|none|-|1610329405998; __jdu=16103294059961137138561; areaId=1; PCSYCityID=CN_110000_110100_110105; shshshfpa=f09b3217-4001-fc20-58f9-b1c005061b6e-1610329409; shshshfpb=jWqGTcT%2FwcJVlyMzTKm6iqA%3D%3D; __jda=122270672.16103294059961137138561.1610329406.1610329406.1610329406.1; __jdc=122270672; shshshfp=e055c2e13f622066cff2f5f987592135; shshshsID=d88d11986d0b12b7cc570438e210d8f9_3_1610329423064; __jdb=122270672.3.16103294059961137138561|1.1610329406; ipLoc-djd=1-72-55653-0; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; JSESSIONID=2B49AF0022B29BD23BF54C54DF4CA76C.s1; jwotest_product=99'
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
@@ -98,44 +104,47 @@ class CommentSpider:
                 self.comment_jd_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
                 self.switch = True
                 continue
+            if not result:
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             data = []
-            for i in result['comments']:
-                comment = {}
-                comment['positive_review'] = result['productCommentSummary']['goodCount']
-                comment['comment_count'] = result['productCommentSummary']['commentCount']
-                impression = ''
-                for j in result['hotCommentTagStatistics']:
-                    impression += j['name'] + '(' + str(j['count']) + ')  '
+            if 'comments' in result:
+                for i in result['comments']:
+                    comment = {}
+                    comment['positive_review'] = result['productCommentSummary']['goodCount']
+                    comment['comment_count'] = result['productCommentSummary']['commentCount']
+                    impression = ''
+                    for j in result['hotCommentTagStatistics']:
+                        impression += j['name'] + '(' + str(j['count']) + ')  '
 
-                img_urls = []
-                if 'images' in i:
-                    for j in i['images']:
-                        img_urls.append('https:' + j['imgUrl'].replace('s128x96_jfs', 's616x405_jfs'))
-                comment['images'] = ','.join(img_urls)
-                comment['love_count'] = i['usefulVoteCount']
-                comment['reply_count'] = i['replyCount']
-                comment['score'] = i['score']
-                if i['score'] in [4, 5]:
-                    comment['type'] = 0
-                elif i['score'] in [3, 2]:
-                    comment['type'] = 2
-                elif i['score'] in [1]:
-                    comment['type'] = 1
-                comment['impression'] = impression
-                comment['site_from'] = 11
-                comment['good_url'] = headers['Referer']
-                if i['content'] == '此用户没有填写评论!':
-                    comment['first'] = ''
-                elif i['content'] == '评价方未及时做出评价,系统默认好评!':
-                    comment['first'] = ''
-                else:
-                    comment['first'] = i['content']
-                if 'afterUserComment' in i and i['afterUserComment']:
-                    comment['add'] = i['afterUserComment']['content']
-                comment['buyer'] = i['nickname']
-                comment['style'] = i['productColor'] if 'productColor' in i else ''
-                comment['date'] = i['creationTime']
-                data.append(comment)
+                    img_urls = []
+                    if 'images' in i:
+                        for j in i['images']:
+                            img_urls.append('https:' + j['imgUrl'].replace('s128x96_jfs', 's616x405_jfs'))
+                    comment['images'] = ','.join(img_urls)
+                    comment['love_count'] = i['usefulVoteCount']
+                    comment['reply_count'] = i['replyCount']
+                    comment['score'] = i['score']
+                    if i['score'] in [4, 5]:
+                        comment['type'] = 0
+                    elif i['score'] in [3, 2]:
+                        comment['type'] = 2
+                    elif i['score'] in [1]:
+                        comment['type'] = 1
+                    comment['impression'] = impression
+                    comment['site_from'] = 11
+                    comment['good_url'] = headers['Referer']
+                    if i['content'] == '此用户没有填写评论!':
+                        comment['first'] = ''
+                    elif i['content'] == '评价方未及时做出评价,系统默认好评!':
+                        comment['first'] = ''
+                    else:
+                        comment['first'] = i['content']
+                    if 'afterUserComment' in i and i['afterUserComment']:
+                        comment['add'] = i['afterUserComment']['content']
+                    comment['buyer'] = i['nickname']
+                    comment['style'] = i['productColor'] if 'productColor' in i else ''
+                    comment['date'] = i['creationTime']
+                    data.append(comment)
             if data:
                 # data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)
@@ -156,11 +165,12 @@ class CommentSpider:
         while True:
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
+            token = random.choice(self.pdd_accessToken_list)
             headers = {
                 'Referer': 'http://yangkeduo.com/goods_comments.html?goods_id=%s' % out_number,
                 'User-Agent': ua,
-                'AccessToken': random.choice(self.pdd_accessToken_list),
-                'VerifyAuthToken': 'CeySBEX_UMoMjS7_F5b4Egf8edac2fb3f33ca9e',
+                'AccessToken': token['AccessToken'],
+                'VerifyAuthToken': token['VerifyAuthToken'],
             }
             url = self.comment_pdd_data_url % (out_number, comment_page)
 

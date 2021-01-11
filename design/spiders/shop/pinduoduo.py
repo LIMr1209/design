@@ -30,13 +30,13 @@ class PddSpider(SeleniumSpider):
     goods_url = 'https://opalus.d3ingo.com/api/goods/save'
     fail_url = []
     suc_count = 0
-    page = 18
+    page = 12
     max_page = 20
     headers = {
         'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': 'ZIKT77A7HUXB22YZFJWIQU5AGJCWL7OPX2QEH4MGR3VPT2CELPOQ1128855',
-        'VerifyAuthToken': 'CeySBEX_UMoMjS7_F5b4Egf8edac2fb3f33ca9e'
+        'AccessToken': '4R2WP3CPRGXUPCQ5M4THDSQCCSMUQZBHYHKBDMEQ4XPU6TUSHPNA1128855',
+        'VerifyAuthToken': '7pgzUfownbk5pC-CmRJFegbb7f82801a86132c3'
     }
 
     custom_settings = {
@@ -50,7 +50,7 @@ class PddSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = ['电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['剃须刀', '电动牙刷']
         self.price_range = ''
         super(PddSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
