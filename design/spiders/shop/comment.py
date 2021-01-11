@@ -7,6 +7,7 @@ import time
 import requests
 from fake_useragent import UserAgent
 from requests.adapters import HTTPAdapter, ProxyError
+import fire
 
 
 class CommentSpider:
@@ -430,4 +431,4 @@ if __name__ == '__main__':
     import urllib3
 
     urllib3.disable_warnings()
-    comment_spider(sys.argv[1], sys.argv[2])
+    fire.Fire(comment_spider)
