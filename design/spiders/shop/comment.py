@@ -8,7 +8,8 @@ import requests
 from fake_useragent import UserAgent
 from requests.adapters import HTTPAdapter, ProxyError
 import fire
-
+from configparser import ConfigParser, ExtendedInterpolation
+import os
 
 class CommentSpider:
     def __init__(self):
@@ -17,14 +18,27 @@ class CommentSpider:
         s.mount('https://', HTTPAdapter(max_retries=5))
         self.s = s
         # 代理列表
-        self.proxies_list = [{'http': '', 'https': ''}]
+        if tunnel_domain:
+            if tunnel_user:
+                proxies = {
+                    "http": "http://%(user)s:%(pwd)s@%(proxy)s:%(port)s/" % {"user": tunnel_user, "pwd": tunnel_pwd, "proxy": tunnel_domain, "port": tunnel_port},
+                    "https": "http://%(user)s:%(pwd)s@%(proxy)s:%(port)s/" % {"user": tunnel_user, "pwd": tunnel_pwd, "proxy": tunnel_domain, "port": tunnel_port}
+                }
+            else:
+                proxies = {
+                    "http": "http://%(proxy)s:%(port)s/" % {"proxy": tunnel_domain, "port": tunnel_port},
+                    "https": "http://%(proxy)s:%(port)s/" % {"proxy": tunnel_domain, "port": tunnel_port}
+                }
+        else:
+            proxies = {'http':'','https':''}
+        self.proxies_list = [proxies]
         # pdd 用户认证列表
-        self.pdd_accessToken_list = [
-            {
-                'AccessToken': '4R2WP3CPRGXUPCQ5M4THDSQCCSMUQZBHYHKBDMEQ4XPU6TUSHPNA1128855',
-                'VerifyAuthToken': '7pgzUfownbk5pC-CmRJFegbb7f82801a86132c3'
-            }
-        ]
+        self.pdd_accessToken_list = []
+        for i, j in enumerate(pdd_access_token_list):
+            self.pdd_accessToken_list.append({
+                'AccessToken': j,
+                'VerifyAuthToken': pdd_verify_auth_token[i]
+            })
         self.time_out = 10
         self.sleep = True
         self.random_sleep_start = 5
@@ -36,9 +50,7 @@ class CommentSpider:
         self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=sort_weight&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'
         self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
         self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
-        self.comment_save_url = 'https://opalus.d3ingo.com/api/comment/save'
-        # self.comment_save_url = 'http://opalus-dev.taihuoniao.com/api/comment/save'
-        # self.comment_save_url = 'http://127.0.0.1:8002/api/comment/save'
+        self.comment_save_url = opalus_comment_url
 
     # 保存评论
     def comment_save(self, out_number, data):
@@ -399,9 +411,6 @@ class CommentSpider:
             comment_page += 1
 
 
-import sys
-
-
 def comment_spider(name, category):
     if category == 'all':
         params = {'category': ''}
@@ -410,6 +419,9 @@ def comment_spider(name, category):
     if name == 'jd':
         params['site_from'] = 11
     elif name == 'pdd':
+        if len(pdd_verify_auth_token) != len(pdd_verify_auth_token):
+            print('pdd用户信息长度不匹配')
+            return
         params['site_from'] = 10
     elif name == 'tmall':
         params['site_from'] = 9
@@ -417,7 +429,7 @@ def comment_spider(name, category):
         params['site_from'] = 8
     else:
         params['site_from'] = ''
-    res = requests.get('https://opalus.d3ingo.com/api/good_comment', params=params, verify=False)
+    res = requests.get(opalus_goods_comment_url, params=params, verify=False)
     res = json.loads(res.content)
     spider = CommentSpider()
     for i in res['data']:
@@ -431,4 +443,19 @@ if __name__ == '__main__':
     import urllib3
 
     urllib3.disable_warnings()
+
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
+    cf = ConfigParser(interpolation=ExtendedInterpolation())
+    cf.read(os.path.abspath(os.path.join(basedir, "..", ".env")))
+
+    tunnel_domain = cf.get('tunnel_domain', 'proxies', fallback='')
+    tunnel_port = cf.get('tunnel_port', 'proxies', fallback='')
+    tunnel_user = cf.get('tunnel_user', 'proxies', fallback='')
+    tunnel_pwd = cf.get('tunnel_pwd', 'proxies', fallback='')
+    opalus_comment_url = cf.get('opalus_comment_url', 'url')
+    opalus_goods_comment_url = cf.get('opalus_goods_comment_url', 'url')
+    product_save_url = cf.get('product_save_url', 'url')
+    pdd_access_token_list = cf.get('access_token_list', 'pdd_user').split('\n')
+    pdd_verify_auth_token = cf.get('verify_auth_token', 'pdd_user').split('\n')
     fire.Fire(comment_spider)

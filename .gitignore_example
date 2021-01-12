@@ -1,0 +1,15 @@
+!.gitignore_example
+*.pyc
+logs
+pids
+.idea/
+collector/temp
+venv/
+.*
+setup.py
+eggs/
+dbs/
+build/
+project.egg-info/
+*.log
+!.env_example

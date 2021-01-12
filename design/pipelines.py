@@ -7,6 +7,7 @@
 #
 from pymongo import MongoClient
 from requests.adapters import HTTPAdapter
+from scrapy.utils.project import get_project_settings
 
 from design.settings import MONGODB_HOST, MONGODB_PORT, MONGODB_DBNAME, SHEETE_NAME
 import random
@@ -73,7 +74,7 @@ class ImageSavePipeline(object):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
         label_name = dict_item['tag']
-        path = 'C:\\Users\\aaa10\\Desktop\\image\\' + label_name+'_'+dict_item['channel']
+        path = get_project_settings()['IMG_SAVE_PATH'] + label_name+'_'+dict_item['channel']
         if not os.path.exists(path):
             os.makedirs(path)
         if dict_item['channel'] == 'baidu':
@@ -88,9 +89,7 @@ class ImageSavePipeline(object):
 
 class ImagePipeline(object):
     def __init__(self):
-        self.url = 'https://www.taihuoniao.com/api/product/submit'
-        # self.url = 'http://dev.taihuoniao.com/api/product/submit'
-        # self.url = 'http://127.0.0.1:8004/api/product/submit'
+        self.url = get_project_settings()['PRODUCT_SAVE_URL']
         self.fail_url = []
 
     def open_spider(self, spider):
@@ -253,7 +252,3 @@ class DSManger:
         if 'error_code' in result:
             print('删除分类失败')
             return
-
-
-# ds = DSManger()
-# ds.get_access_token('2GzP6I50zxHOqQ66zyKdRMT3', '5VL8eL2IFKH61CxjSv55CvCWGdcFogr0')

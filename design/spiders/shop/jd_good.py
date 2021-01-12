@@ -10,6 +10,7 @@ from fake_useragent import UserAgent
 from pydispatch import dispatcher
 from requests.adapters import HTTPAdapter
 from scrapy import signals
+from scrapy.utils.project import get_project_settings
 
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
@@ -31,17 +32,19 @@ class JdSpider(SeleniumSpider):
         'LOG_LEVEL': 'INFO',
         'LOG_FILE': 'log/%s.log' % name
     }
-    # goods_url = 'http://opalus-dev.taihuoniao.com/api/goods/save'
-    goods_url = 'https://opalus.d3ingo.com/api/goods/save'
-    comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
-    fail_url = []
-    suc_count = 0
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = ['电动牙刷']
         self.price_range = ''
         self.page = 18
         self.max_page = 20
+
+        self.setting = get_project_settings()
+        self.goods_url = self.setting['OPALUS_GOODS_URL']
+        self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+        self.fail_url = []
+        self.suc_count = 0
+
         super(JdSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
                            signal=signals.spider_closed
