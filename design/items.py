@@ -155,7 +155,7 @@ class TaobaoItem(scrapy.Item):
     favorite_count = scrapy.Field()  # 收藏量
     service = scrapy.Field()  # 服务承诺
     reputation = scrapy.Field()  # 信誉
-    detail_price = scrapy.Field()  # 各规格的产品价格
+    detail_sku = scrapy.Field()  # 各规格的商品信息
     detail_str = scrapy.Field()  # 商品详情
     detail_dict = scrapy.Field()
     cover_url = scrapy.Field()  # 图片地址

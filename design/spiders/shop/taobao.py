@@ -27,19 +27,19 @@ def sku_price_func(browser, site_from):
     sku_price = json.loads(res)
     detail_price = []
     for i, j in sku_price.items():
-        price = j['price']
+        original_price = j['price']
         skuid = j['skuId']
-        style = ''
+        style = {}
         style_list_num = i.split(';')
         for z in style_list_num:
             if z:
                 ele = browser.find_element_by_xpath('//li[@data-value="{}"]'.format(z))
                 cate = ele.find_element_by_xpath('../../ul').get_attribute('data-property')
                 text = ele.find_element_by_xpath('./a/span').get_attribute('innerText')
-                style += cate + ':' + text + '\n'
+                style[cate] = text
         detail_price.append({
             'skuid': skuid,
-            'price': price,
+            'original_price': original_price,
             'style': style
         })
     return detail_price
@@ -152,7 +152,7 @@ class TaobaoSpider(SeleniumSpider):
 
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
-        self.search_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}'
+        self.search_url = 'https://s.taobao.com/search?initiative_id=tbindexz_20170306&ie=utf8&spm=a21bo.2017.201856-taobao-item.2&sourceId=tb.index&search_type=item&ssid=s5-e&commend=all&imgfile=&q={name}&filter=reserve_price{price_range}&s={page_count}&suggest=history_1&_input_charset=utf-8&wq=&suggest_query=&source=suggest'
         self.cookie = 'hng=CN%7Czh-CN%7CCNY%7C156; t=27342fccaf0252611c51fc03fa4e7ac6; enc=MIfEinE%2BUqe%2FrOAJ4kSL2sf8sPaGqMfQhs3fJI6jVi9whtay9lqef7PafAH8YbF%2Bpb%2FPiEz6i%2FJP%2B7yEO0dpYA%3D%3D; _tb_token_=f353e3600a381; cookie2=1e1329c204b483965c50f4aea175989c; xlly_s=1; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cna=zasMF12t3zoCATzCuQKpN3kO; uc1=existShop=false&cookie21=UtASsssmeW6lpyd%2BB%2B3t&cookie14=Uoe0az9h5Ti4KA%3D%3D&pas=0&cookie15=VFC%2FuZ9ayeYq2g%3D%3D&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D; uc3=lg2=UIHiLt3xD8xYTw%3D%3D&vt3=F8dCuf2CSp7DjbEF1as%3D&id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSdvtCI6XCk%2F&nk4=0%400AdtZS03tnds0llDWCRcSihqN1jxbD1O2opb; sgcookie=E100PSo4OpJklR8obNtKBryUufO195A5YSzyXhka2trDZeXqTdHNTDWmqifymuuq1627cAyn3cQnqskk9ztKGfP43g%3D%3D; csg=2a17af03; pnm_cku822=098%23E1hv%2F9vUvbpvUvCkvvvvvjiWP2dyQjnmn2dwgj1VPmPO6jr8RFswzj3WPFSv0jYURvhvCvvvvvvUvpCWCRbXvvaF9W2%2BFfmtEpcZTWexRdIAcUmxfwofd56Ofa3lKbh6UxWnSXVxI2iI27zh1j7ZHkx%2F1RBlYb8rwZXlJXxreC9aWXxr1WmK5I9CvvOUvvVvJhTIvpvUvvmvR0nopE4gvpvIvvvvvhCvvvvvvUUvphvUbpvv99Cvpv32vvmmvhCvmWIvvUUvphvUA9vCvvOvCvvvphvRvpvhvv2MMTOCvvpvvUmm; _m_h5_tk=b89879a97398b54808462f75f2281c05_1606972762508; _m_h5_tk_enc=27f9ec8ed65873154cb5f358e7cc2baf; tfstk=cplGB7MRRAy_J-2nFCNsruEv8P-dZrtabjltTXaIUF2atkGFigBFUcbp-koiMt1..; l=eBQJ2fCIQDOlzshQBOfZlurza77OhIRYouPzaNbMiOCPOT5e5omlWZROa_TwCnGVh6cBR3oVpXaaBeYBqhvQ5O95a6Fy_pHmn; isg=BPv7i6eNIMq3nB1mTJyyKlytit9lUA9SVto5X-24ufoRTBsudSELooqGZuwC6mdK; cq=ccp%3D1'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -249,6 +249,7 @@ class TaobaoSpider(SeleniumSpider):
         #     callback=self.parse_detail, dont_filter=True, meta={'usedSelenium': True, 'list_url': []})
 
     def parse_detail(self, response):
+        time.sleep(2)
         if "detail.tmall.com" in response.url:
             res = self.save_tmall_data(response)
         if "item.taobao.com" in response.url:
@@ -324,7 +325,7 @@ class TaobaoSpider(SeleniumSpider):
                     # ele = self.browser.find_element_by_xpath('//div[@class="tm-layout"]')
                     # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
 
-                    item['detail_price'] = json.dumps(detail_price)
+                    item['detail_sku'] = json.dumps(detail_price)
                     item['title'] = self.browser.find_element_by_xpath(
                         '//div[@class="tb-detail-hd"]/h1').text.strip()
                     service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
@@ -437,7 +438,7 @@ class TaobaoSpider(SeleniumSpider):
 
                     ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
                     self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-                    item['detail_price'] = json.dumps(detail_price)
+                    item['detail_sku'] = json.dumps(detail_price)
                     item['title'] = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').text.strip()
                     service = self.browser.find_elements_by_xpath('//dt[contains(text(),"承诺")]/following-sibling::dd/a')
                     item['service'] = ','.join([i.text for i in service])

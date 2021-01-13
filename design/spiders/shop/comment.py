@@ -11,6 +11,7 @@ import fire
 from configparser import ConfigParser, ExtendedInterpolation
 import os
 
+
 class CommentSpider:
     def __init__(self):
         s = requests.Session()
@@ -21,8 +22,12 @@ class CommentSpider:
         if tunnel_domain:
             if tunnel_user:
                 proxies = {
-                    "http": "http://%(user)s:%(pwd)s@%(proxy)s:%(port)s/" % {"user": tunnel_user, "pwd": tunnel_pwd, "proxy": tunnel_domain, "port": tunnel_port},
-                    "https": "http://%(user)s:%(pwd)s@%(proxy)s:%(port)s/" % {"user": tunnel_user, "pwd": tunnel_pwd, "proxy": tunnel_domain, "port": tunnel_port}
+                    "http": "http://%(user)s:%(pwd)s@%(proxy)s:%(port)s/" % {"user": tunnel_user, "pwd": tunnel_pwd,
+                                                                             "proxy": tunnel_domain,
+                                                                             "port": tunnel_port},
+                    "https": "http://%(user)s:%(pwd)s@%(proxy)s:%(port)s/" % {"user": tunnel_user, "pwd": tunnel_pwd,
+                                                                              "proxy": tunnel_domain,
+                                                                              "port": tunnel_port}
                 }
             else:
                 proxies = {
@@ -30,7 +35,7 @@ class CommentSpider:
                     "https": "http://%(proxy)s:%(port)s/" % {"proxy": tunnel_domain, "port": tunnel_port}
                 }
         else:
-            proxies = {'http':'','https':''}
+            proxies = {'http': '', 'https': ''}
         self.proxies_list = [proxies]
         # pdd 用户认证列表
         self.pdd_accessToken_list = []
@@ -447,15 +452,16 @@ if __name__ == '__main__':
     basedir = os.path.abspath(os.path.dirname(__file__))
 
     cf = ConfigParser(interpolation=ExtendedInterpolation())
-    cf.read(os.path.abspath(os.path.join(basedir, "..", ".env")))
+    filename = os.path.abspath(os.path.join(basedir, "..", '..', '..', ".env"))
+    cf.read(filename, encoding="utf-8")
 
-    tunnel_domain = cf.get('tunnel_domain', 'proxies', fallback='')
-    tunnel_port = cf.get('tunnel_port', 'proxies', fallback='')
-    tunnel_user = cf.get('tunnel_user', 'proxies', fallback='')
-    tunnel_pwd = cf.get('tunnel_pwd', 'proxies', fallback='')
-    opalus_comment_url = cf.get('opalus_comment_url', 'url')
-    opalus_goods_comment_url = cf.get('opalus_goods_comment_url', 'url')
-    product_save_url = cf.get('product_save_url', 'url')
-    pdd_access_token_list = cf.get('access_token_list', 'pdd_user').split('\n')
-    pdd_verify_auth_token = cf.get('verify_auth_token', 'pdd_user').split('\n')
+    tunnel_domain = cf.get('proxies', 'tunnel_domain', fallback='')
+    tunnel_port = cf.get('proxies', 'tunnel_port', fallback='')
+    tunnel_user = cf.get('proxies', 'tunnel_user', fallback='')
+    tunnel_pwd = cf.get('proxies', 'tunnel_pwd', fallback='')
+    opalus_comment_url = cf.get('api', 'opalus_comment_url')
+    opalus_goods_comment_url = cf.get('api', 'opalus_goods_comment_url')
+    product_save_url = cf.get('api', 'product_save_url')
+    pdd_access_token_list = cf.get('pdd_user', 'access_token_list').split('\n')
+    pdd_verify_auth_token = cf.get('pdd_user', 'verify_auth_token').split('\n')
     fire.Fire(comment_spider)
