@@ -143,7 +143,7 @@ class TaobaoSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.page = 1
+        self.page = 2
         self.max_page = 10
         self.price_range = ""
         self.key_words = key_words.split(',')
@@ -249,7 +249,7 @@ class TaobaoSpider(SeleniumSpider):
         #     callback=self.parse_detail, dont_filter=True, meta={'usedSelenium': True, 'list_url': []})
 
     def parse_detail(self, response):
-        time.sleep(2)
+        time.sleep(4)
         if "detail.tmall.com" in response.url:
             res = self.save_tmall_data(response)
         if "item.taobao.com" in response.url:

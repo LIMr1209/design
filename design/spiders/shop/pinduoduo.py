@@ -21,6 +21,35 @@ from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
 
 
+def sku_price_func(browser, site_from):
+    page_source = browser.page_source
+    rex = re.compile('("attribute.*?,)"skuID')
+    res_replace = re.findall(rex, page_source)
+    for i in res_replace:
+        page_source = page_source.replace(i, '')
+    rex = re.compile('skus.*?(\[{.*}]),"thumbUrl')
+    res = re.findall(rex, page_source)[0]
+    sku_price = json.loads(res)
+    detail_price = []
+    for j in sku_price:
+        original_price = j['normalPrice']
+        promotion_price = j['groupPrice']
+        skuid = str(j['skuId'])
+        cover_url = j['thumbUrl']
+        style = {}
+        for z in j['specs']:
+            if z:
+                style[z['spec_key']] = z['spec_value']
+        detail_price.append({
+            'skuid': skuid,
+            'cover_url': cover_url,
+            'promotion_price': promotion_price,
+            'original_price': original_price,
+            'style': style
+        })
+    return detail_price
+
+
 class PddSpider(SeleniumSpider):
     # 爬虫启动时间
     name = 'pdd'
@@ -37,12 +66,12 @@ class PddSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = ['电动牙刷']
+        self.key_words = key_words.split(',')
         self.price_range = ''
-        self.page = 20
+        self.page = 1
         self.max_page = 20
         self.pdd_accessToken_list = []
-        self.setting = get_project_settings()
+        self.settings = get_project_settings()
         if len(self.settings['PDD_ACCESS_TOKEN_LIST']) != len(self.settings['PDD_VERIFY_AUTH_TOKEN']):
             logging.error('pdd用户信息长度不匹配')
             return
@@ -51,7 +80,7 @@ class PddSpider(SeleniumSpider):
                 'AccessToken': j,
                 'VerifyAuthToken': self.settings['PDD_VERIFY_AUTH_TOKEN'][i]
             })
-        self.goods_url = self.setting['OPALUS_GOODS_URL']
+        self.goods_url = self.settings['OPALUS_GOODS_URL']
         self.search_url = 'http://apiv3.yangkeduo.com/search?'
         self.fail_url = []
         self.suc_count = 0
@@ -136,8 +165,8 @@ class PddSpider(SeleniumSpider):
             item_data['cover_url'] = item['item_data']['goods_model']['thumb_url']
             item_data['title'] = item['item_data']['goods_model']['goods_name']
             item_data['category'] = self.key_words[0]
-            item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
-            item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
+            # item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
+            # item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
             item_data['out_number'] = item['item_data']['goods_model']['goods_id']
             item_data['price_range'] = self.price_range
             item_data['sale_count'] = item['item_data']['goods_model']['sales']
@@ -182,11 +211,11 @@ class PddSpider(SeleniumSpider):
             service_list = self.browser.find_elements_by_xpath('//div[@class="fsI_SU5H"]/div')
             service_list = [i.text for i in service_list if i.text]
             item['service'] = ','.join(service_list)
-
-            # self.browser.find_element_by_xpath('//div[text()="单独购买"]/..').click()
-            # item['original_price'] = self.browser.find_element_by_xpath('//div[@class="_27FaiT3N"]').text
-            # self.browser.find_element_by_xpath('//span[text()="发起拼单"]/..').click()
-            # item['promotion_price'] = self.browser.find_element_by_xpath('//div[@class="_27FaiT3N"]').text
+            detail_price = sku_price_func(self.browser, 10)
+            detail_price = sorted(detail_price, key=lambda x: x["original_price"])
+            item['detail_sku'] = json.dumps(detail_price)
+            item['original_price'] = detail_price[0]['original_price']+'-'+detail_price[-1]['original_price']
+            item['promotion_price'] =detail_price[0]['promotion_price']+'-'+detail_price[-1]['promotion_price']
 
             try:
                 comment_text = self.browser.find_element_by_xpath('//div[@class="ccIhLMdm"]')
