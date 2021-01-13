@@ -157,3 +157,29 @@ DEPTH_LIMIT = 0
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+
+
+# configparser 自定义配置信息
+
+from configparser import ConfigParser, ExtendedInterpolation
+import os
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+cf = ConfigParser(interpolation=ExtendedInterpolation())
+cf.read(os.path.abspath(os.path.join(basedir, "..", ".env")))
+
+# api接口
+OPALUS_GOODS_URL = cf.get('opalus_goods_url', 'url')
+OPALUS_COMMENT_URL = cf.get('opalus_comment_url', 'url')
+OPALUS_GOODS_COMMENT_URL = cf.get('opalus_goods_comment_url', 'url')
+PRODUCT_SAVE_URL = cf.get('product_save_url', 'url')
+IMG_SAVE_PATH = cf.get('save_path','img')
+# 隧道代理
+TUNNEL_DOMAIN = cf.get('tunnel_domain', 'proxies')
+TUNNEL_PORT = cf.get('tunnel_port', 'proxies')
+TUNNEL_USER = cf.get('tunnel_user', 'proxies')
+TUNNEL_PWD = cf.get('tunnel_pwd', 'proxies')
+# 拼多多用户鉴权
+PDD_ACCESS_TOKEN_LIST = cf.get('access_token_list','pdd_user').split('\n')
+PDD_VERIFY_AUTH_TOKEN = cf.get('verify_auth_token','pdd_user').split('\n')

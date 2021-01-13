@@ -9,6 +9,7 @@ import time
 
 from pydispatch import dispatcher
 from scrapy import signals
+from scrapy.utils.project import get_project_settings
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -25,20 +26,6 @@ class PddSpider(SeleniumSpider):
     name = 'pdd'
     allowed_domains = ['yangkeduo.com']
     # 商品信息API
-    search_url = 'http://apiv3.yangkeduo.com/search?'
-    # goods_url = 'http://opalus-dev.taihuoniao.com/api/goods/save'
-    goods_url = 'https://opalus.d3ingo.com/api/goods/save'
-    fail_url = []
-    suc_count = 0
-    page = 20
-    max_page = 20
-    headers = {
-        'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                      "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-        'AccessToken': '4R2WP3CPRGXUPCQ5M4THDSQCCSMUQZBHYHKBDMEQ4XPU6TUSHPNA1128855',
-        'VerifyAuthToken': '7pgzUfownbk5pC-CmRJFegbb7f82801a86132c3'
-    }
-
     custom_settings = {
         'DOWNLOAD_DELAY': 10,
         'DOWNLOADER_MIDDLEWARES': {
@@ -52,6 +39,26 @@ class PddSpider(SeleniumSpider):
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = ['电动牙刷']
         self.price_range = ''
+        self.page = 20
+        self.max_page = 20
+        self.pdd_accessToken_list = []
+        self.setting = get_project_settings()
+        if len(self.settings['PDD_ACCESS_TOKEN_LIST']) != len(self.settings['PDD_VERIFY_AUTH_TOKEN']):
+            logging.error('pdd用户信息长度不匹配')
+            return
+        for i, j in enumerate(self.settings['PDD_ACCESS_TOKEN_LIST']):
+            self.pdd_accessToken_list.append({
+                'AccessToken': j,
+                'VerifyAuthToken': self.settings['PDD_VERIFY_AUTH_TOKEN'][i]
+            })
+        self.goods_url = self.setting['OPALUS_GOODS_URL']
+        self.search_url = 'http://apiv3.yangkeduo.com/search?'
+        self.fail_url = []
+        self.suc_count = 0
+        self.headers = {
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
+        }
         super(PddSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
                            signal=signals.spider_closed
@@ -64,6 +71,20 @@ class PddSpider(SeleniumSpider):
     def except_close(self):
         logging.error(self.key_words)
         logging.error(self.page)
+
+    # 切换登陆信息
+    def switch_token(self):
+        token = random.choice(self.pdd_accessToken_list)
+        self.headers['AccessToken'] = token['AccessToken']
+        self.headers['VerifyAuthToken'] = token['VerifyAuthToken']
+        # 切换浏览器cookie
+        itemDict = {}
+        itemDict['name'] = 'PDDAccessToken'
+        itemDict['value'] = token['AccessToken']
+        itemDict['path'] = '/'
+        itemDict['domain'] = 'yangkeduo.com'
+        itemDict['expires'] = None
+        self.browser.add_cookie(itemDict)
 
     def start_requests(self):
         """
@@ -98,6 +119,7 @@ class PddSpider(SeleniumSpider):
             'anti_content': anti_content,
             'pdduid': '9575597704'
         }
+        self.switch_token()
         yield scrapy.Request(url=self.search_url + urlencode(self.data),
                              headers=self.headers,
                              callback=self.parse_list,
@@ -125,6 +147,7 @@ class PddSpider(SeleniumSpider):
             item_data['url'] = 'http://yangkeduo.com/goods.html?goods_id=%s' % item['item_data']['goods_model'][
                 'goods_id']
             items_list.append(item_data)
+        # self.switch_token()
         yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                              callback=self.parse_detail,
                              dont_filter=True)
@@ -196,6 +219,7 @@ class PddSpider(SeleniumSpider):
                 self.suc_count += 1
             time.sleep(random.randint(5, 8))
             if items_list:
+                # self.switch_token()
                 yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                                      callback=self.parse_detail,
                                      dont_filter=True)
@@ -203,6 +227,7 @@ class PddSpider(SeleniumSpider):
                 self.page += 1
                 if self.page <= self.max_page:
                     self.data['page'] = self.page
+                    self.switch_token()
                     yield scrapy.Request(url=self.search_url + urlencode(self.data),
                                          headers=self.headers,
                                          callback=self.parse_list,
