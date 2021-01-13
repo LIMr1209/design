@@ -18,6 +18,86 @@ from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
 
 
+# 解析源代码方式获取sku 价格
+def sku_price_func(browser, site_from):
+    page_source = browser.page_source
+    rex = re.compile('skuMap.*(\{";.*?}})')
+    res = re.findall(rex, page_source)[0]
+    sku_price = json.loads(res)
+    detail_price = []
+    for i, j in sku_price.items():
+        price = j['price']
+        skuid = j['skuId']
+        style = ''
+        style_list_num = i.split(';')
+        for z in style_list_num:
+            if z:
+                ele = browser.find_element_by_xpath('//li[@data-value="{}"]'.format(z))
+                cate = ele.find_element_by_xpath('../../ul').get_attribute('data-property')
+                text = ele.find_element_by_xpath('./a/span').get_attribute('innerText')
+                style += cate + ':' + text + '\n'
+        detail_price.append({
+            'skuid': skuid,
+            'price': price,
+            'style': style
+        })
+    return detail_price
+
+
+# 自动化方式获取sku 价格
+def dynloop_rcsn(browser, site_from):
+    data = []
+    cate_list = []
+    sku_name_list = browser.find_elements_by_xpath('//ul[contains(@class,"J_TSaleProp")]')
+    for i in sku_name_list:
+        data.append(i.find_elements_by_xpath('./li'))
+        cate_list.append(i.get_attribute('data-property'))
+
+    def dynloop_inner_rcsn(browser, data, cate_list, site_from, cur_y_idx=0, detail_price=[]):
+        max_y_idx = len(data) - 1
+        for x_idx in range(len(data[cur_y_idx])):
+            ActionChains(browser).move_to_element(data[cur_y_idx][x_idx]).perform()
+            # browser.execute_script('window.scrollTo(0, 20)')
+            if not data[cur_y_idx][x_idx].get_attribute('class'):
+                data[cur_y_idx][x_idx].find_element_by_xpath('./a').click()
+            if cur_y_idx == max_y_idx:
+                if site_from == 9:
+                    try:
+                        original_price = browser.find_element_by_xpath(
+                            '//dl[@id="J_StrPriceModBox"]//span').text
+                    except:
+                        original_price = browser.find_element_by_xpath(
+                            '//span[@class="tm-price"]').text
+                    try:
+                        promotion_price = browser.find_element_by_xpath(
+                            '//dl[@id="J_PromoPrice"]//span').text
+                    except:
+                        promotion_price = ''
+                else:
+                    original_price = browser.find_element_by_xpath(
+                        '//*[@id="J_StrPrice"]/em[@class="tb-rmb-num"]').text.strip()
+                    try:
+                        promotion_price = browser.find_element_by_xpath(
+                            '//*[@id="J_PromoPriceNum"]').text.strip()
+                    except:
+                        promotion_price = ''
+                style_list = browser.find_elements_by_xpath('//li[@class="tb-selected"]/a/span')
+                name = ''
+                for i in range(len(style_list)):
+                    # display none 的标签 无法 text 拿到文本 通过属性拿取
+                    name += cate_list[i] + ':' + style_list[i].get_attribute('innerText') + '\n'
+                detail_price.append({
+                    'name': name,
+                    'original_price': original_price,
+                    'promotion_price': promotion_price
+                })
+            else:
+                dynloop_inner_rcsn(browser, data, cate_list, site_from, cur_y_idx + 1, detail_price)
+        return detail_price
+
+    return dynloop_inner_rcsn(browser, data, cate_list, site_from)
+
+
 def get_track(distance):  # distance为传入的总距离
     # 移动轨迹
     track = []
@@ -65,9 +145,9 @@ class TaobaoSpider(SeleniumSpider):
 
     def __init__(self, key_words, *args, **kwargs):
         self.page = 1
-        self.max_page = 20
+        self.max_page = 10
         self.price_range = ""
-        self.key_words = ['电动牙刷']
+        self.key_words = key_words.split(',')
         self.fail_url = []
         self.suc_count = 0
 
@@ -162,6 +242,9 @@ class TaobaoSpider(SeleniumSpider):
         if list_url:
             yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail, dont_filter=True,
                                  meta={'usedSelenium': True, 'list_url': list_url})
+        # yield scrapy.Request(
+        #     'https://item.taobao.com/item.htm?spm=a230r.1.14.28.79636ce10l1ZA2&id=625513410446&ns=1&abbucket=14#detail',
+        #     callback=self.parse_detail, dont_filter=True, meta={'usedSelenium': True, 'list_url': []})
 
     def parse_detail(self, response):
         if "detail.tmall.com" in response.url:
@@ -197,7 +280,7 @@ class TaobaoSpider(SeleniumSpider):
                 yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list, dont_filter=True)
 
     def save_tmall_data(self, response):
-        time.sleep(2)
+        # time.sleep(2)
         choice = "1"
         try:
             code_ele = self.browser.find_element_by_id('sufei-dialog-content')
@@ -211,24 +294,15 @@ class TaobaoSpider(SeleniumSpider):
         finally:
             if choice == '1':
                 try:
-                    height = 0
-                    for i in range(height, 1500, 200):
-                        self.browser.execute_script('window.scrollTo(0, {})'.format(i))
-                        time.sleep(0.5)
-                    # ele = self.browser.find_element_by_xpath('//div[@class="tm-layout"]')
-                    # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-                    try:
-                        elem = WebDriverWait(self.browser, 10, 0.5).until(
-                            EC.presence_of_element_located(
-                                (By.ID, 'side-shop-info')
-                            )
-                        )
-                    except:
-                        pass
-
+                    # try:
+                    #     elem = WebDriverWait(self.browser, 10, 0.5).until(
+                    #         EC.presence_of_element_located(
+                    #             (By.ID, 'side-shop-info')
+                    #         )
+                    #     )
+                    # except:
+                    #     pass
                     item = TaobaoItem()
-                    item['title'] = self.browser.find_element_by_xpath(
-                        '//div[@class="tb-detail-hd"]/h1').text.strip()
                     try:
                         item['original_price'] = self.browser.find_element_by_xpath(
                             '//dl[@id="J_StrPriceModBox"]//span').text
@@ -240,7 +314,17 @@ class TaobaoSpider(SeleniumSpider):
                             '//dl[@id="J_PromoPrice"]//span').text
                     except:
                         item['promotion_price'] = ''
+                    detail_price = sku_price_func(self.browser, 9)
+                    height = 0
+                    for i in range(height, 1500, 200):
+                        self.browser.execute_script('window.scrollTo(0, {})'.format(i))
+                        time.sleep(0.5)
+                    # ele = self.browser.find_element_by_xpath('//div[@class="tm-layout"]')
+                    # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
 
+                    item['detail_price'] = json.dumps(detail_price)
+                    item['title'] = self.browser.find_element_by_xpath(
+                        '//div[@class="tb-detail-hd"]/h1').text.strip()
                     service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
                     item['service'] = ','.join([i.text for i in service])
                     try:
@@ -325,7 +409,7 @@ class TaobaoSpider(SeleniumSpider):
                             'message': "行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e))}
 
     def save_taobao_data(self, response):
-        time.sleep(2)
+        # time.sleep(2)
         choice = "1"
         try:
             code_ele = self.browser.find_element_by_id('sufei-dialog-content')
@@ -339,10 +423,7 @@ class TaobaoSpider(SeleniumSpider):
         finally:
             if choice == '1':
                 try:
-                    ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
-                    self.browser.execute_script("arguments[0].scrollIntoView();", ele)
                     item = TaobaoItem()
-                    item['title'] = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').text.strip()
                     item['original_price'] = self.browser.find_element_by_xpath(
                         '//*[@id="J_StrPrice"]/em[@class="tb-rmb-num"]').text.strip()
                     try:
@@ -350,6 +431,12 @@ class TaobaoSpider(SeleniumSpider):
                             '//*[@id="J_PromoPriceNum"]').text.strip()
                     except:
                         item['promotion_price'] = ''
+                    detail_price = sku_price_func(self.browser, 8)
+
+                    ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
+                    self.browser.execute_script("arguments[0].scrollIntoView();", ele)
+                    item['detail_price'] = json.dumps(detail_price)
+                    item['title'] = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').text.strip()
                     service = self.browser.find_elements_by_xpath('//dt[contains(text(),"承诺")]/following-sibling::dd/a')
                     item['service'] = ','.join([i.text for i in service])
                     try:
@@ -423,7 +510,7 @@ class TaobaoSpider(SeleniumSpider):
                         for i in img_urls_ele:
                             img_url = i.get_attribute('src')
                             if not img_url.startswith("http"):
-                                img_url = "https:" + img_url.replace("_50x50.jpg",'')
+                                img_url = "https:" + img_url.replace("_50x50.jpg", '')
                             img_url = img_url.rsplit('_', 1)[0]
                             img_urls.append(img_url)
                         item['cover_url'] = img_urls[0]
