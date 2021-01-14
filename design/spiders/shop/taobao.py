@@ -149,12 +149,16 @@ class TaobaoSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.page = 1
+        self.page = 3
         self.max_page = 20
         self.max_price_page = 10  # 价格区间的爬10页
+        # self.price_range_list = {
+        #     '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
+        #     '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
+        # }
         self.price_range_list = {
-            '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
-            '真无线蓝牙耳机 降噪 入耳式': ['[300-900]', '[900,3000]'],
+            '吹风机': ['[751,999]', '[1000,]'],
+            '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
         self.key_words = ['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         # self.key_words = key_words.split(',')
@@ -177,6 +181,7 @@ class TaobaoSpider(SeleniumSpider):
     def except_close(self):
         logging.error(self.key_words)
         logging.error(self.page)
+        logging.error(self.price_range_list)
         logging.error(self.fail_url)
 
     # 滑块破解
@@ -295,7 +300,7 @@ class TaobaoSpider(SeleniumSpider):
                 self.page += 1
             else:
                 self.page = 1
-                if self.key_words[0] in self.price_range_list and self.price_range_list[self.key_words[0]]:
+                if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]])>1:
                     self.price_range_list[self.key_words[0]].pop(0)
                 else:
                     self.key_words.pop(0)
