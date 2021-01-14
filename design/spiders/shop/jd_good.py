@@ -34,13 +34,19 @@ class JdSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = ['电动牙刷']
-        self.price_range = ''
-        self.page = 18
+        self.key_words = key_words.split(',')
+        self.key_words = ['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.page = 1
         self.max_page = 20
+        self.max_price_page = 10  # 价格区间的爬10页
+        self.price_range_list = {
+            '吹风机': ['459-750', '751-999', '1000gt'],
+            '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
+        }
 
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
+        self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         self.fail_url = []
         self.suc_count = 0
@@ -57,11 +63,15 @@ class JdSpider(SeleniumSpider):
     def except_close(self):
         logging.error(self.key_words)
         logging.error(self.page)
+        logging.error(self.price_range_list)
+        logging.error(self.fail_url)
 
     def start_requests(self):
-        self.browser.get(
-            "https://search.jd.com/Search?keyword=%s&page=%d&s=53" % (
-                self.key_words[0], 1))
+        if self.key_words[0] in self.price_range_list:
+            url = self.search_url.format(name=self.key_words[0],price_range=self.price_range_list[self.key_words[0]][0] , page=self.page)
+        else:
+            url = self.search_url.format(name=self.key_words[0],price_range='' , page=self.page)
+        self.browser.get(url)
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
         list_url = []
         for i in urls:
@@ -107,7 +117,10 @@ class JdSpider(SeleniumSpider):
                         comment_count = re.search('\d+', comment_text)
                         if comment_count:
                             item['comment_count'] = int(comment_count.group())
-                item['category'] = self.key_words[0]
+                if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                    item['category'] = '耳机'
+                else:
+                    item['category'] = self.key_words[0]
                 shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
                 item['shop_id'] = shop_id
 
@@ -147,7 +160,12 @@ class JdSpider(SeleniumSpider):
                         detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
                 item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
                 item['detail_str'] = ', '.join(detail_str_list)
-                item['price_range'] = self.price_range
+                if self.key_words[0] in self.price_range_list:
+                    price_range = self.price_range_list[self.key_words[0]][0]
+                    temp = re.findall('(\d+)', price_range)
+                    item['price_range'] = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
+                else:
+                    item['price_range'] = ''
                 itemId = re.findall('\d+', response.url)[0]
                 item['out_number'] = itemId
                 item['site_from'] = 11
@@ -205,14 +223,27 @@ class JdSpider(SeleniumSpider):
                                  callback=self.parse_detail,
                                  dont_filter=True)
         else:
-            self.page += 1
-            if self.page > self.max_page:
-                self.key_words.pop(0)
+            if self.key_words[0] in self.price_range_list:
+                page = self.max_price_page
+            else:
+                page = self.max_page
+            if self.page < page:
+                self.page += 1
+            else:
                 self.page = 1
+                if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]])>1:
+                    self.price_range_list[self.key_words[0]].pop(0)
+                else:
+                    self.key_words.pop(0)
             if self.key_words:
-                self.browser.get(
-                    "https://search.jd.com/Search?keyword=%s&page=%d&s=53" % (
-                        self.key_words[0], self.page))
+                if self.key_words[0] in self.price_range_list:
+                    url = self.search_url.format(name=self.key_words[0],
+                                                 price_range=self.price_range_list[self.key_words[0]][0],
+                                                 page=self.page)
+                else:
+                    url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
+
+                self.browser.get(url)
                 urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
                 list_url = []
                 for i in urls:
