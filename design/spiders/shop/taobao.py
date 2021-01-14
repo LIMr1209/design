@@ -23,7 +23,10 @@ from design.spiders.selenium import SeleniumSpider
 def sku_price_func(browser, site_from):
     page_source = browser.page_source
     rex = re.compile('skuMap.*(\{";.*?}})')
-    res = re.findall(rex, page_source)[0]
+    try:
+        res = re.findall(rex, page_source)[0]
+    except:
+        return ''
     sku_price = json.loads(res)
     detail_price = []
     for i, j in sku_price.items():
@@ -33,7 +36,10 @@ def sku_price_func(browser, site_from):
         style_list_num = i.split(';')
         for z in style_list_num:
             if z:
-                ele = browser.find_element_by_xpath('//li[@data-value="{}"]'.format(z))
+                try:
+                    ele = browser.find_element_by_xpath('//li[@data-value="{}"]'.format(z))
+                except:
+                    continue
                 cate = ele.find_element_by_xpath('../../ul').get_attribute('data-property')
                 text = ele.find_element_by_xpath('./a/span').get_attribute('innerText')
                 style[cate] = text
@@ -143,10 +149,15 @@ class TaobaoSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.page = 2
-        self.max_page = 10
-        self.price_range = ""
-        self.key_words = key_words.split(',')
+        self.page = 1
+        self.max_page = 20
+        self.max_price_page = 10  # 价格区间的爬10页
+        self.price_range_list = {
+            '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
+            '真无线蓝牙耳机 降噪 入耳式': ['[300-900]', '[900,3000]'],
+        }
+        self.key_words = ['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        # self.key_words = key_words.split(',')
         self.fail_url = []
         self.suc_count = 0
 
@@ -166,6 +177,7 @@ class TaobaoSpider(SeleniumSpider):
     def except_close(self):
         logging.error(self.key_words)
         logging.error(self.page)
+        logging.error(self.fail_url)
 
     # 滑块破解
     def selenium_code(self):
@@ -236,17 +248,21 @@ class TaobaoSpider(SeleniumSpider):
         # self.update_cookie()
         # self.stringToDict()
         page_count = str((self.page - 1) * 44)
-        url = self.search_url.format(name=self.key_words[0], price_range=self.price_range, page_count=page_count)
+        if self.key_words[0] in self.price_range_list:
+            url = self.search_url.format(name=self.key_words[0],
+                                         price_range=self.price_range_list[self.key_words[0]][0], page_count=page_count)
+        else:
+            url = self.search_url.format(name=self.key_words[0], price_range='', page_count=page_count)
         yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list, dont_filter=True)
+        # yield scrapy.Request(
+        #     'https://item.taobao.com/item.htm?id=634753807151&ns=1&abbucket=6#detail',
+        #     callback=self.parse_detail, dont_filter=True, meta={'usedSelenium': True})
 
     def parse_list(self, response):
         list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
         if list_url:
             yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail, dont_filter=True,
                                  meta={'usedSelenium': True, 'list_url': list_url})
-        # yield scrapy.Request(
-        #     'https://item.taobao.com/item.htm?spm=a230r.1.14.28.79636ce10l1ZA2&id=625513410446&ns=1&abbucket=14#detail',
-        #     callback=self.parse_detail, dont_filter=True, meta={'usedSelenium': True, 'list_url': []})
 
     def parse_detail(self, response):
         time.sleep(4)
@@ -271,15 +287,26 @@ class TaobaoSpider(SeleniumSpider):
             yield scrapy.Request('https:' + list_url[0], callback=self.parse_detail,
                                  meta={'usedSelenium': True, "list_url": list_url}, dont_filter=True, )
         else:
-            if self.page < self.max_page:
+            if self.key_words[0] in self.price_range_list:
+                page = self.max_price_page
+            else:
+                page = self.max_page
+            if self.page < page:
                 self.page += 1
             else:
                 self.page = 1
-                self.key_words.pop(0)
+                if self.key_words[0] in self.price_range_list and self.price_range_list[self.key_words[0]]:
+                    self.price_range_list[self.key_words[0]].pop(0)
+                else:
+                    self.key_words.pop(0)
             if self.key_words:
                 page_count = str((self.page - 1) * 44)
-                url = self.search_url.format(name=self.key_words[0], price_range=self.price_range,
-                                             page_count=page_count)
+                if self.key_words[0] in self.price_range_list:
+                    url = self.search_url.format(name=self.key_words[0],
+                                                 price_range=self.price_range_list[self.key_words[0]][0],
+                                                 page_count=page_count)
+                else:
+                    url = self.search_url.format(name=self.key_words[0], price_range='', page_count=page_count)
                 yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list, dont_filter=True)
 
     def save_tmall_data(self, response):
@@ -399,9 +426,17 @@ class TaobaoSpider(SeleniumSpider):
 
                     item['site_from'] = 9
                     item['site_type'] = 1
-                    item['price_range'] = self.price_range
+                    if self.key_words[0] in self.price_range_list:
+                        price_range = self.price_range_list[self.key_words[0]][0]
+                        temp = re.findall('(\d+)', price_range)
+                        item['price_range'] = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
+                    else:
+                        item['price_range'] = ''
                     item['out_number'] = itemId
-                    item['category'] = self.key_words[0]
+                    if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                        item['category'] = '耳机'
+                    else:
+                        item['category'] = self.key_words[0]
                     item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
                     good_data = dict(item)
                     print(good_data)
@@ -513,8 +548,8 @@ class TaobaoSpider(SeleniumSpider):
                         for i in img_urls_ele:
                             img_url = i.get_attribute('src')
                             if not img_url.startswith("http"):
-                                img_url = "https:" + img_url.replace("_50x50.jpg", '')
-                            img_url = img_url.rsplit('_', 1)[0]
+                                img_url = "https:" + img_url
+                            img_url = img_url.rsplit('_', 1)[0].replace('_50x50.jpg','')
                             img_urls.append(img_url)
                         item['cover_url'] = img_urls[0]
                         item['img_urls'] = img_urls
@@ -522,10 +557,18 @@ class TaobaoSpider(SeleniumSpider):
                         pass
                     item['site_from'] = 8
                     item['site_type'] = 1
-                    item['price_range'] = self.price_range
+                    if self.key_words[0] in self.price_range_list:
+                        price_range = self.price_range_list[self.key_words[0]][0]
+                        temp = re.findall('(\d+)', price_range)
+                        item['price_range'] = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
+                    else:
+                        item['price_range'] = ''
                     item['out_number'] = itemId
                     # item['cover_url'] = data[0]['cover_url']
-                    item['category'] = self.key_words[0]
+                    if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                        item['category'] = '耳机'
+                    else:
+                        item['category'] = self.key_words[0]
                     item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
                     good_data = dict(item)
                     print(good_data)

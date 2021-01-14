@@ -44,7 +44,7 @@ class CommentSpider:
                 'AccessToken': j,
                 'VerifyAuthToken': pdd_verify_auth_token[i]
             })
-        self.time_out = 10
+        self.time_out = 5
         self.sleep = True
         self.random_sleep_start = 5
         self.random_sleep_end = 10
