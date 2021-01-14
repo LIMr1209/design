@@ -101,3 +101,49 @@ rex = re.compile('skus.*?(\[{.*}]),"thumbUrl')
 b = re.findall(rex, y)[0]
 c = json.loads(b)
 print(c)
+
+
+a = '''
+            skuid: 100015586772,
+        skuMarkJson: {"isxg":false,"isJDexpress":false,"isrecyclebag":false,"isSds":false,"isSopJSOLTag":false,"isyy":false,"isPOPDistribution":false,"isSopUseSelfStock":false,"isGlobalPurchase":false,"NosendWMS":false,"isOripack":false,"ispt":false,"unused":false,"pg":false,"isSopWareService":false,"isTimeMark":false,"presale":false},
+            name: '惠普(HP)暗影精灵6 plus 17.3英寸游戏笔记本电脑(i7-10870H 16G 1TSSD RTX2070 8G独显 144Hz)',
+            skuidkey:'63EDEABDE53E2B2BA024D3E81AE43604',
+            href: '//item.jd.com/100015586772.html',
+                                                seckillType:3,
+                                                    koEndOffset : 31753000,koEndTime:1610553599000,
+                                                    src: 'jfs/t1/137731/5/9213/113325/5f6c3950Ee2fbae6c/797cc28a399b4172.jpg',
+            paramJson: '{"platform2":"100000000001","specialAttrStr":"p0ppp1pppppp2ppppppppp","skuMarkStr":"00"}' ,
+                            imageList: ["jfs/t1/137731/5/9213/113325/5f6c3950Ee2fbae6c/797cc28a399b4172.jpg","jfs/t1/141382/2/9220/50949/5f6c3950E006e1970/5c5da4f107461e60.jpg","jfs/t1/136957/3/11105/79960/5f718ce2E0d5bd6bc/be767f3f756988aa.jpg","jfs/t1/144090/40/9292/20076/5f6c3950E6d974286/fa839450b2bf0cd5.jpg","jfs/t1/140149/11/9172/24104/5f6c3950E718b58da/803da21a00a88c2e.jpg","jfs/t1/128133/36/13486/72976/5f6c396aE005ddf8c/f20893b21101d276.jpg"],
+                        cat: [670,671,1105],
+            forceAdUpdate: '8274',
+        brand: 8740,
+        pType: 1,
+        isClosePCShow: false,
+         pTag:0,                                                 isPop:false,
+        venderId:1000347223,
+        shopId:'1000347223',
+        isQualityLifeShow:false,
+        shopSwitch:true,
+        freeBuyShow:false,
+                                specialAttrs:["Customize-0","isPrescriptCat-0","thwa-3","nationallySetWare-2","SoldOversea-7","isOverseaPurchase-0","is7ToReturn-1","isCanUseDQ-1","fxg-0","isOTCCat-0"],
+                recommend : [0,1,2,3,4,5,6,7,8,9],
+        easyBuyUrl:"//easybuy.jd.com/skuDetail/newSubmitEasybuyOrder.action",
+        qualityLife: "//c.3.cn/qualification/info?skuId=100015586772&pid=100015586772&catId=1105",
+                colorSize: [{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100015672756,"存储":"京选推荐|新i5/GTX1650Ti/高色域"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100015672772,"存储":"[GTX1650]新i5/16G/512G高色域"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100013978326,"存储":"[GTX1650Ti]新i7/16G/512G高色域"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100013967784,"存储":"[GTX1650Ti]新i7/16G/512G电竞屏"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100015628518,"存储":"RTX2060/8核i7/16G/512GSSD"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100013967804,"存储":"RTX2060/新i7/16G/512GSSD电竞屏"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100013967772,"存储":"RTX2060/新i5/16G/512GSSD电竞屏"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100007703173,"存储":"RTX2070S/新i7/16G/1TBSSD/300Hz"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100015628514,"存储":"RTX2070MQ/8核i7/16G/1TSSD"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100013976254,"存储":"RTX2070MxQ/新i7/16G/1TB电竞屏"},{"处理器或显卡":"京选爆款-暗影精灵6","skuId":100013976326,"存储":"RTX2070MxQ/新i5/16G/512G电竞屏"},{"处理器或显卡":"新-暗影6Air","skuId":100013072816,"存储":"[RTX2080SMaxQ]新i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Air","skuId":100007139383,"存储":"[RTX2070MaxQ]新i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Air","skuId":100007139059,"存储":"[RTX2070SMaxQ]新i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Air","skuId":100013054330,"存储":"[RTX2060]新i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Plus","skuId":100015586772,"存储":"[RTX2070]8核i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Plus","skuId":100015586770,"存储":"[RTX2070S]8核i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Plus","skuId":100007130003,"存储":"[RTX2070S]新i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Plus","skuId":100015586792,"存储":"[RTX2080S]8核i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Plus","skuId":100013054368,"存储":"[RTX2080S]新i7/16G/1TBSSD"},{"处理器或显卡":"新-暗影6Plus","skuId":100013054346,"存储":"[RTX2080S]新i9/32G/1TB+2TB"},{"处理器或显卡":"新-暗影6Plus","skuId":100013054376,"存储":"[RTX2060]新i7/16G/1TBSSD"}],        warestatus: 1,                         desc: '//cd.jd.com/description/channel?skuId=100015586772&mainSkuId=100015586772&charset=utf-8&cdn=2',
+        cmsNavigation: [{"address":"//channel.jd.com/670-671.html","order":1,"name":"电脑办公","corner":""},{"address":"//intelrxt.jd.com/","order":2,"name":"用芯选机","corner":""},{"address":"//gaming.jd.com/","order":3,"name":"京东游戏","corner":""},{"address":"//jdz.jd.com/","order":4,"name":"电脑私人定制","corner":""},{"address":"//channel.jd.com/670-671.html","order":5,"name":"本周热卖","corner":""},{"address":"//sale.jd.com/act/F5ZurL6zbcN.html","order":6,"name":"吃鸡利器","corner":"优惠多"}],        /**/
+                 /**/
+                twoColumn: true,                isFeeType: true,                                        isBookMvd4Baby: false,        addComments:true,
+        mainSkuId:'100015586772',        foot: '//dx.3.cn/footer?type=common_config2',
+                                  shangjiazizhi: false        }
+        };
+                                try {
+                        function is_sort_black_list() {
+              var jump_sort_list = {"6881":3,"1195":3,"10011":3,"6980":3,"12360":3};
+              if(jump_sort_list['670'] == 1 || jump_sort_list['671']==2 || jump_sort_list['1105']==3) {
+                return false;
+              }'''
+
+
+# rex = re.compile('skus.*?(\[{.*}]),"thumbUrl')
+b = re.findall('shopId.*?(\d+)', a)[0]
+print(b)

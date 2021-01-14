@@ -108,6 +108,9 @@ class JdSpider(SeleniumSpider):
                         if comment_count:
                             item['comment_count'] = int(comment_count.group())
                 item['category'] = self.key_words[0]
+                shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
+                item['shop_id'] = shop_id
+
                 service_ele = self.browser.find_elements_by_xpath('//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
                 service = []
                 for i in service_ele:
