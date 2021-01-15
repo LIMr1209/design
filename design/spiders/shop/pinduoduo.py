@@ -66,7 +66,8 @@ class PddSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = key_words.split(',')
+        # self.key_words = key_words.split(',')
+        self.key_words = ['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
         self.page = 1
         self.max_page = 20
@@ -113,12 +114,16 @@ class PddSpider(SeleniumSpider):
         itemDict['path'] = '/'
         itemDict['domain'] = 'yangkeduo.com'
         itemDict['expires'] = None
+        self.browser.delete_cookie('PDDAccessToken')
+        self.browser.delete_cookie('pdd_user_id')
+        self.browser.delete_cookie('pdd_user_uin')
         self.browser.add_cookie(itemDict)
 
     def start_requests(self):
         """
         请求搜索页
         """
+        self.switch_token()
         url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
         yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
 
@@ -148,7 +153,6 @@ class PddSpider(SeleniumSpider):
             'anti_content': anti_content,
             'pdduid': '9575597704'
         }
-        self.switch_token()
         yield scrapy.Request(url=self.search_url + urlencode(self.data),
                              headers=self.headers,
                              callback=self.parse_list,
@@ -214,8 +218,8 @@ class PddSpider(SeleniumSpider):
             detail_price = sku_price_func(self.browser, 10)
             detail_price = sorted(detail_price, key=lambda x: x["original_price"])
             item['detail_sku'] = json.dumps(detail_price)
-            item['original_price'] = detail_price[0]['original_price']+'-'+detail_price[-1]['original_price']
-            item['promotion_price'] =detail_price[0]['promotion_price']+'-'+detail_price[-1]['promotion_price']
+            item['original_price'] = detail_price[0]['original_price'] + '-' + detail_price[-1]['original_price']
+            item['promotion_price'] = detail_price[0]['promotion_price'] + '-' + detail_price[-1]['promotion_price']
 
             try:
                 comment_text = self.browser.find_element_by_xpath('//div[@class="ccIhLMdm"]')
@@ -247,8 +251,8 @@ class PddSpider(SeleniumSpider):
             else:
                 self.suc_count += 1
             time.sleep(random.randint(5, 8))
+            self.switch_token()
             if items_list:
-                # self.switch_token()
                 yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                                      callback=self.parse_detail,
                                      dont_filter=True)
@@ -256,7 +260,6 @@ class PddSpider(SeleniumSpider):
                 self.page += 1
                 if self.page <= self.max_page:
                     self.data['page'] = self.page
-                    self.switch_token()
                     yield scrapy.Request(url=self.search_url + urlencode(self.data),
                                          headers=self.headers,
                                          callback=self.parse_list,
