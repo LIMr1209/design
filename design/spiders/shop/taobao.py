@@ -149,18 +149,14 @@ class TaobaoSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.page = 3
+        self.page = 6
         self.max_page = 20
         self.max_price_page = 10  # 价格区间的爬10页
-        # self.price_range_list = {
-        #     '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
-        #     '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
-        # }
         self.price_range_list = {
-            '吹风机': ['[751,999]', '[1000,]'],
+            '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.key_words = ['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['电风扇', '美容器', '剃须刀', '电动牙刷']
         # self.key_words = key_words.split(',')
         self.fail_url = []
         self.suc_count = 0

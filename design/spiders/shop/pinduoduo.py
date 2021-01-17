@@ -28,25 +28,27 @@ def sku_price_func(browser, site_from):
     for i in res_replace:
         page_source = page_source.replace(i, '')
     rex = re.compile('skus.*?(\[{.*}]),"thumbUrl')
-    res = re.findall(rex, page_source)[0]
-    sku_price = json.loads(res)
-    detail_price = []
-    for j in sku_price:
-        original_price = j['normalPrice']
-        promotion_price = j['groupPrice']
-        skuid = str(j['skuId'])
-        cover_url = j['thumbUrl']
-        style = {}
-        for z in j['specs']:
-            if z:
-                style[z['spec_key']] = z['spec_value']
-        detail_price.append({
-            'skuid': skuid,
-            'cover_url': cover_url,
-            'promotion_price': promotion_price,
-            'original_price': original_price,
-            'style': style
-        })
+    res = re.findall(rex, page_source)
+    detail_price = ''
+    if res:
+        sku_price = json.loads(res[0])
+        detail_price = []
+        for j in sku_price:
+            original_price = j['normalPrice']
+            promotion_price = j['groupPrice']
+            skuid = str(j['skuId'])
+            cover_url = j['thumbUrl']
+            style = {}
+            for z in j['specs']:
+                if z:
+                    style[z['spec_key']] = z['spec_value']
+            detail_price.append({
+                'skuid': skuid,
+                'cover_url': cover_url,
+                'promotion_price': promotion_price,
+                'original_price': original_price,
+                'style': style
+            })
     return detail_price
 
 
@@ -67,7 +69,7 @@ class PddSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         # self.key_words = key_words.split(',')
-        self.key_words = ['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
         self.page = 1
         self.max_page = 20
@@ -126,6 +128,8 @@ class PddSpider(SeleniumSpider):
         self.switch_token()
         url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
         yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
+        # yield scrapy.Request('http://yangkeduo.com/goods.html?goods_id=194785923304>', callback=self.parse_detail,
+        #                      meta={'usedSelenium': True})
 
     def get_parameters(self, response):
         """
@@ -169,8 +173,8 @@ class PddSpider(SeleniumSpider):
             item_data['cover_url'] = item['item_data']['goods_model']['thumb_url']
             item_data['title'] = item['item_data']['goods_model']['goods_name']
             item_data['category'] = self.key_words[0]
-            # item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
-            # item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
+            item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
+            item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
             item_data['out_number'] = item['item_data']['goods_model']['goods_id']
             item_data['price_range'] = self.price_range
             item_data['sale_count'] = item['item_data']['goods_model']['sales']
@@ -181,6 +185,11 @@ class PddSpider(SeleniumSpider):
                 'goods_id']
             items_list.append(item_data)
         # self.switch_token()
+        if not items_list:
+            self.key_words.pop(0)
+            self.page = 1
+            url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
+            yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
         yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                              callback=self.parse_detail,
                              dont_filter=True)
@@ -206,20 +215,22 @@ class PddSpider(SeleniumSpider):
                 for i in data:
                     img_urls.append(i['url'])
             except:
+                self.browser.refresh()
                 img_ele = self.browser.find_elements_by_xpath('//li[contains(@class,"islider-html")]/img')
                 for i in img_ele:
                     img_urls.append(i.get_attribute('src'))
+            detail_price = sku_price_func(self.browser, 10)
+            detail_price = sorted(detail_price, key=lambda x: x["original_price"])
             items_list = response.meta['items_list']
             item = items_list.pop(0)
             item['img_urls'] = ','.join(img_urls)
             service_list = self.browser.find_elements_by_xpath('//div[@class="fsI_SU5H"]/div')
             service_list = [i.text for i in service_list if i.text]
             item['service'] = ','.join(service_list)
-            detail_price = sku_price_func(self.browser, 10)
-            detail_price = sorted(detail_price, key=lambda x: x["original_price"])
-            item['detail_sku'] = json.dumps(detail_price)
-            item['original_price'] = detail_price[0]['original_price'] + '-' + detail_price[-1]['original_price']
-            item['promotion_price'] = detail_price[0]['promotion_price'] + '-' + detail_price[-1]['promotion_price']
+            if detail_price:
+                item['detail_sku'] = json.dumps(detail_price)
+                item['original_price'] = detail_price[0]['original_price'] + '-' + detail_price[-1]['original_price']
+                item['promotion_price'] = detail_price[0]['promotion_price'] + '-' + detail_price[-1]['promotion_price']
 
             try:
                 comment_text = self.browser.find_element_by_xpath('//div[@class="ccIhLMdm"]')
@@ -251,7 +262,7 @@ class PddSpider(SeleniumSpider):
             else:
                 self.suc_count += 1
             time.sleep(random.randint(5, 8))
-            self.switch_token()
+            # self.switch_token()
             if items_list:
                 yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                                      callback=self.parse_detail,
