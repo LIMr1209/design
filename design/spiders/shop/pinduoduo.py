@@ -8,6 +8,7 @@ import requests
 import time
 
 from pydispatch import dispatcher
+from requests.adapters import HTTPAdapter
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from selenium.webdriver.common.by import By
@@ -69,11 +70,14 @@ class PddSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         # self.key_words = key_words.split(',')
-        self.key_words = ['拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
-        self.page = 1
+        self.page = 2
         self.max_page = 20
         self.pdd_accessToken_list = []
+        self.s = requests.Session()
+        self.s.mount('http://', HTTPAdapter(max_retries=5))
+        self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.settings = get_project_settings()
         if len(self.settings['PDD_ACCESS_TOKEN_LIST']) != len(self.settings['PDD_VERIFY_AUTH_TOKEN']):
             logging.error('pdd用户信息长度不匹配')
@@ -254,7 +258,11 @@ class PddSpider(SeleniumSpider):
             item['detail_str'] = ', '.join(detail_str_list)
             good_data = dict(item)
             print(good_data)
-            res = requests.post(url=self.goods_url, data=good_data)
+            try:
+                res = self.s.post(url=self.goods_url, data=good_data)
+            except:
+                time.sleep(10)
+                res = self.s.post(url=self.goods_url, data=good_data)
             if res.status_code != 200 or json.loads(res.content)['code']:
                 logging.error("产品保存失败" + good_data['url'])
                 logging.error(json.loads(res.content)['message'])

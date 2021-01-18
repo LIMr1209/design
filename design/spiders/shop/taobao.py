@@ -6,7 +6,9 @@ from urllib import parse
 
 import requests
 import scrapy
+from fake_useragent import UserAgent
 from pydispatch import dispatcher
+from requests.adapters import HTTPAdapter
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from selenium.webdriver import ActionChains
@@ -160,9 +162,12 @@ class TaobaoSpider(SeleniumSpider):
         # self.key_words = key_words.split(',')
         self.fail_url = []
         self.suc_count = 0
-
+        self.s = requests.Session()
+        self.s.mount('http://', HTTPAdapter(max_retries=5))
+        self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
+        self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
         self.search_url = 'https://s.taobao.com/search?initiative_id=tbindexz_20170306&ie=utf8&spm=a21bo.2017.201856-taobao-item.2&sourceId=tb.index&search_type=item&ssid=s5-e&commend=all&imgfile=&q={name}&filter=reserve_price{price_range}&s={page_count}&suggest=history_1&_input_charset=utf-8&wq=&suggest_query=&source=suggest'
         self.cookie = 'hng=CN%7Czh-CN%7CCNY%7C156; t=27342fccaf0252611c51fc03fa4e7ac6; enc=MIfEinE%2BUqe%2FrOAJ4kSL2sf8sPaGqMfQhs3fJI6jVi9whtay9lqef7PafAH8YbF%2Bpb%2FPiEz6i%2FJP%2B7yEO0dpYA%3D%3D; _tb_token_=f353e3600a381; cookie2=1e1329c204b483965c50f4aea175989c; xlly_s=1; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cna=zasMF12t3zoCATzCuQKpN3kO; uc1=existShop=false&cookie21=UtASsssmeW6lpyd%2BB%2B3t&cookie14=Uoe0az9h5Ti4KA%3D%3D&pas=0&cookie15=VFC%2FuZ9ayeYq2g%3D%3D&cookie16=UtASsssmPlP%2Ff1IHDsDaPRu%2BPw%3D%3D; uc3=lg2=UIHiLt3xD8xYTw%3D%3D&vt3=F8dCuf2CSp7DjbEF1as%3D&id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSdvtCI6XCk%2F&nk4=0%400AdtZS03tnds0llDWCRcSihqN1jxbD1O2opb; sgcookie=E100PSo4OpJklR8obNtKBryUufO195A5YSzyXhka2trDZeXqTdHNTDWmqifymuuq1627cAyn3cQnqskk9ztKGfP43g%3D%3D; csg=2a17af03; pnm_cku822=098%23E1hv%2F9vUvbpvUvCkvvvvvjiWP2dyQjnmn2dwgj1VPmPO6jr8RFswzj3WPFSv0jYURvhvCvvvvvvUvpCWCRbXvvaF9W2%2BFfmtEpcZTWexRdIAcUmxfwofd56Ofa3lKbh6UxWnSXVxI2iI27zh1j7ZHkx%2F1RBlYb8rwZXlJXxreC9aWXxr1WmK5I9CvvOUvvVvJhTIvpvUvvmvR0nopE4gvpvIvvvvvhCvvvvvvUUvphvUbpvv99Cvpv32vvmmvhCvmWIvvUUvphvUA9vCvvOvCvvvphvRvpvhvv2MMTOCvvpvvUmm; _m_h5_tk=b89879a97398b54808462f75f2281c05_1606972762508; _m_h5_tk_enc=27f9ec8ed65873154cb5f358e7cc2baf; tfstk=cplGB7MRRAy_J-2nFCNsruEv8P-dZrtabjltTXaIUF2atkGFigBFUcbp-koiMt1..; l=eBQJ2fCIQDOlzshQBOfZlurza77OhIRYouPzaNbMiOCPOT5e5omlWZROa_TwCnGVh6cBR3oVpXaaBeYBqhvQ5O95a6Fy_pHmn; isg=BPv7i6eNIMq3nB1mTJyyKlytit9lUA9SVto5X-24ufoRTBsudSELooqGZuwC6mdK; cq=ccp%3D1'
         super(TaobaoSpider, self).__init__(*args, **kwargs)
@@ -296,7 +301,7 @@ class TaobaoSpider(SeleniumSpider):
                 self.page += 1
             else:
                 self.page = 1
-                if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]])>1:
+                if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
                     self.price_range_list[self.key_words[0]].pop(0)
                 else:
                     self.key_words.pop(0)
@@ -439,9 +444,15 @@ class TaobaoSpider(SeleniumSpider):
                     else:
                         item['category'] = self.key_words[0]
                     item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
+                    impression = self.get_impression(itemId)
+                    item['impression'] = impression
                     good_data = dict(item)
                     print(good_data)
-                    res = requests.post(url=self.goods_url, data=good_data)
+                    try:
+                        res = self.s.post(url=self.goods_url, data=good_data)
+                    except:
+                        time.sleep(10)
+                        res = self.s.post(url=self.goods_url, data=good_data)
                     return {'success': True, 'res': res}
                 except Exception as e:
                     return {'success': False,
@@ -550,7 +561,7 @@ class TaobaoSpider(SeleniumSpider):
                             img_url = i.get_attribute('src')
                             if not img_url.startswith("http"):
                                 img_url = "https:" + img_url
-                            img_url = img_url.rsplit('_', 1)[0].replace('_50x50.jpg','')
+                            img_url = img_url.rsplit('_', 1)[0].replace('_50x50.jpg', '')
                             img_urls.append(img_url)
                         item['cover_url'] = img_urls[0]
                         item['img_urls'] = img_urls
@@ -571,10 +582,38 @@ class TaobaoSpider(SeleniumSpider):
                     else:
                         item['category'] = self.key_words[0]
                     item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
+                    impression = self.get_impression(itemId)
+                    item['impression'] = impression
                     good_data = dict(item)
                     print(good_data)
-                    res = requests.post(url=self.goods_url, data=good_data)
+                    try:
+                        res = self.s.post(url=self.goods_url, data=good_data)
+                    except:
+                        time.sleep(10)
+                        res = self.s.post(url=self.goods_url, data=good_data)
                     return {'success': True, 'res': res}
                 except Exception as e:
                     return {'success': False,
                             'message': "行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e))}
+
+    # 大家印象
+    def get_impression(self, out_number):
+        ua = UserAgent().random
+        headers = {
+            'Referer': 'https://detail.tmall.com/item.htm?id=%s' % out_number,
+            'User-Agent': ua,
+            'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
+        }
+        try:
+            impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers,
+                                        verify=False, timeout=10)
+        except:
+            time.sleep(10)
+            impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers,
+                                        verify=False, timeout=10)
+        rex = re.compile('({.*})')
+        impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
+        impression = ''
+        for i in impression_data['tags']['tagClouds']:
+            impression += i['tag'] + '(' + str(i['count']) + ')  '
+        return impression

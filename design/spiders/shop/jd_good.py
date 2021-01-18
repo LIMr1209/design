@@ -43,7 +43,9 @@ class JdSpider(SeleniumSpider):
             '吹风机': ['459-750', '751-999', '1000gt'],
             '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
         }
-
+        self.s = requests.Session()
+        self.s.mount('http://', HTTPAdapter(max_retries=5))
+        self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
         self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
@@ -184,15 +186,12 @@ class JdSpider(SeleniumSpider):
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
                     'Cookie': 'JSESSIONID=068CE69BEB8E77E7FF7D415202926236.s1; Path=/',
                 }
-                s = requests.Session()
-                s.mount('http://', HTTPAdapter(max_retries=5))
-                s.mount('https://', HTTPAdapter(max_retries=5))
                 url = self.comment_data_url % (itemId, 0)
                 try:
-                    comment_res = s.get(url, headers=headers, verify=False, timeout=10)
+                    comment_res = self.s.get(url, headers=headers, verify=False, timeout=10)
                 except:
                     time.sleep(10)
-                    comment_res = s.get(url, headers=headers, verify=False, timeout=10)
+                    comment_res = self.s.get(url, headers=headers, verify=False, timeout=10)
                 rex = re.compile('({.*})')
                 result = json.loads(rex.findall(comment_res.text)[0])
                 good_data['positive_review'] = result['productCommentSummary']['goodCount']
@@ -203,10 +202,10 @@ class JdSpider(SeleniumSpider):
                 good_data['impression'] = impression
                 print(good_data)
                 try:
-                    res = s.post(url=self.goods_url, data=good_data)
+                    res = self.s.post(url=self.goods_url, data=good_data)
                 except:
                     time.sleep(10)
-                    res = s.post(url=self.goods_url, data=good_data)
+                    res = self.s.post(url=self.goods_url, data=good_data)
                 if res.status_code != 200 or json.loads(res.content)['code']:
                     logging.error("产品保存失败" + response.url)
                     logging.error(json.loads(res.content)['message'])
