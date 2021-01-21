@@ -35,7 +35,6 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words.split(',')
-        self.key_words = ['电风扇', '美容器']
         self.page = 1
         self.max_page = 15
         self.max_price_page = 7  # 价格区间的爬10页
@@ -75,7 +74,7 @@ class JdSpider(SeleniumSpider):
         else:
             url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
         yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
-        # yield scrapy.Request('https://pcitem.jd.hk/30752477500.html', callback=self.parse_detail,
+        # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
         #                      meta={'usedSelenium': True})
 
     def parse_list(self, response):

@@ -151,14 +151,14 @@ class TaobaoSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.page = 6
-        self.max_page = 20
-        self.max_price_page = 10  # 价格区间的爬10页
+        self.page = 13
+        self.max_page = 15
+        self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.key_words = ['电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['转椅', '键盘', '音箱', '麦克风', '鼠标', '内存条', '主板', '台式机主机', '平板电脑', '手机', '显卡', '硬盘', '笔记本电脑']
         # self.key_words = key_words.split(',')
         self.fail_url = []
         self.suc_count = 0
@@ -598,22 +598,25 @@ class TaobaoSpider(SeleniumSpider):
 
     # 大家印象
     def get_impression(self, out_number):
-        ua = UserAgent().random
-        headers = {
-            'Referer': 'https://detail.tmall.com/item.htm?id=%s' % out_number,
-            'User-Agent': ua,
-            'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
-        }
-        try:
-            impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers,
-                                        verify=False, timeout=10)
-        except:
-            time.sleep(10)
-            impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers,
-                                        verify=False, timeout=10)
-        rex = re.compile('({.*})')
-        impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
         impression = ''
-        for i in impression_data['tags']['tagClouds']:
-            impression += i['tag'] + '(' + str(i['count']) + ')  '
+        try:
+            ua = UserAgent().random
+            headers = {
+                'Referer': 'https://detail.tmall.com/item.htm?id=%s' % out_number,
+                'User-Agent': ua,
+                'Cookie': '_bl_uid=vjkhyfh1kL3up48m99pCr7FrpXtk; _m_h5_tk=a4901680887df4de35e80eca7db44b84_1606823592784; _m_h5_tk_enc=9bc810f0923b6d2ffa1255ef0eb10aee; t=4c621df8e85d4fe9067ccde6f510e986; cookie2=19f934d02e95023c00ef6f6c16247b20; _tb_token_=538f3e759d683; _samesite_flag_=true; xlly_s=1; enc=8VjKAvR5cUAIjOxlCLOZcKJvrc68jolYx%2B%2BXKZSjT9%2FFz8LyOvCmZRJkDd6PtDwSKarI7PYNAY8Xh0A58XSpGw%3D%3D; thw=cn; hng=CN%7Czh-CN%7CCNY%7C156; mt=ci=0_0; tracknick=; uc1=cookie14=Uoe0az6%2FCczAvQ%3D%3D; cna=zasMF12t3zoCATzCuQKpN3kO; v=0; x5sec=7b22726174656d616e616765723b32223a226536393430633233383332336665616466656166333533376635366463646233434c76446d50344645497165377565426c734f453767453d227d; l=eBjqXoucQKR1C6x3BO5aourza779rLAXhsPzaNbMiIncC6pCdopMGYxQKOsKgCtRR8XAMTLB4mWKOPytfF1gJs8X7w3xU-CtloD2B; tfstk=cyklBRcOcbP7_BVm1LwSjSvcCLyhC8Tzzvk-3xwwcEPL8GLYV75cWs5ZriK0u4DdO; isg=BC0t6dP2Dkp6levKmUHve7J9PMmnimFctAAvaW84I0aR5kOYN9gnLBbw0LoA5nkU'
+            }
+            try:
+                impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers,
+                                            verify=False, timeout=10)
+            except:
+                time.sleep(10)
+                impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers,
+                                            verify=False, timeout=10)
+            rex = re.compile('({.*})')
+            impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
+            for i in impression_data['tags']['tagClouds']:
+                impression += i['tag'] + '(' + str(i['count']) + ')  '
+        except:
+            pass
         return impression

@@ -124,6 +124,7 @@ class SeleniumSpider(scrapy.Spider):
         # ua = UserAgent().random
         # chrome_options.add_argument("user-agent={}".format(ua))
         #
+        # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\AutomationProfile"
         chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 
         # 初始化chrome对象

@@ -96,14 +96,14 @@ class CommentSpider:
 
     def data_jd_handle(self, out_number):
         comment_page = 0
-        cookies = get_jd_cookie()
+        # cookies = get_jd_cookie()
         while True:
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
                 'User-Agent': ua,
-                'Cookie': cookies
+                'Cookie': '__jdv=76161171|direct|-|none|-|1610329405998; __jdu=16103294059961137138561; shshshfpa=f09b3217-4001-fc20-58f9-b1c005061b6e-1610329409; shshshfpb=jWqGTcT%2FwcJVlyMzTKm6iqA%3D%3D; shshshfp=e055c2e13f622066cff2f5f987592135; mt_xid=V2_52007VwMVUlxaUVIaSB1UDWADElBbWFBTG04ZbA1iAxJaVAgCRhgaG18ZYgAaAUFRWwoXVR0PUGdXRgVUDFpeTXkaXQZnHxNSQVhSSx9IElkFbAYaYl9oUmoWQBhcBmEGE1RZUVtZFkAaXgJjMxdTVF4%3D; pinId=Wrs6UF9apuPvb2HPPQggXbV9-x-f3wj7; pin=jd_6401bf627e067; unick=%E4%B8%80%E5%8F%AA%E7%89%B9%E7%AB%8B%E7%8B%AC%E8%A1%8C%E7%9A%84%E7%8C%ABJD; ceshi3.com=103; _tp=YsSMrRJFO3zSogROj%2FBuRAswEyb93subxF%2BQFzCSh78%3D; _pst=jd_6401bf627e067; __jdc=122270672; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; areaId=1; ipLoc-djd=1-72-55653-0; __jda=122270672.16103294059961137138561.1610329406.1611195324.1611209128.6'
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
@@ -120,15 +120,17 @@ class CommentSpider:
             try:
                 result = json.loads(rex.findall(comment_res.text)[0])
             except:
+                # cookies = get_jd_cookie()
+                # continue
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             if comment_page == 0 and not result['comments'] and not self.switch:
                 self.comment_jd_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
                 self.switch = True
                 continue
             if not result:
-                cookies = get_jd_cookie()
-                continue
-                # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
+                # cookies = get_jd_cookie()
+                # continue
+                return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             data = []
             if 'comments' in result:
                 for i in result['comments']:
