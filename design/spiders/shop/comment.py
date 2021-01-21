@@ -10,6 +10,8 @@ from requests.adapters import HTTPAdapter, ProxyError
 import fire
 from configparser import ConfigParser, ExtendedInterpolation
 import os
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 
 class CommentSpider:
@@ -45,9 +47,9 @@ class CommentSpider:
                 'VerifyAuthToken': pdd_verify_auth_token[i]
             })
         self.time_out = 5
-        self.sleep = True
-        self.random_sleep_start = 2
-        self.random_sleep_end = 5
+        self.sleep = False
+        self.random_sleep_start = 5
+        self.random_sleep_end = 10
         self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         # 有的商品 当前sku 无评论 切换url
         self.switch = False  # jd
@@ -94,13 +96,14 @@ class CommentSpider:
 
     def data_jd_handle(self, out_number):
         comment_page = 0
+        cookies = get_jd_cookie()
         while True:
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
                 'User-Agent': ua,
-                'Cookie': '__jdv=76161171|direct|-|none|-|1610329405998; __jdu=16103294059961137138561; areaId=1; PCSYCityID=CN_110000_110100_110105; shshshfpa=f09b3217-4001-fc20-58f9-b1c005061b6e-1610329409; shshshfpb=jWqGTcT%2FwcJVlyMzTKm6iqA%3D%3D; __jda=122270672.16103294059961137138561.1610329406.1610329406.1610329406.1; __jdc=122270672; shshshfp=e055c2e13f622066cff2f5f987592135; shshshsID=d88d11986d0b12b7cc570438e210d8f9_3_1610329423064; __jdb=122270672.3.16103294059961137138561|1.1610329406; ipLoc-djd=1-72-55653-0; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; JSESSIONID=2B49AF0022B29BD23BF54C54DF4CA76C.s1; jwotest_product=99'
+                'Cookie': cookies
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
@@ -123,7 +126,9 @@ class CommentSpider:
                 self.switch = True
                 continue
             if not result:
-                return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
+                cookies = get_jd_cookie()
+                continue
+                # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             data = []
             if 'comments' in result:
                 for i in result['comments']:
@@ -302,27 +307,29 @@ class CommentSpider:
                 print(comment_res.content)
                 return
             data = []
-            if 'rateDetail' in result:
-                for i in result['rateDetail']['rateList']:
-                    comment = {}
-                    comment['impression'] = impression
-                    comment['type'] = 1 if i['anony'] else 0
-                    comment['good_url'] = headers['Referer']
-                    comment['site_from'] = 9
-                    images = []
-                    if 'pics' in i:
-                        for j in i['pics']:
-                            images.append('https:' + j)
-                    comment['images'] = ','.join(images)
-                    if i['rateContent'] == '此用户没有填写评论!':
-                        comment['first'] = ''
-                    else:
-                        comment['first'] = i['rateContent']
-                    comment['add'] = i['appendComment']['content'] if i['appendComment'] else ''
-                    comment['buyer'] = i['displayUserNick']
-                    comment['style'] = i['auctionSku']
-                    comment['date'] = i['rateDate']
-                    data.append(comment)
+            if not 'rateDetail' in result:
+                time.sleep(10)
+                continue
+            for i in result['rateDetail']['rateList']:
+                comment = {}
+                comment['impression'] = impression
+                comment['type'] = 1 if i['anony'] else 0
+                comment['good_url'] = headers['Referer']
+                comment['site_from'] = 9
+                images = []
+                if 'pics' in i:
+                    for j in i['pics']:
+                        images.append('https:' + j)
+                comment['images'] = ','.join(images)
+                if i['rateContent'] == '此用户没有填写评论!':
+                    comment['first'] = ''
+                else:
+                    comment['first'] = i['rateContent']
+                comment['add'] = i['appendComment']['content'] if i['appendComment'] else ''
+                comment['buyer'] = i['displayUserNick']
+                comment['style'] = i['auctionSku']
+                comment['date'] = i['rateDate']
+                data.append(comment)
             if data:
                 # data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)
@@ -447,6 +454,24 @@ def comment_spider(name, category):
         print(result)
         if not result['success']:
             break
+
+
+# 浏览器重新获取cookie 提供jd 评论爬取
+def get_jd_cookie():
+    chrome_options = Options()
+    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    # 初始化chrome对象
+    browser = webdriver.Chrome(options=chrome_options)
+    old_num = len(browser.window_handles)
+    js = 'window.open("https://item.jd.com/64144461545.html");'
+    browser.execute_script(js)
+    browser.switch_to_window(browser.window_handles[old_num])  # 切换新窗口
+    browser.delete_all_cookies()
+    browser.refresh()
+    cookies = browser.get_cookies()
+    cookies = [i['name'] + "=" + i['value'] for i in cookies]
+    cookies = '; '.join(cookies)
+    return cookies
 
 
 if __name__ == '__main__':

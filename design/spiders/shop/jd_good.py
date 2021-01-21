@@ -35,10 +35,10 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words.split(',')
-        self.key_words = ['台灯', '电风扇', '美容器']
-        self.page = 4
-        self.max_page = 20
-        self.max_price_page = 10  # 价格区间的爬10页
+        self.key_words = ['电风扇', '美容器']
+        self.page = 1
+        self.max_page = 15
+        self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['459-750', '751-999', '1000gt'],
             '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
@@ -91,7 +91,8 @@ class JdSpider(SeleniumSpider):
             item = TaobaoItem()
             try:
                 try:
-                    promotion_price = self.browser.find_element_by_xpath('//span[@class="p-price"]/span[2]').text.strip()
+                    promotion_price = self.browser.find_element_by_xpath(
+                        '//span[@class="p-price"]/span[2]').text.strip()
                 except:
                     promotion_price = ''
                 if promotion_price == '':
@@ -194,26 +195,8 @@ class JdSpider(SeleniumSpider):
                 item['cover_url'] = img_urls[0]
                 item['img_urls'] = ','.join(img_urls)
                 good_data = dict(item)
-
-                ua = UserAgent().random
-                headers = {
-                    'Referer': 'https://item.jd.com/%s.html' % itemId,
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-                }
-                url = self.comment_data_url % (itemId, 0)
-                try:
-                    comment_res = self.s.get(url, headers=headers, verify=False, timeout=10)
-                except:
-                    time.sleep(10)
-                    comment_res = self.s.get(url, headers=headers, verify=False, timeout=10)
-                rex = re.compile('({.*})')
-                result = json.loads(rex.findall(comment_res.text)[0])
-                good_data['positive_review'] = result['productCommentSummary']['goodCount']
-                good_data['comment_count'] = result['productCommentSummary']['commentCount']
-                impression = ''
-                for j in result['hotCommentTagStatistics']:
-                    impression += j['name'] + '(' + str(j['count']) + ')  '
-                good_data['impression'] = impression
+                data = self.get_impression(itemId)
+                good_data.update(data)
                 print(good_data)
                 try:
                     res = self.s.post(url=self.goods_url, data=good_data)
@@ -257,3 +240,31 @@ class JdSpider(SeleniumSpider):
                 else:
                     url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
                 yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
+
+    def get_impression(self, itemId):
+        data = {}
+        cookies = self.browser.get_cookies()
+        cookies = [i['name'] + "=" + i['value'] for i in cookies]
+        cookies = '; '.join(cookies)
+
+        ua = UserAgent().random
+        headers = {
+            'Referer': 'https://item.jd.com/%s.html' % itemId,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+            'cookie': cookies
+        }
+        url = self.comment_data_url % (itemId, 0)
+        try:
+            comment_res = self.s.get(url, headers=headers, verify=False, timeout=10)
+        except:
+            time.sleep(10)
+            comment_res = self.s.get(url, headers=headers, verify=False, timeout=10)
+        rex = re.compile('({.*})')
+        result = json.loads(rex.findall(comment_res.text)[0])
+        data['positive_review'] = result['productCommentSummary']['goodCount']
+        data['comment_count'] = result['productCommentSummary']['commentCount']
+        impression = ''
+        for j in result['hotCommentTagStatistics']:
+            impression += j['name'] + '(' + str(j['count']) + ')  '
+        data['impression'] = impression
+        return data
