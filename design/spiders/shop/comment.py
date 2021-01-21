@@ -296,28 +296,33 @@ class CommentSpider:
             except requests.exceptions.RequestException as e:
                 return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             rex = re.compile('({.*})')
-            result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
+            try:
+                result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
+            except:
+                print(comment_res.content)
+                return
             data = []
-            for i in result['rateDetail']['rateList']:
-                comment = {}
-                comment['impression'] = impression
-                comment['type'] = 1 if i['anony'] else 0
-                comment['good_url'] = headers['Referer']
-                comment['site_from'] = 9
-                images = []
-                if 'pics' in i:
-                    for j in i['pics']:
-                        images.append('https:' + j)
-                comment['images'] = ','.join(images)
-                if i['rateContent'] == '此用户没有填写评论!':
-                    comment['first'] = ''
-                else:
-                    comment['first'] = i['rateContent']
-                comment['add'] = i['appendComment']['content'] if i['appendComment'] else ''
-                comment['buyer'] = i['displayUserNick']
-                comment['style'] = i['auctionSku']
-                comment['date'] = i['rateDate']
-                data.append(comment)
+            if 'rateDetail' in result:
+                for i in result['rateDetail']['rateList']:
+                    comment = {}
+                    comment['impression'] = impression
+                    comment['type'] = 1 if i['anony'] else 0
+                    comment['good_url'] = headers['Referer']
+                    comment['site_from'] = 9
+                    images = []
+                    if 'pics' in i:
+                        for j in i['pics']:
+                            images.append('https:' + j)
+                    comment['images'] = ','.join(images)
+                    if i['rateContent'] == '此用户没有填写评论!':
+                        comment['first'] = ''
+                    else:
+                        comment['first'] = i['rateContent']
+                    comment['add'] = i['appendComment']['content'] if i['appendComment'] else ''
+                    comment['buyer'] = i['displayUserNick']
+                    comment['style'] = i['auctionSku']
+                    comment['date'] = i['rateDate']
+                    data.append(comment)
             if data:
                 # data = json.dumps(data, ensure_ascii=False)
                 res = self.comment_save(out_number, data)

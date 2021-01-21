@@ -35,8 +35,8 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words.split(',')
-        self.key_words = ['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
-        self.page = 9
+        self.key_words = ['台灯', '电风扇', '美容器']
+        self.page = 4
         self.max_page = 20
         self.max_price_page = 10  # 价格区间的爬10页
         self.price_range_list = {
@@ -70,17 +70,21 @@ class JdSpider(SeleniumSpider):
 
     def start_requests(self):
         if self.key_words[0] in self.price_range_list:
-            url = self.search_url.format(name=self.key_words[0],price_range=self.price_range_list[self.key_words[0]][0] , page=self.page)
+            url = self.search_url.format(name=self.key_words[0],
+                                         price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
         else:
-            url = self.search_url.format(name=self.key_words[0],price_range='' , page=self.page)
-        self.browser.get(url)
+            url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
+        yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
+        # yield scrapy.Request('https://pcitem.jd.hk/30752477500.html', callback=self.parse_detail,
+        #                      meta={'usedSelenium': True})
+
+    def parse_list(self, response):
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
         list_url = []
         for i in urls:
             list_url.append(i.get_attribute('href'))
-        yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url})
-        # yield scrapy.Request('https://pcitem.jd.hk/30752477500.html', callback=self.parse_detail,
-        #                      meta={'usedSelenium': True})
+        yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
+                             dont_filter=True)
 
     def parse_detail(self, response):
         if not 'pcitem.jd.hk' in self.browser.current_url:
@@ -89,14 +93,20 @@ class JdSpider(SeleniumSpider):
                 try:
                     promotion_price = self.browser.find_element_by_xpath('//span[@class="p-price"]/span[2]').text.strip()
                 except:
+                    promotion_price = ''
+                if promotion_price == '':
+                    # 删除 cookie 反爬 浏览器自动获取新cookie
+                    self.browser.delete_all_cookies()
                     self.browser.refresh()
-                    promotion_price = self.browser.find_element_by_xpath('//span[@class="p-price"]/span[2]').text.strip()
+                    promotion_price = self.browser.find_element_by_xpath(
+                        '//span[@class="p-price"]/span[2]').text.strip()
                 item['title'] = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
                 item['sku_ids'] = ','.join(
                     response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
                 try:
                     original_text = self.browser.find_element_by_xpath(
-                        '//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]').text.strip()
+                        '//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]').text.strip().replace(
+                        '￥', '')
                 except:
                     original_text = ''
                 if original_text:
@@ -106,8 +116,12 @@ class JdSpider(SeleniumSpider):
                     item['promotion_price'] = ''
                 else:
                     item['promotion_price'] = promotion_price
+                if item['promotion_price'] == '' and item['original_price'] == '':
+                    logging.error("反爬价格无法获取失败")
+                    return
                 try:
-                    comment_text = self.browser.find_element_by_xpath('//a[contains(@class,"count J-comm")]').text.strip()
+                    comment_text = self.browser.find_element_by_xpath(
+                        '//a[contains(@class,"count J-comm")]').text.strip()
                 except:
                     comment_text = self.browser.find_element_by_xpath('//li[@data-anchor="#comment"]/s').text.strip()
                     comment_text = comment_text.replace('(', '').replace(')', '')
@@ -125,8 +139,8 @@ class JdSpider(SeleniumSpider):
                     item['category'] = self.key_words[0]
                 shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
                 item['shop_id'] = shop_id
-
-                service_ele = self.browser.find_elements_by_xpath('//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
+                service_ele = self.browser.find_elements_by_xpath(
+                    '//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
                 service = []
                 for i in service_ele:
                     service.append(i.text)
@@ -149,8 +163,9 @@ class JdSpider(SeleniumSpider):
                 if not detail_dict:
                     detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
                     for j, i in enumerate(detail_list):
-                        s = i.text.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
-                                                                                                                  '')
+                        s = i.text.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace(
+                            '\xa0',
+                            '')
                         if s.endswith('：') or s.endswith(':'):
                             detail_str_list.append(s + detail_list[j + 1])
                             continue
@@ -184,7 +199,6 @@ class JdSpider(SeleniumSpider):
                 headers = {
                     'Referer': 'https://item.jd.com/%s.html' % itemId,
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-                    'Cookie': 'JSESSIONID=068CE69BEB8E77E7FF7D415202926236.s1; Path=/',
                 }
                 url = self.comment_data_url % (itemId, 0)
                 try:
@@ -212,8 +226,9 @@ class JdSpider(SeleniumSpider):
                     self.fail_url.append(response.url)
                 else:
                     self.suc_count += 1
-            except:
-                pass
+            except Exception as e:
+                logging.error("行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e)))
+                self.fail_url.append(response.url)
         list_url = response.meta['list_url']
         list_url.pop(0)
         time.sleep(3)
@@ -230,7 +245,7 @@ class JdSpider(SeleniumSpider):
                 self.page += 1
             else:
                 self.page = 1
-                if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]])>1:
+                if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
                     self.price_range_list[self.key_words[0]].pop(0)
                 else:
                     self.key_words.pop(0)
@@ -241,11 +256,4 @@ class JdSpider(SeleniumSpider):
                                                  page=self.page)
                 else:
                     url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
-
-                self.browser.get(url)
-                urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
-                list_url = []
-                for i in urls:
-                    list_url.append(i.get_attribute('href'))
-                yield scrapy.Request(list_url[0], callback=self.parse_detail,
-                                     meta={'usedSelenium': True, 'list_url': list_url})
+                yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)

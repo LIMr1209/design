@@ -70,9 +70,9 @@ class PddSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         # self.key_words = key_words.split(',')
-        self.key_words = ['台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['美容器', '剃须刀', '电动牙刷']
         self.price_range = ''
-        self.page = 2
+        self.page = 12
         self.max_page = 20
         self.pdd_accessToken_list = []
         self.s = requests.Session()
