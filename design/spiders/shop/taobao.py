@@ -151,14 +151,17 @@ class TaobaoSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.page = 13
+        self.page = 3
         self.max_page = 15
         self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.key_words = ['转椅', '键盘', '音箱', '麦克风', '鼠标', '内存条', '主板', '台式机主机', '平板电脑', '手机', '显卡', '硬盘', '笔记本电脑']
+        self.key_words = ['早餐机', '酸奶机', '电火锅', '豆芽机', '美妆冰箱', '美发梳', '除螨仪', '筋膜枪', '脱毛仪, '
+                          '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把','挂烫机', '烘衣机', '烤箱', '电饭煲', '加湿器', '微波炉',
+                          '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机','绞肉机', '净水器', '电压力锅', '洗碗机'
+                          ]
         # self.key_words = key_words.split(',')
         self.fail_url = []
         self.suc_count = 0
@@ -271,7 +274,7 @@ class TaobaoSpider(SeleniumSpider):
                                  meta={'usedSelenium': True, 'list_url': list_url})
 
     def parse_detail(self, response):
-        time.sleep(4)
+        # time.sleep(4)
         if "detail.tmall.com" in response.url:
             res = self.save_tmall_data(response)
         if "item.taobao.com" in response.url:
@@ -341,13 +344,13 @@ class TaobaoSpider(SeleniumSpider):
                     item = TaobaoItem()
                     try:
                         item['original_price'] = self.browser.find_element_by_xpath(
-                            '//dl[@id="J_StrPriceModBox"]//span').text
+                            '//dl[@id="J_StrPriceModBox"]//span').get_attribute('innerText')
                     except:
                         item['original_price'] = self.browser.find_element_by_xpath(
-                            '//span[@class="tm-price"]').text
+                            '//span[@class="tm-price"]').get_attribute('innerText')
                     try:
                         item['promotion_price'] = self.browser.find_element_by_xpath(
-                            '//dl[@id="J_PromoPrice"]//span').text
+                            '//dl[@id="J_PromoPrice"]//span').get_attribute('innerText')
                     except:
                         item['promotion_price'] = ''
                     detail_price = sku_price_func(self.browser, 9)
@@ -371,11 +374,11 @@ class TaobaoSpider(SeleniumSpider):
                         pass
                     try:
                         item['comment_count'] = self.browser.find_element_by_xpath(
-                            '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').text
+                            '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
                     except:
                         pass
                     sale_xpath = self.browser.find_element_by_xpath(
-                        '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]').text
+                        '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]').get_attribute('innerText')
                     if sale_xpath:
                         index = sale_xpath.find('万')
                         if index != -1:
@@ -462,6 +465,7 @@ class TaobaoSpider(SeleniumSpider):
         # time.sleep(2)
         choice = "1"
         try:
+            # 登录iframe
             code_ele = self.browser.find_element_by_id('sufei-dialog-content')
             if code_ele:
                 # choice = input('出现验证码 请手动验证，请输入您的选择：1.通过 2.未通过')
@@ -475,10 +479,10 @@ class TaobaoSpider(SeleniumSpider):
                 try:
                     item = TaobaoItem()
                     item['original_price'] = self.browser.find_element_by_xpath(
-                        '//*[@id="J_StrPrice"]/em[@class="tb-rmb-num"]').text.strip()
+                        '//*[@id="J_StrPrice"]/em[@class="tb-rmb-num"]').get_attribute('innerText').strip()
                     try:
                         item['promotion_price'] = self.browser.find_element_by_xpath(
-                            '//*[@id="J_PromoPriceNum"]').text.strip()
+                            '//*[@id="J_PromoPriceNum"]').get_attribute('innerText').strip()
                     except:
                         item['promotion_price'] = ''
                     detail_price = sku_price_func(self.browser, 8)
@@ -508,10 +512,10 @@ class TaobaoSpider(SeleniumSpider):
                         pass
                     try:
                         item['comment_count'] = self.browser.find_element_by_xpath(
-                            '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').text
+                            '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
                     except:
                         pass
-                    sale_xpath = self.browser.find_element_by_xpath('//*[@id="J_SellCounter"]').text
+                    sale_xpath = self.browser.find_element_by_xpath('//*[@id="J_SellCounter"]').get_attribute('innerText')
                     if sale_xpath:
                         index = sale_xpath.find('万')
                         if index != -1:
