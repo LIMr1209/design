@@ -104,7 +104,7 @@ class CommentSpider:
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
                 'User-Agent': ua,
-                'Cookie': '__jdv=76161171|direct|-|none|-|1610329405998; __jdu=16103294059961137138561; shshshfpa=f09b3217-4001-fc20-58f9-b1c005061b6e-1610329409; shshshfpb=jWqGTcT%2FwcJVlyMzTKm6iqA%3D%3D; shshshfp=e055c2e13f622066cff2f5f987592135; mt_xid=V2_52007VwMVUlxaUVIaSB1UDWADElBbWFBTG04ZbA1iAxJaVAgCRhgaG18ZYgAaAUFRWwoXVR0PUGdXRgVUDFpeTXkaXQZnHxNSQVhSSx9IElkFbAYaYl9oUmoWQBhcBmEGE1RZUVtZFkAaXgJjMxdTVF4%3D; pinId=Wrs6UF9apuPvb2HPPQggXbV9-x-f3wj7; pin=jd_6401bf627e067; unick=%E4%B8%80%E5%8F%AA%E7%89%B9%E7%AB%8B%E7%8B%AC%E8%A1%8C%E7%9A%84%E7%8C%ABJD; ceshi3.com=103; _tp=YsSMrRJFO3zSogROj%2FBuRAswEyb93subxF%2BQFzCSh78%3D; _pst=jd_6401bf627e067; __jdc=122270672; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; areaId=1; ipLoc-djd=1-72-55653-0; __jda=122270672.16103294059961137138561.1610329406.1611195324.1611209128.6'
+                # 'Cookie': '__jdv=76161171|direct|-|none|-|1610329405998; __jdu=16103294059961137138561; shshshfpa=f09b3217-4001-fc20-58f9-b1c005061b6e-1610329409; shshshfpb=jWqGTcT%2FwcJVlyMzTKm6iqA%3D%3D; shshshfp=e055c2e13f622066cff2f5f987592135; mt_xid=V2_52007VwMVUlxaUVIaSB1UDWADElBbWFBTG04ZbA1iAxJaVAgCRhgaG18ZYgAaAUFRWwoXVR0PUGdXRgVUDFpeTXkaXQZnHxNSQVhSSx9IElkFbAYaYl9oUmoWQBhcBmEGE1RZUVtZFkAaXgJjMxdTVF4%3D; pinId=Wrs6UF9apuPvb2HPPQggXbV9-x-f3wj7; pin=jd_6401bf627e067; unick=%E4%B8%80%E5%8F%AA%E7%89%B9%E7%AB%8B%E7%8B%AC%E8%A1%8C%E7%9A%84%E7%8C%ABJD; ceshi3.com=103; _tp=YsSMrRJFO3zSogROj%2FBuRAswEyb93subxF%2BQFzCSh78%3D; _pst=jd_6401bf627e067; __jdc=122270672; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; areaId=1; ipLoc-djd=1-72-55653-0; __jda=122270672.16103294059961137138561.1610329406.1611195324.1611209128.6'
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
@@ -113,12 +113,12 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
             except ProxyError as e:
-                logger.error('代理错误')
+                self.logger.error('代理错误')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
-                logger.error('请求错误')
+                self.logger.error('请求错误')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
@@ -127,7 +127,7 @@ class CommentSpider:
             try:
                 result = json.loads(rex.findall(comment_res.text)[0])
             except:
-                logger.error('json load 错误')
+                self.logger.error('json load 错误')
                 time.sleep(5)
                 continue
                 # cookies = get_jd_cookie()
@@ -212,12 +212,12 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
             except ProxyError as e:
-                logger.error('代理错误')
+                self.logger.error('代理错误')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
-                logger.error('请求未响应')
+                self.logger.error('请求未响应')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number}
@@ -304,12 +304,12 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
             except ProxyError as e:
-                logger.error('代理错误')
+                self.logger.error('代理错误')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
-                logger.warning('请求未响应')
+                self.logger.warning('请求未响应')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
@@ -317,12 +317,12 @@ class CommentSpider:
             try:
                 result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
             except:
-                logger.warning('json load 错误')
+                self.logger.warning('json load 错误')
                 time.sleep(5)
                 continue
             data = []
             if not 'rateDetail' in result:
-                logger.warning('反爬限制')
+                self.logger.warning('反爬限制')
                 time.sleep(10)
                 continue
             for i in result['rateDetail']['rateList']:
@@ -381,12 +381,12 @@ class CommentSpider:
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
             except ProxyError as e:
-                logger.error('代理错误')
+                self.logger.error('代理错误')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "代理错误", 'out_number': out_number, 'page': comment_page}
             except requests.exceptions.RequestException as e:
-                logger.warning('请求未响应')
+                self.logger.warning('请求未响应')
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
@@ -394,12 +394,12 @@ class CommentSpider:
             try:
                 result = json.loads(rex.findall(comment_res.content.decode('utf-8'))[0])
             except:
-                logger.warning('json load 错误')
+                self.logger.warning('json load 错误')
                 time.sleep(5)
                 continue
             data = []
             if not 'comments' in result:
-                logger.warning('反爬限制')
+                self.logger.warning('反爬限制')
                 time.sleep(5)
                 continue
             if result['comments']:
@@ -458,11 +458,16 @@ class CommentSpider:
             impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers, proxies=proxies,
                                         verify=False, timeout=self.time_out)
         except ProxyError as e:
-            logger.error('代理错误')
+            self.logger.error('代理错误')
             return {'success': False, 'message': "代理错误", 'out_number': out_number}
+        except requests.exceptions.RequestException as e:
+            self.logger.warning('请求未响应')
+            return {'success': False, 'message': "请求未响应", 'out_number': out_number}
         rex = re.compile('({.*})')
         impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
         impression = ''
+        if not "tags" in impression_data:
+            return {'success': False, 'message': "反爬", 'out_number': out_number}
         for i in impression_data['tags']['tagClouds']:
             impression += i['tag'] + '(' + str(i['count']) + ')  '
         return {'success': True, 'impression': impression}

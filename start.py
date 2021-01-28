@@ -1,6 +1,7 @@
 from scrapy import cmdline
 # cmdline.execute('scrapy crawl taobao_list -a key_words="吹风机"'.split()) #
-cmdline.execute('scrapy crawl taobao -a key_words=集成灶'.split())
+cmdline.execute('scrapy crawl taobao_new -a key_words=集成灶'.split())
+
 "['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']"
 """
 ['空气炸锅', '按摩椅', '破壁机', '早餐机', '酸奶机', '电火锅', '豆芽机', '美妆冰箱', '美发梳', '除螨仪', '筋膜枪', '脱毛仪, '

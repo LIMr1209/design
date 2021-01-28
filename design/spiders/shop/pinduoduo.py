@@ -70,7 +70,7 @@ class PddSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         # self.key_words = key_words.split(',')
-        self.key_words = ['美容器', '剃须刀', '电动牙刷']
+        self.key_words = ['空气炸锅', '按摩椅', '破壁机', '早餐机', '酸奶机', '电火锅', '豆芽机', '美妆冰箱', '美发梳', '除螨仪',]
         self.price_range = ''
         self.page = 12
         self.max_page = 20

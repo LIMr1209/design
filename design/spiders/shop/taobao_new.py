@@ -139,7 +139,7 @@ def get_track(distance):  # distance为传入的总距离
 
 
 class TaobaoSpider(SeleniumSpider):
-    name = "taobao"
+    name = "taobao_new"
     custom_settings = {
         'DOWNLOAD_DELAY': 0,
         'DOWNLOADER_MIDDLEWARES': {
@@ -158,14 +158,15 @@ class TaobaoSpider(SeleniumSpider):
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.key_words = ['除螨仪', '筋膜枪', '脱毛仪, '
-                                        '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机',
-                          '烤箱', '电饭煲', '加湿器', '微波炉',
-                          '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机', '绞肉机', '净水器', '电压力锅', '洗碗机'
-                          ]
+        # self.key_words = ['筋膜枪', '脱毛仪', '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机',
+        #                   '烤箱', '电饭煲', '加湿器', '微波炉',
+        #                   '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机', '绞肉机', '净水器', '电压力锅', '洗碗机'
+        #                   ]
+        self.key_words = ['颈椎按摩仪']
         # self.key_words = key_words.split(',')
-        self.fail_url = []
+        self.fail_url = {}
         self.suc_count = 0
+        self.error_retry = 0
         self.s = requests.Session()
         self.s.mount('http://', HTTPAdapter(max_retries=5))
         self.s.mount('https://', HTTPAdapter(max_retries=5))
@@ -265,28 +266,53 @@ class TaobaoSpider(SeleniumSpider):
         # fw.close()
         # self.update_cookie()
         # self.stringToDict()
-        page_count = str((self.page - 1) * 44)
-        if self.key_words[0] in self.price_range_list:
-            url = self.search_url.format(name=self.key_words[0],
-                                         price_range=self.price_range_list[self.key_words[0]][0], page_count=page_count)
-        else:
-            url = self.search_url.format(name=self.key_words[0], price_range='', page_count=page_count)
-        self.browser.get(url)
+        list_url = self.get_list_urls()
+        # 爬取失败重新爬取
+        # list_url = ['https://detail.tmall.com/item.htm?id=636224301404&ns=1&abbucket=15']
+        # self.category = '脱毛仪'
+        # self.error_retry = 1
+        yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
+                             meta={'usedSelenium': True, 'list_url': list_url})
+
+    def get_list_urls(self):
+        self.browser.get('https://www.taobao.com/')
+        self.browser.find_element_by_id('q').send_keys(self.key_words[0])
+        self.browser.find_element_by_xpath('//div[@class="search-button"]/button').click()
         time.sleep(2)
+        self.page += 1
         max_page = self.browser.find_element_by_xpath('//div[@class="total"]').text
         self.max_page = int(re.search('\d+', max_page).group())
         if self.max_page >= 15:
             self.max_page = 15
-        yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list, dont_filter=True)
-        # yield scrapy.Request(
-        #     'https://item.taobao.com/item.htm?id=634753807151&ns=1&abbucket=6#detail',
-        #     callback=self.parse_detail, dont_filter=True, meta={'usedSelenium': True})
+        list_urls = []
+        list_url = self.browser.find_elements_by_xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
+        for i in list_url:
+            list_urls.append(i.get_attribute('href'))
+        while self.page <= self.max_page:
+            next = self.browser.find_elements_by_xpath('//a[@class="J_Ajax num icon-tag"]')
+            if len(next) > 1:
+                next[1].click()
+            else:
+                next[0].click()
+            time.sleep(2)
+            self.page += 1
+            list_url = self.browser.find_elements_by_xpath(
+                '//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
+            for i in list_url:
+                list_urls.append(i.get_attribute('href'))
+        return list_urls
 
-    def parse_list(self, response):
-        list_url = response.xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a/@href').extract()
-        if list_url:
-            yield scrapy.Request("https:" + list_url[0], callback=self.parse_detail, dont_filter=True,
-                                 meta={'usedSelenium': True, 'list_url': list_url})
+    def fail_url_save(self, response):
+        if self.error_retry:
+            if self.category in self.fail_url:
+                self.fail_url[self.category].append(response.url)
+            else:
+                self.fail_url[self.category] = [response.url]
+        else:
+            if self.key_words[0] in self.fail_url:
+                self.fail_url[self.key_words[0]].append(response.url)
+            else:
+                self.fail_url[self.key_words[0]] = [response.url]
 
     def parse_detail(self, response):
         time.sleep(4)
@@ -300,43 +326,33 @@ class TaobaoSpider(SeleniumSpider):
         # for i in cookies:
         #     self.browser.add_cookie(i)
         if not res['success']:
-            self.fail_url.append(response.url)
+            self.fail_url_save(response)
             logging.error(res['message'])
         else:
             respon = res['res']
             if respon.status_code != 200 or json.loads(respon.content)['code']:
                 logging.error("产品保存失败" + response.url)
                 logging.error(json.loads(respon.content)['message'])
-                self.fail_url.append(response.url)
+                self.fail_url_save(response)
             else:
                 self.suc_count += 1
         list_url = response.meta['list_url']
         list_url.pop(0)
         if list_url:
-            yield scrapy.Request('https:' + list_url[0], callback=self.parse_detail,
+            yield scrapy.Request(list_url[0], callback=self.parse_detail,
                                  meta={'usedSelenium': True, "list_url": list_url}, dont_filter=True, )
         else:
-            # if self.key_words[0] in self.price_range_list:
-            #     page = self.max_price_page
-            # else:
-            #     page = self.max_page
-            if self.page < self.max_page:
-                self.page += 1
-            else:
+            print(self.fail_url)
+            if self.error_retry == 0:
                 self.page = 1
                 if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
                     self.price_range_list[self.key_words[0]].pop(0)
                 else:
                     self.key_words.pop(0)
-            if self.key_words:
-                page_count = str((self.page - 1) * 44)
-                if self.key_words[0] in self.price_range_list:
-                    url = self.search_url.format(name=self.key_words[0],
-                                                 price_range=self.price_range_list[self.key_words[0]][0],
-                                                 page_count=page_count)
-                else:
-                    url = self.search_url.format(name=self.key_words[0], price_range='', page_count=page_count)
-                yield scrapy.Request(url, meta={'usedSelenium': True}, callback=self.parse_list, dont_filter=True)
+                if self.key_words:
+                    list_url = self.get_list_urls()
+                    yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
+                                         meta={'usedSelenium': True, 'list_url': list_url})
 
     def save_tmall_data(self, response):
         # time.sleep(2)
@@ -485,6 +501,8 @@ class TaobaoSpider(SeleniumSpider):
                         item['category'] = '耳机'
                     else:
                         item['category'] = self.key_words[0]
+                    if hasattr(self, 'category'):
+                        item['category'] = self.category
                     item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
                     # impression = self.get_impression(itemId)
                     # item['impression'] = impression
@@ -623,6 +641,8 @@ class TaobaoSpider(SeleniumSpider):
                         item['category'] = '耳机'
                     else:
                         item['category'] = self.key_words[0]
+                    if hasattr(self, 'category'):
+                        item['category'] = self.category
                     item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
                     # impression = self.get_impression(itemId)
                     # item['impression'] = impression

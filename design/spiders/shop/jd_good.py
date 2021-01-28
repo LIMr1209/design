@@ -34,8 +34,9 @@ class JdSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.key_words = key_words.split(',')
-        self.page = 1
+        # self.key_words = key_words.split(',')
+        self.key_words = ['早餐机', '酸奶机', '电火锅', '豆芽机', '美妆冰箱', '美发梳', '除螨仪',]
+        self.page = 6
         self.max_page = 15
         self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
@@ -49,7 +50,7 @@ class JdSpider(SeleniumSpider):
         self.goods_url = self.setting['OPALUS_GOODS_URL']
         self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
-        self.fail_url = []
+        self.fail_url = {}
         self.suc_count = 0
 
         super(JdSpider, self).__init__(*args, **kwargs)
@@ -82,6 +83,12 @@ class JdSpider(SeleniumSpider):
         list_url = []
         for i in urls:
             list_url.append(i.get_attribute('href'))
+        if not list_url:
+
+            self.browser.refresh()
+        urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
+        for i in urls:
+            list_url.append(i.get_attribute('href'))
         yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
                              dont_filter=True)
 
@@ -95,7 +102,10 @@ class JdSpider(SeleniumSpider):
                 except:
                     promotion_price = ''
                 if promotion_price == '':
-                    # 删除 cookie 反爬 浏览器自动获取新cookie
+                    time.sleep(60)
+                    # 删除 cookie, localStorage, 让浏览器自动获取新cookie 旧cookie 限制爬取需要登录
+                    js = 'window.localStorage.clear();'
+                    self.browser.execute_script(js)
                     self.browser.delete_all_cookies()
                     self.browser.refresh()
                     promotion_price = self.browser.find_element_by_xpath(
@@ -194,8 +204,8 @@ class JdSpider(SeleniumSpider):
                 item['cover_url'] = img_urls[0]
                 item['img_urls'] = ','.join(img_urls)
                 good_data = dict(item)
-                data = self.get_impression(itemId)
-                good_data.update(data)
+                # data = self.get_impression(itemId)
+                # good_data.update(data)
                 print(good_data)
                 try:
                     res = self.s.post(url=self.goods_url, data=good_data)
@@ -205,12 +215,18 @@ class JdSpider(SeleniumSpider):
                 if res.status_code != 200 or json.loads(res.content)['code']:
                     logging.error("产品保存失败" + response.url)
                     logging.error(json.loads(res.content)['message'])
-                    self.fail_url.append(response.url)
+                    if self.key_words[0] in self.fail_url:
+                        self.fail_url[self.key_words[0]].append(response.url)
+                    else:
+                        self.fail_url[self.key_words[0]] = [response.url]
                 else:
                     self.suc_count += 1
             except Exception as e:
                 logging.error("行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e)))
-                self.fail_url.append(response.url)
+                if self.key_words[0] in self.fail_url:
+                    self.fail_url[self.key_words[0]].append(response.url)
+                else:
+                    self.fail_url[self.key_words[0]] = [response.url]
         list_url = response.meta['list_url']
         list_url.pop(0)
         time.sleep(3)
