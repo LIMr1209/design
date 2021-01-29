@@ -162,7 +162,7 @@ class TaobaoSpider(SeleniumSpider):
         #                   '烤箱', '电饭煲', '加湿器', '微波炉',
         #                   '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机', '绞肉机', '净水器', '电压力锅', '洗碗机'
         #                   ]
-        self.key_words = ['颈椎按摩仪']
+        self.key_words = ['烘衣机', '烤箱']
         # self.key_words = key_words.split(',')
         self.fail_url = {}
         self.suc_count = 0
@@ -268,8 +268,8 @@ class TaobaoSpider(SeleniumSpider):
         # self.stringToDict()
         list_url = self.get_list_urls()
         # 爬取失败重新爬取
-        # list_url = ['https://detail.tmall.com/item.htm?id=636224301404&ns=1&abbucket=15']
-        # self.category = '脱毛仪'
+        # list_url = ['https://detail.tmall.com/item.htm?id=580558037899&ns=1&abbucket=15']
+        # self.category = '挂烫机'
         # self.error_retry = 1
         yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True, 'list_url': list_url})

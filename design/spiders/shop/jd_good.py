@@ -35,8 +35,9 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         # self.key_words = key_words.split(',')
-        self.key_words = ['早餐机', '酸奶机', '电火锅', '豆芽机', '美妆冰箱', '美发梳', '除螨仪',]
-        self.page = 6
+        self.key_words = ['筋膜枪', '脱毛仪', '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机', '烤箱']
+        self.page = 8
+        self.error_retry = 0
         self.max_page = 15
         self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
@@ -62,6 +63,18 @@ class JdSpider(SeleniumSpider):
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
+    def fail_url_save(self, response):
+        if self.error_retry:
+            if self.category in self.fail_url:
+                self.fail_url[self.category].append(response.url)
+            else:
+                self.fail_url[self.category] = [response.url]
+        else:
+            if self.key_words[0] in self.fail_url:
+                self.fail_url[self.key_words[0]].append(response.url)
+            else:
+                self.fail_url[self.key_words[0]] = [response.url]
+
     def except_close(self):
         logging.error(self.key_words)
         logging.error(self.page)
@@ -78,13 +91,18 @@ class JdSpider(SeleniumSpider):
         # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
         #                      meta={'usedSelenium': True})
 
+        # list_url = ['https://item.jd.com/71466393768.html', 'https://item.jd.com/10022920532947.html']
+        # self.category = '筋膜枪'
+        # self.error_retry = 1
+        # yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
+        #                      dont_filter=True)
+
     def parse_list(self, response):
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
         list_url = []
         for i in urls:
             list_url.append(i.get_attribute('href'))
         if not list_url:
-
             self.browser.refresh()
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
         for i in urls:
@@ -92,16 +110,23 @@ class JdSpider(SeleniumSpider):
         yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
                              dont_filter=True)
 
-    def parse_detail(self, response):
-        if not 'pcitem.jd.hk' in self.browser.current_url:
+    def detail_data(self, response):
+        if not 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             item = TaobaoItem()
             try:
+                height = 0
+                for i in range(height, 800, 200):
+                    self.browser.execute_script('window.scrollTo(0, {})'.format(i))
+                    time.sleep(0.2)
                 try:
                     promotion_price = self.browser.find_element_by_xpath(
                         '//span[@class="p-price"]/span[2]').text.strip()
                 except:
                     promotion_price = ''
                 if promotion_price == '':
+                    if "预售剩余" in self.browser.page_source:
+                        logging.error('预售 {}'.format(response.url))
+                        return
                     time.sleep(60)
                     # 删除 cookie, localStorage, 让浏览器自动获取新cookie 旧cookie 限制爬取需要登录
                     js = 'window.localStorage.clear();'
@@ -147,6 +172,8 @@ class JdSpider(SeleniumSpider):
                     item['category'] = '耳机'
                 else:
                     item['category'] = self.key_words[0]
+                if hasattr(self, 'category'):
+                    item['category'] = self.category
                 shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
                 item['shop_id'] = shop_id
                 service_ele = self.browser.find_elements_by_xpath(
@@ -215,46 +242,45 @@ class JdSpider(SeleniumSpider):
                 if res.status_code != 200 or json.loads(res.content)['code']:
                     logging.error("产品保存失败" + response.url)
                     logging.error(json.loads(res.content)['message'])
-                    if self.key_words[0] in self.fail_url:
-                        self.fail_url[self.key_words[0]].append(response.url)
-                    else:
-                        self.fail_url[self.key_words[0]] = [response.url]
+                    self.fail_url_save(response)
                 else:
                     self.suc_count += 1
             except Exception as e:
                 logging.error("行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e)))
-                if self.key_words[0] in self.fail_url:
-                    self.fail_url[self.key_words[0]].append(response.url)
-                else:
-                    self.fail_url[self.key_words[0]] = [response.url]
+                self.fail_url_save(response)
+
+    def parse_detail(self, response):
+        self.detail_data(response)
         list_url = response.meta['list_url']
         list_url.pop(0)
-        time.sleep(3)
+        # time.sleep(3)
         if list_url:
             yield scrapy.Request(list_url[0], meta={'usedSelenium': True, "list_url": list_url},
                                  callback=self.parse_detail,
                                  dont_filter=True)
         else:
-            if self.key_words[0] in self.price_range_list:
-                page = self.max_price_page
-            else:
-                page = self.max_page
-            if self.page < page:
-                self.page += 1
-            else:
-                self.page = 1
-                if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
-                    self.price_range_list[self.key_words[0]].pop(0)
-                else:
-                    self.key_words.pop(0)
-            if self.key_words:
+            print(self.fail_url)
+            if self.error_retry == 0:
                 if self.key_words[0] in self.price_range_list:
-                    url = self.search_url.format(name=self.key_words[0],
-                                                 price_range=self.price_range_list[self.key_words[0]][0],
-                                                 page=self.page)
+                    page = self.max_price_page
                 else:
-                    url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
-                yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
+                    page = self.max_page
+                if self.page < page:
+                    self.page += 1
+                else:
+                    self.page = 1
+                    if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
+                        self.price_range_list[self.key_words[0]].pop(0)
+                    else:
+                        self.key_words.pop(0)
+                if self.key_words:
+                    if self.key_words[0] in self.price_range_list:
+                        url = self.search_url.format(name=self.key_words[0],
+                                                     price_range=self.price_range_list[self.key_words[0]][0],
+                                                     page=self.page)
+                    else:
+                        url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
+                    yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
 
     def get_impression(self, itemId):
         data = {}
