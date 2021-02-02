@@ -150,20 +150,15 @@ class TaobaoSpider(SeleniumSpider):
         'LOG_FILE': 'log/%s.log' % name
     }
 
-    def __init__(self, key_words=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.page = 1
-        self.max_page = 15
+        self.max_page = kwargs['max_page']
         # self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        # self.key_words = ['筋膜枪', '脱毛仪', '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机',
-        #                   '烤箱', '电饭煲', '加湿器', '微波炉',
-        #                   '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机', '绞肉机', '净水器', '电压力锅', '洗碗机'
-        #                   ]
-        self.key_words = ['吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机']
-        # self.key_words = key_words.split(',')
+        self.key_words = kwargs['key_words'].split(',')
         self.fail_url = {}
         self.suc_count = 0
         self.error_retry = 0
@@ -174,6 +169,7 @@ class TaobaoSpider(SeleniumSpider):
         self.goods_url = self.setting['OPALUS_GOODS_URL']
         self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
         self.search_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}&tab=all'
+
         super(TaobaoSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
                            signal=signals.spider_closed

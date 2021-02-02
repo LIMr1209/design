@@ -33,12 +33,11 @@ class JdSpider(SeleniumSpider):
         'LOG_FILE': 'log/%s.log' % name
     }
 
-    def __init__(self, key_words=None, *args, **kwargs):
-        # self.key_words = key_words.split(',')
-        self.key_words = ['卷/直发器', '豆浆机', '烤饼机', '绞肉机','净水器','电压力锅','洗碗机']
-        self.page = 6
+    def __init__(self, *args, **kwargs):
+        self.key_words = kwargs['key_words'].split(',')
+        self.page = 1
         self.error_retry = 0
-        self.max_page = 15
+        self.max_page = kwargs['max_page']
         self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['459-750', '751-999', '1000gt'],

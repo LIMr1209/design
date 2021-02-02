@@ -125,7 +125,7 @@ class SeleniumSpider(scrapy.Spider):
         # chrome_options.add_argument("user-agent={}".format(ua))
         #
         # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\AutomationProfile"
-        chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+        chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:{}".format(kwargs['se_port']))
 
         # 初始化chrome对象
         self.browser = webdriver.Chrome(options=chrome_options)
@@ -140,13 +140,13 @@ class SeleniumSpider(scrapy.Spider):
         # self.browser.maximize_window()
         # if self.windowHeight and self.windowWidth:
         #     self.browser.set_window_size(900, 900)
-        self.browser.set_page_load_timeout(10)  # 页面加载超时时间
+        self.browser.set_page_load_timeout(kwargs['time_out'])  # 页面加载超时时间
         self.wait = WebDriverWait(self.browser, 30)  # 指定元素加载超时时间
         # 设置信号量，当收到spider_closed信号时，调用mySpiderCloseHandle方法，关闭chrome
         # dispatcher.connect(receiver=self.mySpiderCloseHandle,
         #                    signal=signals.spider_closed
         #                    )
-        super(SeleniumSpider, self).__init__(*args, **kwargs)
+        # super(SeleniumSpider, self).__init__(*args, **kwargs)
 
     def mySpiderCloseHandle(self, spider):
         pass
