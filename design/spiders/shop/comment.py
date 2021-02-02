@@ -502,6 +502,7 @@ def comment_spider(name, category):
     res = requests.get(opalus_goods_comment_url, params=params, verify=False)
     res = json.loads(res.content)
     spider = CommentSpider(logger)
+    res['data'].reverse()
     for i in res['data']:
         result = spider.data_handle(i)
         print(result)

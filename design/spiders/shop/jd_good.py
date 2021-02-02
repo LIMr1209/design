@@ -35,8 +35,8 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         # self.key_words = key_words.split(',')
-        self.key_words = ['筋膜枪', '脱毛仪', '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机', '烤箱']
-        self.page = 8
+        self.key_words = ['卷/直发器', '豆浆机', '烤饼机', '绞肉机','净水器','电压力锅','洗碗机']
+        self.page = 6
         self.error_retry = 0
         self.max_page = 15
         self.max_price_page = 7  # 价格区间的爬10页
@@ -91,8 +91,8 @@ class JdSpider(SeleniumSpider):
         # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
         #                      meta={'usedSelenium': True})
 
-        # list_url = ['https://item.jd.com/71466393768.html', 'https://item.jd.com/10022920532947.html']
-        # self.category = '筋膜枪'
+        # list_url = ['https://item.jd.com/100007477668.html']
+        # self.category = '加湿器'
         # self.error_retry = 1
         # yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
         #                      dont_filter=True)
@@ -114,10 +114,12 @@ class JdSpider(SeleniumSpider):
         if not 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             item = TaobaoItem()
             try:
-                height = 0
-                for i in range(height, 800, 200):
-                    self.browser.execute_script('window.scrollTo(0, {})'.format(i))
-                    time.sleep(0.2)
+                # height = 0
+                # for i in range(height, 800, 200):
+                #     self.browser.execute_script('window.scrollTo(0, {})'.format(i))
+                #     time.sleep(0.2)
+                # ele = self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]')
+                # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
                 try:
                     promotion_price = self.browser.find_element_by_xpath(
                         '//span[@class="p-price"]/span[2]').text.strip()
@@ -189,18 +191,18 @@ class JdSpider(SeleniumSpider):
                     reputation_list.append(i.text + ": " + reputation_values[j].text)
                 item['url'] = response.url.replace('http:', 'https:')
                 item['reputation'] = ' '.join(reputation_list)
-                self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
+                # self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
                 detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt')
                 detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd')
                 detail_dict = {}
                 detail_str_list = []
                 for j, i in enumerate(detail_keys):
-                    detail_str_list.append(i.text + ':' + detail_values[j].text)
-                    detail_dict[i.text] = detail_values[j].text
+                    detail_str_list.append(i.get_attribute('innerText') + ':' + detail_values[j].get_attribute('innerText'))
+                    detail_dict[i.get_attribute('innerText')] = detail_values[j].get_attribute('innerText')
                 if not detail_dict:
                     detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
                     for j, i in enumerate(detail_list):
-                        s = i.text.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace(
+                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace(
                             '\xa0',
                             '')
                         if s.endswith('：') or s.endswith(':'):

@@ -158,14 +158,11 @@ class TaobaoSpider(SeleniumSpider):
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.key_words = ['除螨仪', '筋膜枪', '脱毛仪, '
-                                        '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机',
-                          '烤箱', '电饭煲', '加湿器', '微波炉',
-                          '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机', '绞肉机', '净水器', '电压力锅', '洗碗机'
-                          ]
+        self.key_words = ['吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机']
         # self.key_words = key_words.split(',')
-        self.fail_url = []
+        self.fail_url = {}
         self.suc_count = 0
+        self.error_retry = 0
         self.s = requests.Session()
         self.s.mount('http://', HTTPAdapter(max_retries=5))
         self.s.mount('https://', HTTPAdapter(max_retries=5))
@@ -258,6 +255,18 @@ class TaobaoSpider(SeleniumSpider):
                 self.browser.add_cookie(i)
         time.sleep(2)
 
+    def fail_url_save(self, response):
+        if self.error_retry:
+            if self.category in self.fail_url:
+                self.fail_url[self.category].append(response.url)
+            else:
+                self.fail_url[self.category] = [response.url]
+        else:
+            if self.key_words[0] in self.fail_url:
+                self.fail_url[self.key_words[0]].append(response.url)
+            else:
+                self.fail_url[self.key_words[0]] = [response.url]
+
     def start_requests(self):
         # cookies = self.browser.get_cookies()
         # fw = open('tmp/taobao.cookie', 'w')
@@ -300,14 +309,14 @@ class TaobaoSpider(SeleniumSpider):
         # for i in cookies:
         #     self.browser.add_cookie(i)
         if not res['success']:
-            self.fail_url.append(response.url)
+            self.fail_url_save(response)
             logging.error(res['message'])
         else:
             respon = res['res']
             if respon.status_code != 200 or json.loads(respon.content)['code']:
                 logging.error("产品保存失败" + response.url)
                 logging.error(json.loads(respon.content)['message'])
-                self.fail_url.append(response.url)
+                self.fail_url_save(response)
             else:
                 self.suc_count += 1
         list_url = response.meta['list_url']
@@ -367,7 +376,6 @@ class TaobaoSpider(SeleniumSpider):
                             )
                         )
                     except:
-                        time.sleep(2)
                         self.browser.refresh()
                         time.sleep(2)
                     try:
@@ -377,7 +385,6 @@ class TaobaoSpider(SeleniumSpider):
                             )
                         )
                     except:
-                        time.sleep(2)
                         self.browser.refresh()
                         time.sleep(2)
                     try:
@@ -401,13 +408,13 @@ class TaobaoSpider(SeleniumSpider):
 
                     item['detail_sku'] = json.dumps(detail_price)
                     item['title'] = self.browser.find_element_by_xpath(
-                        '//div[@class="tb-detail-hd"]/h1').text.strip()
+                        '//div[@class="tb-detail-hd"]/h1').get_attribute('innerText').strip()
                     service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
-                    item['service'] = ','.join([i.text for i in service])
+                    item['service'] = ','.join([i.get_attribute('innerText') for i in service])
                     try:
                         reputation = self.browser.find_elements_by_xpath('//span[@class="shopdsr-score-con"]')
                         item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                            reputation[0].text.strip(), reputation[1].text.strip(), reputation[2].text.strip())
+                            reputation[0].get_attribute('innerText').strip(), reputation[1].get_attribute('innerText').strip(), reputation[2].get_attribute('innerText').strip())
                     except:
                         pass
                     try:
@@ -434,28 +441,40 @@ class TaobaoSpider(SeleniumSpider):
                         )
                         if elem.is_displayed:
                             favorite_count_text = self.browser.find_element_by_xpath('//span[@id="J_CollectCount"]')
-                            d = re.search("\d+", favorite_count_text.text)
+                            d = re.search("\d+", favorite_count_text.get_attribute('innerText'))
                             if d:
                                 item['favorite_count'] = int(d.group())
                     except:
                         item['favorite_count'] = 0
-                    detail_list = response.xpath('//ul[@id="J_AttrUL"]/li/text()').extract()
-                    detail_str_list = []
-                    for j, i in enumerate(detail_list):
-                        s = i.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
-                                                                                                             '')
-                        if s.endswith('：') or s.endswith(':'):
-                            detail_str_list.append(s + detail_list[j + 1])
-                            continue
-                        if ':' in s or '：' in s:
-                            detail_str_list.append(s)
-                    item['detail_str'] = ', '.join(detail_str_list)
+                    detail_keys = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/th')
+                    if not detail_keys:
+                        detail_keys = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/th')
+                    detail_values = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/td')
+                    if not detail_values:
+                        detail_values = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/td')
                     detail_dict = {}
-                    for i in detail_str_list:
-                        tmp = re.split('[:：]', i)
-                        detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
+                    detail_str_list = []
+                    for j, i in enumerate(detail_keys):
+                        detail_str_list.append(
+                            i.get_attribute('innerText').replace('\xa0','') + ':' + detail_values[j].get_attribute('innerText').replace('\xa0',''))
+                        detail_dict[i.get_attribute('innerText').replace('\xa0','')] = detail_values[j].get_attribute('innerText').replace('\xa0','')
+                    if not detail_dict:
+                        detail_list = self.browser.find_elements_by_xpath('//ul[@id="J_AttrUL"]/li')
+                        for j, i in enumerate(detail_list):
+                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
+                                                                                                                 '')
+                            if s.endswith('：') or s.endswith(':'):
+                                detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
+                                continue
+                            if ':' in s or '：' in s:
+                                detail_str_list.append(s)
+                        item['detail_str'] = ', '.join(detail_str_list)
+                        detail_dict = {}
+                        for i in detail_str_list:
+                            tmp = re.split('[:：]', i)
+                            detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
                     item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
-
+                    item['detail_str'] = ', '.join(detail_str_list)
                     try:
                         img_urls = []
                         img_urls_ele = self.browser.find_elements_by_xpath(
@@ -485,6 +504,8 @@ class TaobaoSpider(SeleniumSpider):
                         item['category'] = '耳机'
                     else:
                         item['category'] = self.key_words[0]
+                    if hasattr(self, 'category'):
+                        item['category'] = self.category
                     item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
                     # impression = self.get_impression(itemId)
                     # item['impression'] = impression
@@ -527,16 +548,16 @@ class TaobaoSpider(SeleniumSpider):
                     ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
                     self.browser.execute_script("arguments[0].scrollIntoView();", ele)
                     item['detail_sku'] = json.dumps(detail_price)
-                    item['title'] = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').text.strip()
+                    item['title'] = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').get_attribute('innerText').strip()
                     service = self.browser.find_elements_by_xpath('//dt[contains(text(),"承诺")]/following-sibling::dd/a')
-                    item['service'] = ','.join([i.text for i in service])
+                    item['service'] = ','.join([i.get_attribute('innerText') for i in service])
                     try:
                         reputation = self.browser.find_elements_by_xpath('//dd[contains(@class,"tb-rate-")]/a')
                         if not reputation:
                             reputation = self.browser.find_elements_by_xpath(
                                 '//li[@class="shop-service-info-item"]//em')
                         item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                            reputation[0].text.strip(), reputation[1].text.strip(), reputation[2].text.strip())
+                            reputation[0].get_attribute('innerText').strip(), reputation[1].get_attribute('innerText').strip(), reputation[2].get_attribute('innerText').strip())
                     except:
                         item['reputation'] = ''
                     try:
@@ -544,7 +565,7 @@ class TaobaoSpider(SeleniumSpider):
                             reputation = self.browser.find_elements_by_xpath(
                                 '//li[@class="shop-service-info-item"]//em')
                             item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                                reputation[0].text.strip(), reputation[1].text.strip(), reputation[2].text.strip())
+                                reputation[0].get_attribute('innerText').strip(), reputation[1].get_attribute('innerText').strip(), reputation[2].get_attribute('innerText').strip())
                     except:
                         pass
                     try:
@@ -573,19 +594,20 @@ class TaobaoSpider(SeleniumSpider):
                         )
                         if elem.is_displayed:
                             favorite_count_text = self.browser.find_element_by_xpath('//em[@class="J_FavCount"]')
-                            d = re.search("\d+", favorite_count_text.text)
+                            d = re.search("\d+", favorite_count_text.get_attribute('innerText'))
                             if d:
                                 item['favorite_count'] = int(d.group())
                     except:
                         item['favorite_count'] = 0
                     itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
-                    detail_list = response.xpath('//ul[@class="attributes-list"]/li//text()').extract()
+                    # detail_list = response.xpath('//ul[@class="attributes-list"]/li//text()').extract()
+                    detail_list = self.browser.find_elements_by_xpath('//ul[@class="attributes-list"]/li')
                     detail_str_list = []
                     for j, i in enumerate(detail_list):
-                        s = i.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0', '')
+                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0', '')
                         if s:
                             if s.endswith('：') or s.endswith(':'):
-                                detail_str_list.append(s + detail_list[j + 1])
+                                detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
                                 continue
                             if ':' in s or '：' in s:
                                 detail_str_list.append(s)
@@ -623,6 +645,8 @@ class TaobaoSpider(SeleniumSpider):
                         item['category'] = '耳机'
                     else:
                         item['category'] = self.key_words[0]
+                    if hasattr(self, 'category'):
+                        item['category'] = self.category
                     item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
                     # impression = self.get_impression(itemId)
                     # item['impression'] = impression

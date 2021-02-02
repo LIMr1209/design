@@ -14,6 +14,10 @@ BOT_NAME = 'design'
 SPIDER_MODULES = ['design.spiders']
 NEWSPIDER_MODULE = 'design.spiders'
 
+# RETRY_ENABLED = True # 开启重试
+
+# RETRY_TIMES = 3 # 重试次数
+
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 # HTTPERROR_ALLOWED_CODES = [404]

@@ -1,6 +1,35 @@
 from scrapy import cmdline
-# cmdline.execute('scrapy crawl taobao_list -a key_words="吹风机"'.split()) #
-cmdline.execute('scrapy crawl taobao_new -a key_words=集成灶'.split())
+import argparse
+
+from scrapy.crawler import CrawlerProcess
+
+parser = argparse.ArgumentParser()
+parser.add_argument("spider", type=str, help="爬虫脚本name")
+parser.add_argument("is_shop", type=bool, help="是否是电商爬虫, 默认是", default=True)
+args = parser.parse_args()
+
+if args['is_shop']:
+    # 电商爬虫
+    parser.add_argument('key_words', type=str, help="爬取关键词 ','分隔")
+    parser.add_argument('dev', type=bool, help="是否是正式, 默认非正式", default=False)
+    parser.add_argument('max_page', type=int, help="爬取最大页码,默认15", default=15)  # 不足15页按照实际页码数量
+    parser.add_argument('time_out', type=int, help="selenium页面加载超时时间", default=10)  # 不足15页按照实际页码数量
+    parser.add_argument('se_port', type=str, help="selenium启动端口", default='9222')
+    args = parser.parse_args()
+    process = CrawlerProcess()  # 括号中可以添加参数
+    if args['spider'] == 'taobao':
+        from design.spiders.shop.taobao_new import TaobaoSpider
+        process.crawl(TaobaoSpider(args))
+    if args['spider'] == 'taobao':
+        from design.spiders.shop.jd_good import JdSpider
+        process.crawl(JdSpider(args))
+    if args['spider'] == 'taobao':
+        from design.spiders.shop.pinduoduo import PddSpider
+        process.crawl(PddSpider(args))
+    process.start()
+else:
+    # 普通爬虫
+    cmdline.execute('scrapy crawl {}'.format(args['spider']).split())
 
 "['吹风机', '真无线蓝牙耳机 降噪 入耳式', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷']"
 """
