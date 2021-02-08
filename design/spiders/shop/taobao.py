@@ -151,15 +151,13 @@ class TaobaoSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        self.page = 1
-        self.max_page = 15
+        self.page = 5 # 烤饼机
         # self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.key_words = ['吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机']
-        # self.key_words = key_words.split(',')
+        self.key_words = key_words.split(',')
         self.fail_url = {}
         self.suc_count = 0
         self.error_retry = 0
@@ -175,9 +173,9 @@ class TaobaoSpider(SeleniumSpider):
                            signal=signals.spider_closed
                            )
         old_num = len(self.browser.window_handles)
-        js = 'window.open("https://www.taobao.com/");'
-        self.browser.execute_script(js)
-        self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
+        # js = 'window.open("https://www.taobao.com/");'
+        # self.browser.execute_script(js)
+        # self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def except_close(self):
         logging.error(self.key_words)

@@ -175,9 +175,9 @@ class TaobaoSpider(SeleniumSpider):
                            signal=signals.spider_closed
                            )
         old_num = len(self.browser.window_handles)
-        js = 'window.open("https://www.taobao.com/");'
-        self.browser.execute_script(js)
-        self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
+        # js = 'window.open("https://www.taobao.com/");'
+        # self.browser.execute_script(js)
+        # self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def except_close(self):
         logging.error(self.key_words)
@@ -264,8 +264,8 @@ class TaobaoSpider(SeleniumSpider):
         # self.stringToDict()
         list_url = self.get_list_urls()
         # 爬取失败重新爬取
-        # list_url = ['https://detail.tmall.com/item.htm?id=534150500732']
-        # self.category = '微波炉'
+        # list_url = []
+        # self.category = '洗碗机'
         # self.error_retry = 1
         yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True, 'list_url': list_url})
@@ -417,7 +417,9 @@ class TaobaoSpider(SeleniumSpider):
                     try:
                         reputation = self.browser.find_elements_by_xpath('//span[@class="shopdsr-score-con"]')
                         item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                            reputation[0].get_attribute('innerText').strip(), reputation[1].get_attribute('innerText').strip(), reputation[2].get_attribute('innerText').strip())
+                            reputation[0].get_attribute('innerText').strip(),
+                            reputation[1].get_attribute('innerText').strip(),
+                            reputation[2].get_attribute('innerText').strip())
                     except:
                         pass
                     try:
@@ -449,23 +451,31 @@ class TaobaoSpider(SeleniumSpider):
                                 item['favorite_count'] = int(d.group())
                     except:
                         item['favorite_count'] = 0
-                    detail_keys = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/th')
+                    detail_keys = self.browser.find_elements_by_xpath(
+                        '//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/th')
                     if not detail_keys:
-                        detail_keys = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/th')
-                    detail_values = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/td')
+                        detail_keys = self.browser.find_elements_by_xpath(
+                            '//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/th')
+                    detail_values = self.browser.find_elements_by_xpath(
+                        '//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/td')
                     if not detail_values:
-                        detail_values = self.browser.find_elements_by_xpath('//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/td')
+                        detail_values = self.browser.find_elements_by_xpath(
+                            '//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/td')
                     detail_dict = {}
                     detail_str_list = []
                     for j, i in enumerate(detail_keys):
                         detail_str_list.append(
-                            i.get_attribute('innerText').replace('\xa0','') + ':' + detail_values[j].get_attribute('innerText').replace('\xa0',''))
-                        detail_dict[i.get_attribute('innerText').replace('\xa0','')] = detail_values[j].get_attribute('innerText').replace('\xa0','')
+                            i.get_attribute('innerText').replace('\xa0', '') + ':' + detail_values[j].get_attribute(
+                                'innerText').replace('\xa0', ''))
+                        detail_dict[i.get_attribute('innerText').replace('\xa0', '')] = detail_values[j].get_attribute(
+                            'innerText').replace('\xa0', '')
                     if not detail_dict:
                         detail_list = self.browser.find_elements_by_xpath('//ul[@id="J_AttrUL"]/li')
                         for j, i in enumerate(detail_list):
-                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
-                                                                                                                 '')
+                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r',
+                                                                                                        '').replace(
+                                '\t', '').replace('\xa0',
+                                                  '')
                             if s.endswith('：') or s.endswith(':'):
                                 detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
                                 continue
@@ -551,7 +561,8 @@ class TaobaoSpider(SeleniumSpider):
                     ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
                     self.browser.execute_script("arguments[0].scrollIntoView();", ele)
                     item['detail_sku'] = json.dumps(detail_price)
-                    item['title'] = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').get_attribute('innerText').strip()
+                    item['title'] = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').get_attribute(
+                        'innerText').strip()
                     service = self.browser.find_elements_by_xpath('//dt[contains(text(),"承诺")]/following-sibling::dd/a')
                     item['service'] = ','.join([i.get_attribute('innerText') for i in service])
                     try:
@@ -560,7 +571,9 @@ class TaobaoSpider(SeleniumSpider):
                             reputation = self.browser.find_elements_by_xpath(
                                 '//li[@class="shop-service-info-item"]//em')
                         item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                            reputation[0].get_attribute('innerText').strip(), reputation[1].get_attribute('innerText').strip(), reputation[2].get_attribute('innerText').strip())
+                            reputation[0].get_attribute('innerText').strip(),
+                            reputation[1].get_attribute('innerText').strip(),
+                            reputation[2].get_attribute('innerText').strip())
                     except:
                         item['reputation'] = ''
                     try:
@@ -568,7 +581,9 @@ class TaobaoSpider(SeleniumSpider):
                             reputation = self.browser.find_elements_by_xpath(
                                 '//li[@class="shop-service-info-item"]//em')
                             item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                                reputation[0].get_attribute('innerText').strip(), reputation[1].get_attribute('innerText').strip(), reputation[2].get_attribute('innerText').strip())
+                                reputation[0].get_attribute('innerText').strip(),
+                                reputation[1].get_attribute('innerText').strip(),
+                                reputation[2].get_attribute('innerText').strip())
                     except:
                         pass
                     try:
@@ -607,7 +622,8 @@ class TaobaoSpider(SeleniumSpider):
                     detail_list = self.browser.find_elements_by_xpath('//ul[@class="attributes-list"]/li')
                     detail_str_list = []
                     for j, i in enumerate(detail_list):
-                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0', '')
+                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
+                            '\t', '').replace('\xa0', '')
                         if s:
                             if s.endswith('：') or s.endswith(':'):
                                 detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))

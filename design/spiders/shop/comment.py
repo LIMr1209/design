@@ -13,6 +13,8 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+def cookie_to_dic(cookie):
+    return {item.split('=')[0]: item.split('=')[1] for item in cookie.split('; ')}
 
 class CommentSpider:
     def __init__(self, logger):
@@ -62,10 +64,14 @@ class CommentSpider:
 
     # 保存评论
     def comment_save(self, out_number, data):
-        try:
-            res = self.s.post(self.comment_save_url, json=data)
-        except requests.exceptions.RequestException as e:
-            return {'success': False, 'message': "保存失败", 'out_number': out_number}
+        success = False
+        while not success:
+            try:
+                res = self.s.post(self.comment_save_url, json=data)
+                success = True
+            except requests.exceptions.RequestException as e:
+                time.sleep(10)
+                #return {'success': False, 'message': "保存失败", 'out_number': out_number}
         if res.status_code != 200 or res.json()['code']:
             message = res.json()['message']
             return {'success': False, 'message': message, 'out_number': out_number}
@@ -97,6 +103,8 @@ class CommentSpider:
 
     def data_jd_handle(self, out_number):
         comment_page = 0
+        cookie_dict = cookie_to_dic('shshshfpa=91c6942d-da14-c2f8-0eb7-c05891ac1e7c-1551683113; shshshfpb=t0ymP5ujCD8z19K3fz6fuBQ%3D%3D; pinId=Wrs6UF9apuPvb2HPPQggXbV9-x-f3wj7; __jdv=122270672|direct|-|none|-|1611887512983; __jdu=2478618123; areaId=1; ipLoc-djd=1-72-55653-0; jwotest_product=99; __jda=122270672.2478618123.1586861605.1612316532.1612748600.78; __jdc=122270672; shshshfp=d4e3ec7f44eab431353b7d638561edc3; 3AB9D23F7A4B3C9B=3EXJLGG4UYPDEDNBOTSXMXQZUVX32SEKWFTXGE46WEWUM2CGLLNEBKCHIPLV3GLD7WU2RZ3UCE5VJKALZLXKCTC66U; shshshsID=85394a74a7d97047a88c583b67474b99_5_1612748653702; __jdb=122270672.5.2478618123|78.1612748600; JSESSIONID=FA599CE56385D7FF5C122737B1CD55E2.s1')
+        self.s.cookies = requests.utils.cookiejar_from_dict(cookie_dict, cookiejar=None, overwrite=True)
         # cookies = get_jd_cookie()
         while True:
             proxies = random.choice(self.proxies_list)
@@ -104,12 +112,10 @@ class CommentSpider:
             headers = {
                 'Referer': 'https://item.jd.com/%s.html' % out_number,
                 'User-Agent': ua,
-                # 'Cookie': '__jdv=76161171|direct|-|none|-|1610329405998; __jdu=16103294059961137138561; shshshfpa=f09b3217-4001-fc20-58f9-b1c005061b6e-1610329409; shshshfpb=jWqGTcT%2FwcJVlyMzTKm6iqA%3D%3D; shshshfp=e055c2e13f622066cff2f5f987592135; mt_xid=V2_52007VwMVUlxaUVIaSB1UDWADElBbWFBTG04ZbA1iAxJaVAgCRhgaG18ZYgAaAUFRWwoXVR0PUGdXRgVUDFpeTXkaXQZnHxNSQVhSSx9IElkFbAYaYl9oUmoWQBhcBmEGE1RZUVtZFkAaXgJjMxdTVF4%3D; pinId=Wrs6UF9apuPvb2HPPQggXbV9-x-f3wj7; pin=jd_6401bf627e067; unick=%E4%B8%80%E5%8F%AA%E7%89%B9%E7%AB%8B%E7%8B%AC%E8%A1%8C%E7%9A%84%E7%8C%ABJD; ceshi3.com=103; _tp=YsSMrRJFO3zSogROj%2FBuRAswEyb93subxF%2BQFzCSh78%3D; _pst=jd_6401bf627e067; __jdc=122270672; 3AB9D23F7A4B3C9B=E7MDYEC5EOP32SWZP4FX4FOIZPNTF5NSHBOUS3IOKPFAUDJLD5FWSZSRWQUHEH5UA3DNBXQEWWVPPHK4LXTIDWNONE; areaId=1; ipLoc-djd=1-72-55653-0; __jda=122270672.16103294059961137138561.1610329406.1611195324.1611209128.6'
             }
             # if comment_res:
             #     headers['Cookie'] = comment_res.headers.get('set-cookie')[1]
             url = self.comment_jd_data_url % (out_number, comment_page)
-
             try:
                 comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
             except ProxyError as e:
@@ -123,6 +129,7 @@ class CommentSpider:
                 continue
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             # 54 好评 3 2 中评 1 差评
+            self.s.cookies.set('JSESSIONID', comment_res.cookies.get('JSESSIONID'))
             rex = re.compile('({.*})')
             try:
                 result = json.loads(rex.findall(comment_res.text)[0])
@@ -420,7 +427,7 @@ class CommentSpider:
                     comment['impression'] = impression
                     comment['good_url'] = headers['Referer']
                     comment['site_from'] = 8
-                    if i['content'] == '此用户没有填写评论!':
+                    if i['content'] == '此用户没有填写评论!' or i['content'] == '此用户没有填写评价。':
                         comment['first'] = ''
                     elif i['content'] == '评价方未及时做出评价,系统默认好评!':
                         comment['first'] = ''
@@ -502,7 +509,7 @@ def comment_spider(name, category):
     res = requests.get(opalus_goods_comment_url, params=params, verify=False)
     res = json.loads(res.content)
     spider = CommentSpider(logger)
-    res['data'].reverse()
+    # res['data'].reverse()
     for i in res['data']:
         result = spider.data_handle(i)
         print(result)

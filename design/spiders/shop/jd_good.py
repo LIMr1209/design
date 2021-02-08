@@ -90,8 +90,8 @@ class JdSpider(SeleniumSpider):
         # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
         #                      meta={'usedSelenium': True})
 
-        # list_url = ['https://item.jd.com/100007477668.html']
-        # self.category = '加湿器'
+        # list_url = []
+        # self.category = '卷/直发器'
         # self.error_retry = 1
         # yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
         #                      dont_filter=True)
@@ -196,12 +196,14 @@ class JdSpider(SeleniumSpider):
                 detail_dict = {}
                 detail_str_list = []
                 for j, i in enumerate(detail_keys):
-                    detail_str_list.append(i.get_attribute('innerText') + ':' + detail_values[j].get_attribute('innerText'))
+                    detail_str_list.append(
+                        i.get_attribute('innerText') + ':' + detail_values[j].get_attribute('innerText'))
                     detail_dict[i.get_attribute('innerText')] = detail_values[j].get_attribute('innerText')
                 if not detail_dict:
                     detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
                     for j, i in enumerate(detail_list):
-                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace(
+                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
+                            '\t', '').replace(
                             '\xa0',
                             '')
                         if s.endswith('：') or s.endswith(':'):
