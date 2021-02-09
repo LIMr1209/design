@@ -262,11 +262,11 @@ class TaobaoSpider(SeleniumSpider):
         # fw.close()
         # self.update_cookie()
         # self.stringToDict()
-        list_url = self.get_list_urls()
+        # list_url = self.get_list_urls()
         # 爬取失败重新爬取
-        # list_url = []
-        # self.category = '洗碗机'
-        # self.error_retry = 1
+        list_url = ['https://item.taobao.com/item.htm?id=594415838101&ns=1&abbucket=2#detail', 'https://item.taobao.com/item.htm?id=632616482274&ns=1&abbucket=2#detail', 'https://item.taobao.com/item.htm?id=634739720625&ns=1&abbucket=2#detail', 'https://item.taobao.com/item.htm?id=630479582128&ns=1&abbucket=2#detail', 'https://item.taobao.com/item.htm?id=636099887357&ns=1&abbucket=2#detail', 'https://item.taobao.com/item.htm?id=520365084293&ns=1&abbucket=2#detail']
+        self.category = '烤饼机'
+        self.error_retry = 1
         yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True, 'list_url': list_url})
 
@@ -698,7 +698,7 @@ class TaobaoSpider(SeleniumSpider):
             except:
                 time.sleep(5)
                 impression_res = self.s.get(self.taobao_comment_impression % out_number, headers=headers,
-                                            verify=False, timeout=10)
+                                                          verify=False, timeout=10)
             rex = re.compile('({.*})')
             impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
             for i in impression_data['tags']['tagClouds']:
