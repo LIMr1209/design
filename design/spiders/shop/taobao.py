@@ -173,9 +173,9 @@ class TaobaoSpider(SeleniumSpider):
                            signal=signals.spider_closed
                            )
         old_num = len(self.browser.window_handles)
-        # js = 'window.open("https://www.taobao.com/");'
-        # self.browser.execute_script(js)
-        # self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
+        js = 'window.open("https://www.taobao.com/");'
+        self.browser.execute_script(js)
+        self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def except_close(self):
         logging.error(self.key_words)
@@ -297,6 +297,9 @@ class TaobaoSpider(SeleniumSpider):
 
     def parse_detail(self, response):
         time.sleep(4)
+        res = {}
+        if 'detail.tmall.hk' in self.browser.current_url:
+            logging.error("天猫国际" + self.browser.current_url)
         if "detail.tmall.com" in response.url:
             res = self.save_tmall_data(response)
         if "item.taobao.com" in response.url:
@@ -306,17 +309,18 @@ class TaobaoSpider(SeleniumSpider):
         # fr.close()
         # for i in cookies:
         #     self.browser.add_cookie(i)
-        if not res['success']:
-            self.fail_url_save(response)
-            logging.error(res['message'])
-        else:
-            respon = res['res']
-            if respon.status_code != 200 or json.loads(respon.content)['code']:
-                logging.error("产品保存失败" + response.url)
-                logging.error(json.loads(respon.content)['message'])
+        if res:
+            if not res['success']:
                 self.fail_url_save(response)
+                logging.error(res['message'])
             else:
-                self.suc_count += 1
+                respon = res['res']
+                if respon.status_code != 200 or json.loads(respon.content)['code']:
+                    logging.error("产品保存失败" + response.url)
+                    logging.error(json.loads(respon.content)['message'])
+                    self.fail_url_save(response)
+                else:
+                    self.suc_count += 1
         list_url = response.meta['list_url']
         list_url.pop(0)
         if list_url:
