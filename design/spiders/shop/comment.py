@@ -57,7 +57,7 @@ class CommentSpider:
         # 有的商品 当前sku 无评论 切换url
         self.switch = False  # jd
         self.comment_pdd_data_url = 'http://yangkeduo.com/proxy/api/reviews/%s/list?pdduid=9575597704&page=%s&size=20&enable_video=1&enable_group_review=1&label_id=0'
-        self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=sort_weight&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'
+        self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=feedbackdate&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list' # orderType sort_weight 推荐排序, feedbackdate 最新排序
         self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
         self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
         self.comment_save_url = opalus_comment_url
@@ -75,6 +75,9 @@ class CommentSpider:
         if res.status_code != 200 or res.json()['code']:
             message = res.json()['message']
             return {'success': False, 'message': message, 'out_number': out_number}
+        # 重复爬取
+        if 'existence_count' in res.json() and res.json()['existence_count'] == len(data):
+            return {'success': False, 'message': '重复爬取', 'out_number': out_number}
         return {'success': True}
 
     # 终止爬取评论
