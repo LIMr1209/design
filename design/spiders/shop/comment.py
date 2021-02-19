@@ -53,7 +53,7 @@ class CommentSpider:
         self.sleep = False
         self.random_sleep_start = 5
         self.random_sleep_end = 10
-        self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+        self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=6&page=%s&pageSize=10&isShadowSku=0&fold=1' # sortType 6 时间排序, 推荐排序 5
         # 有的商品 当前sku 无评论 切换url
         self.switch = False  # jd
         self.comment_pdd_data_url = 'http://yangkeduo.com/proxy/api/reviews/%s/list?pdduid=9575597704&page=%s&size=20&enable_video=1&enable_group_review=1&label_id=0'
@@ -140,7 +140,7 @@ class CommentSpider:
                 # cookies = get_jd_cookie()
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             if comment_page == 0 and not result['comments'] and not self.switch:
-                self.comment_jd_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
+                self.comment_jd_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=6&page=%s&pageSize=10&isShadowSku=0&fold=1'
                 self.switch = True
                 continue
             if not result:
@@ -509,7 +509,7 @@ def comment_spider(name, category):
     res = requests.get(opalus_goods_comment_url, params=params, verify=False)
     res = json.loads(res.content)
     spider = CommentSpider(logger)
-    # res['data'].reverse()
+    res['data'].reverse()
     for i in res['data']:
         result = spider.data_handle(i)
         print(result)

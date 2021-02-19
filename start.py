@@ -8,7 +8,7 @@ parser.add_argument("-is_shop", "--is_shop", default=True, type=bool, required=F
 args = parser.parse_args()
 if args.is_shop:
     # 电商爬虫
-    parser.add_argument('-key_words', type=str, required=False, help="爬取关键词 ','分隔", default="饮水机")
+    parser.add_argument('-key_words', type=str, required=False, help="爬取关键词 ','分隔", default='茶具') # 养生壶,饮水机
     parser.add_argument('-dev', default=False, type=bool, required=False, help="是否是正式, 默认非正式")
     parser.add_argument('-max_page', default=15, type=int, required=False, help="爬取最大页码,默认15")  # 不足15页按照实际页码数量
     parser.add_argument('-time_out', default=20, type=int, required=False, help="selenium页面加载超时时间")  # 不足15页按照实际页码数量
@@ -39,6 +39,9 @@ else:
  '颈椎按摩仪','扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机', '烤箱', '电饭煲', '加湿器', '微波炉', '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机',
  '绞肉机','净水器','电压力锅','洗碗机']
 """
+'''
+['咖啡机','养生壶', '饮水机', '理发器', '健康秤', '足浴盆', '足疗机', '空气净化器', '除湿机', '电话机', '电热饭盒', '电磁炉', '电陶炉', '油烟机', '消毒柜', '电热水器', '燃气热水器', '空气能热水器', '太阳能热水器','新风机']
+'''
 '''
 [
         U盘,

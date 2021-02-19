@@ -90,8 +90,8 @@ class JdSpider(SeleniumSpider):
         # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
         #                      meta={'usedSelenium': True})
 
-        # list_url = []
-        # self.category = '卷/直发器'
+        # list_url = ['https://item.jd.com/4245263.html', 'https://item.jd.com/100003500795.html', 'https://item.jd.com/10021783569445.html', 'https://item.jd.com/10026074236744.html', 'https://item.jd.com/12397841948.html']
+        # self.category = '咖啡机'
         # self.error_retry = 1
         # yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
         #                      dont_filter=True)
