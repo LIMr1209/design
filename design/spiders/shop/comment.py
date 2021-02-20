@@ -77,8 +77,8 @@ class CommentSpider:
             return {'success': False, 'message': message, 'out_number': out_number}
         # 重复爬取
         if 'existence_count' in res.json() and res.json()['existence_count'] == len(data):
-            return {'success': False, 'message': '重复爬取', 'out_number': out_number}
-        return {'success': True}
+            return {'success': True, 'message': '重复爬取', 'out_number': out_number}
+        return {'success': True, 'message': ''}
 
     # 终止爬取评论
     def comment_end(self, out_number, headers):
@@ -195,6 +195,8 @@ class CommentSpider:
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
+                if res['message'] == '重复爬取':
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
                 print("保存成功京东", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['comments']:
@@ -284,6 +286,8 @@ class CommentSpider:
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
+                if res['message'] == '重复爬取':
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
                 print("保存成功拼多多", comment_page, out_number)
             if not result['data']:
                 self.comment_end(out_number, headers)
@@ -360,6 +364,8 @@ class CommentSpider:
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
+                if res['message'] == '重复爬取':
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
                 print("保存成功天猫", comment_page, out_number)
             pages = result['rateDetail']['paginator']['lastPage']
             if comment_page >= pages:
@@ -446,6 +452,8 @@ class CommentSpider:
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
+                if res['message'] == '重复爬取':
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
                 print("保存成功淘宝", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['maxPage']:
