@@ -483,7 +483,7 @@ class CommentSpider:
         return {'success': True, 'impression': impression}
 
 
-def comment_spider(name, category):
+def comment_spider(name, category, reverse="0"):
     if category == 'all':
         params = {'category': ''}
     else:
@@ -512,7 +512,8 @@ def comment_spider(name, category):
     res = requests.get(opalus_goods_comment_url, params=params, verify=False)
     res = json.loads(res.content)
     spider = CommentSpider(logger)
-    res['data'].reverse()
+    if reverse == "1":
+        res['data'].reverse()
     for i in res['data']:
         result = spider.data_handle(i)
         print(result)

@@ -8,11 +8,12 @@ parser.add_argument("-is_shop", "--is_shop", default=True, type=bool, required=F
 args = parser.parse_args()
 if args.is_shop:
     # 电商爬虫
-    parser.add_argument('-key_words', type=str, required=False, help="爬取关键词 ','分隔", default='养生壶,饮水机')
+    parser.add_argument('-key_words', type=str, required=False, help="爬取关键词 ','分隔",
+                        default='理发器,健康秤,足浴盆,足疗机,空气净化器,除湿机,电话机,电热饭盒, 电磁炉, 电陶炉, 油烟机, 消毒柜,电热水器,燃气热水器,空气能热水器, 太阳能热水器,新风机')
     parser.add_argument('-dev', default=False, type=bool, required=False, help="是否是正式, 默认非正式")
     parser.add_argument('-max_page', default=15, type=int, required=False, help="爬取最大页码,默认15")  # 不足15页按照实际页码数量
     parser.add_argument('-time_out', default=20, type=int, required=False, help="selenium页面加载超时时间")  # 不足15页按照实际页码数量
-    parser.add_argument('-se_port', default='9222', type=str, required=False, help="selenium启动端口")
+    parser.add_argument('-se_port', default='9333', type=str, required=False, help="selenium启动端口")
     args = parser.parse_args()
     kwargs = vars(args)
     process = CrawlerProcess()  # 括号中可以添加参数
