@@ -25,7 +25,7 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 爬虫管理相关指令
 #### 商品信息
 ```Bash
-
+python start -spider taobao -is_shop -key_words 理发器,健康秤
 ```
 #### 
 全量爬取京东商品的评论
