@@ -458,13 +458,15 @@ class TaobaoSpider(SeleniumSpider):
                     detail_str_list = []
                     for j, i in enumerate(detail_keys):
                         detail_str_list.append(
-                            i.get_attribute('innerText').replace('\xa0','') + ':' + detail_values[j].get_attribute('innerText').replace('\xa0',''))
-                        detail_dict[i.get_attribute('innerText').replace('\xa0','')] = detail_values[j].get_attribute('innerText').replace('\xa0','')
+                            i.get_attribute('innerText').replace('\xa0', '').replace('.','') + ':' + detail_values[j].get_attribute(
+                                'innerText').replace('\xa0', ''))
+                        detail_dict[i.get_attribute('innerText').replace('\xa0', '').replace('.','')] = detail_values[j].get_attribute(
+                            'innerText').replace('\xa0', '')
                     if not detail_dict:
                         detail_list = self.browser.find_elements_by_xpath('//ul[@id="J_AttrUL"]/li')
                         for j, i in enumerate(detail_list):
-                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0',
-                                                                                                                 '')
+                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r','').replace(
+                                '\t', '').replace('\xa0','').replace('.','')
                             if s.endswith('：') or s.endswith(':'):
                                 detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
                                 continue

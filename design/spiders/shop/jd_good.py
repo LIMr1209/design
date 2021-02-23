@@ -35,7 +35,7 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, *args, **kwargs):
         self.key_words = kwargs['key_words'].split(',')
-        self.page = 3
+        self.page = 1
         self.error_retry = 0
         self.max_page = kwargs['max_page']
         self.max_price_page = 7  # 价格区间的爬10页
@@ -90,8 +90,8 @@ class JdSpider(SeleniumSpider):
         # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
         #                      meta={'usedSelenium': True})
 
-        # list_url = ['https://item.jd.com/67971381718.html', 'https://item.jd.com/70996383435.html']
-        # self.category = '茶具'
+        # list_url = ['https://item.jd.com/10025712082516.html', 'https://item.jd.com/10021717180347.html', 'https://item.jd.com/37340962462.html', 'https://item.jd.com/100008670441.html', 'https://item.jd.com/100008454937.html', 'https://item.jd.com/100008786925.html', 'https://item.jd.com/10020172297978.html', 'https://item.jd.com/100014774308.html', 'https://item.jd.com/10021209630942.html', 'https://item.jd.com/63682186711.html', 'https://item.jd.com/53208585947.html', 'https://item.jd.com/100005790632.html', 'https://item.jd.com/100012819090.html', 'https://item.jd.com/34318505248.html', 'https://item.jd.com/37144068889.html', 'https://item.jd.com/28334495452.html', 'https://item.jd.com/72498067771.html', 'http://item.jd.com/1311515745.html', 'http://item.jd.com/60430640258.html', 'http://item.jd.com/10022004274250.html', 'http://item.jd.com/131177.html', 'http://item.jd.com/860011.html', 'http://item.jd.com/5238914.html', 'http://item.jd.com/1228509.html', 'http://item.jd.com/3229644.html', 'http://item.jd.com/10888238581.html', 'http://item.jd.com/4903500.html', 'https://item.jd.com/6117483.html', 'https://item.jd.com/10023640547173.html', 'https://item.jd.com/1207624000.html']
+        # self.category = '油烟机'
         # self.error_retry = 1
         # yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
         #                      dont_filter=True)

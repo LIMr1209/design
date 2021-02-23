@@ -265,8 +265,8 @@ class TaobaoSpider(SeleniumSpider):
         # self.stringToDict()
         list_url = self.get_list_urls()
         # 爬取失败重新爬取
-        # list_url = ['https://detail.tmall.com/item.htm?id=631769286258&ns=1&abbucket=14', 'https://item.taobao.com/item.htm?id=617220451172&ns=1&abbucket=14#detail', 'https://item.taobao.com/item.htm?id=615791965011&ns=1&abbucket=14#detail', 'https://item.taobao.com/item.htm?id=613637755168&ns=1&abbucket=14#detail', 'https://item.taobao.com/item.htm?id=523840062224&ns=1&abbucket=14#detail', 'https://item.taobao.com/item.htm?id=631575760817&ns=1&abbucket=14#detail']
-        # self.category = '饮水机'
+        # list_url = ['https://detail.tmall.com/item.htm?id=527299475729&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=623217431513&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=577768123967&ns=1&abbucket=16']
+        # self.category = '电话机'
         # self.error_retry = 1
         yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True, 'list_url': list_url})
@@ -331,9 +331,12 @@ class TaobaoSpider(SeleniumSpider):
                 logging.error(res['message'])
             else:
                 respon = res['res']
-                if respon.status_code != 200 or json.loads(respon.content)['code']:
-                    logging.error("产品保存失败" + response.url)
-                    logging.error(json.loads(respon.content)['message'])
+                try:
+                    if respon.status_code != 200 or json.loads(respon.content)['code']:
+                        logging.error("产品保存失败" + response.url)
+                        logging.error(json.loads(respon.content)['message'])
+                        self.fail_url_save(response)
+                except:
                     self.fail_url_save(response)
                 else:
                     self.suc_count += 1
@@ -470,17 +473,15 @@ class TaobaoSpider(SeleniumSpider):
                     detail_str_list = []
                     for j, i in enumerate(detail_keys):
                         detail_str_list.append(
-                            i.get_attribute('innerText').replace('\xa0', '') + ':' + detail_values[j].get_attribute(
+                            i.get_attribute('innerText').replace('\xa0', '').replace('.','') + ':' + detail_values[j].get_attribute(
                                 'innerText').replace('\xa0', ''))
-                        detail_dict[i.get_attribute('innerText').replace('\xa0', '')] = detail_values[j].get_attribute(
+                        detail_dict[i.get_attribute('innerText').replace('\xa0', '').replace('.','')] = detail_values[j].get_attribute(
                             'innerText').replace('\xa0', '')
                     if not detail_dict:
                         detail_list = self.browser.find_elements_by_xpath('//ul[@id="J_AttrUL"]/li')
                         for j, i in enumerate(detail_list):
-                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r',
-                                                                                                        '').replace(
-                                '\t', '').replace('\xa0',
-                                                  '')
+                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r','').replace(
+                                '\t', '').replace('\xa0','').replace('.','')
                             if s.endswith('：') or s.endswith(':'):
                                 detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
                                 continue
