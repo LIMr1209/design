@@ -81,10 +81,10 @@ class CommentSpider:
         return {'success': True, 'message': ''}
 
     # 终止爬取评论
-    def comment_end(self, out_number, headers):
+    def comment_end(self, out_number, goods_url):
         comment = {}
         comment['end'] = 1
-        comment['good_url'] = headers['Referer']
+        comment['good_url'] = goods_url
         try:
             res = self.s.post(self.comment_save_url, data=comment)
         except requests.exceptions.RequestException as e:
@@ -200,7 +200,7 @@ class CommentSpider:
                 print("保存成功京东", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['comments']:
-                self.comment_end(out_number, headers)
+                self.comment_end(out_number, headers['Referer'])
                 return {'success': True, 'message': "爬取完成", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
@@ -209,6 +209,7 @@ class CommentSpider:
 
     def data_pdd_handle(self, out_number):
         comment_page = 1
+        goods_url = 'http://yangkeduo.com/goods.html?goods_id=%s' % out_number
         while True:
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
@@ -233,7 +234,11 @@ class CommentSpider:
                 time.sleep(5)
                 continue
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number}
-            result = json.loads(comment_res.content)
+            try:
+                result = json.loads(comment_res.content)
+            except:
+                time.sleep(5)
+                continue
             if 'error_msg' in result and result['error_msg']:
                 return {'success': False, 'message': result['error_msg'], 'out_number': out_number,
                         'page': comment_page}
@@ -248,8 +253,10 @@ class CommentSpider:
                         img_urls.append(j['url'])
                 comment['images'] = ','.join(img_urls)
                 comment['love_count'] = i['favor_count']
-                comment['reply_count'] = i['reply_count']
-                comment['score'] = i['comprehensive_dsr']
+                if 'reply_count' in i:
+                    comment['reply_count'] = i['reply_count']
+                if 'comprehensive_dsr' in i:
+                    comment['score'] = i['comprehensive_dsr']
                 try:
                     if i['comprehensive_dsr'] < 3:
                         comment['type'] = 1
@@ -264,7 +271,7 @@ class CommentSpider:
                         comment['type'] = 2
                     else:
                         comment['type'] = 0
-                comment['good_url'] = headers['Referer']
+                comment['good_url'] = goods_url
                 if i['comment'] != "此用户未填写文字评论":
                     comment['first'] = i['comment']
                 if 'append' in i and i['append']:
@@ -290,11 +297,12 @@ class CommentSpider:
                     return {'success': True, 'message': "重复爬取", 'out_number': out_number}
                 print("保存成功拼多多", comment_page, out_number)
             if not result['data']:
-                self.comment_end(out_number, headers)
+                self.comment_end(out_number, goods_url)
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
-            if self.sleep:
-                time.sleep(num)
+            time.sleep(random.randint(5,8))
+            # if self.sleep:
+            #     time.sleep(num)
             comment_page += 1
 
     def data_tmall_handle(self, out_number):
@@ -335,7 +343,7 @@ class CommentSpider:
                 time.sleep(5)
                 continue
             data = []
-            if not 'rateDetail' in result:
+            if not 'rateDetail' in result or not result['rateDetail'] :
                 self.logger.warning('反爬限制')
                 time.sleep(10)
                 continue
@@ -369,7 +377,7 @@ class CommentSpider:
                 print("保存成功天猫", comment_page, out_number)
             pages = result['rateDetail']['paginator']['lastPage']
             if comment_page >= pages:
-                self.comment_end(out_number, headers)
+                self.comment_end(out_number, headers['Referer'])
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
@@ -457,7 +465,7 @@ class CommentSpider:
                 print("保存成功淘宝", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['maxPage']:
-                self.comment_end(out_number, headers)
+                self.comment_end(out_number, headers['Referer'])
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
@@ -517,15 +525,18 @@ def comment_spider(name, category, reverse=0):
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     logger.setLevel(logging.DEBUG)
-    res = requests.get(opalus_goods_comment_url, params=params, verify=False)
-    res = json.loads(res.content)
-    spider = CommentSpider(logger)
-    if reverse == 1:
-        res['data'].reverse()
-    for i in res['data']:
-        result = spider.data_handle(i)
-        print(result)
-        if not result['success']:
+    while True:
+        res = requests.get(opalus_goods_comment_url, params=params, verify=False)
+        res = json.loads(res.content)
+        spider = CommentSpider(logger)
+        if reverse == 1:
+            res['data'].reverse()
+        for i in res['data']:
+            result = spider.data_handle(i)
+            print(result)
+            if not result['success']:
+                return
+        if not res['data']:
             break
 
 

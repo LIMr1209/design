@@ -69,10 +69,13 @@ class PddSpider(SeleniumSpider):
     }
 
     def __init__(self, key_words=None, *args, **kwargs):
-        # self.key_words = key_words.split(',')
-        self.key_words = ['空气炸锅', '按摩椅', '破壁机', '早餐机', '酸奶机', '电火锅', '豆芽机', '美妆冰箱', '美发梳', '除螨仪',]
-        self.price_range = ''
-        self.page = 12
+        self.key_words = key_words.split(',')
+        self.price_range_list = {
+            '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
+            '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
+        }
+        self.page = 15
+        self.error_retry = 0
         self.max_page = 20
         self.pdd_accessToken_list = []
         self.s = requests.Session()
@@ -107,6 +110,21 @@ class PddSpider(SeleniumSpider):
     def except_close(self):
         logging.error(self.key_words)
         logging.error(self.page)
+        logging.error(self.price_range_list)
+        logging.error(self.fail_url)
+
+    def fail_url_save(self, response):
+        if self.error_retry:
+            if self.category in self.fail_url:
+                self.fail_url[self.category].append(response.url)
+            else:
+                self.fail_url[self.category] = [response.url]
+        else:
+            if self.key_words[0] in self.fail_url:
+                self.fail_url[self.key_words[0]].append(response.url)
+            else:
+                self.fail_url[self.key_words[0]] = [response.url]
+
 
     # 切换登陆信息
     def switch_token(self):
@@ -180,7 +198,7 @@ class PddSpider(SeleniumSpider):
             item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
             item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
             item_data['out_number'] = item['item_data']['goods_model']['goods_id']
-            item_data['price_range'] = self.price_range
+            # item_data['price_range'] = self.price_range
             item_data['sale_count'] = item['item_data']['goods_model']['sales']
             item_data['site_from'] = 10
             item_data['site_type'] = 1
@@ -188,7 +206,7 @@ class PddSpider(SeleniumSpider):
             item_data['url'] = 'http://yangkeduo.com/goods.html?goods_id=%s' % item['item_data']['goods_model'][
                 'goods_id']
             items_list.append(item_data)
-        # self.switch_token()
+        self.switch_token()
         if not items_list:
             self.key_words.pop(0)
             self.page = 1
@@ -212,6 +230,50 @@ class PddSpider(SeleniumSpider):
         except:
             pass
         if choice == "1":
+            items_list = response.meta['items_list']
+            item = items_list.pop(0)
+            res = self.get_good_data(item, response)
+            if not res['success']:
+                self.fail_url_save(response)
+                logging.error(res['message'])
+            else:
+                respon = res['res']
+                try:
+                    if respon.status_code != 200 or json.loads(respon.content)['code']:
+                        logging.error("产品保存失败" + response.url)
+                        logging.error(json.loads(respon.content)['message'])
+                        self.fail_url_save(response)
+                except:
+                    self.fail_url_save(response)
+                else:
+                    self.suc_count += 1
+            time.sleep(random.randint(9, 15))
+            self.switch_token()
+            if items_list:
+                yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
+                                     callback=self.parse_detail,
+                                     dont_filter=True)
+            else:
+                print(self.fail_url)
+                self.page += 1
+                if self.page <= self.max_page:
+                    self.data['page'] = self.page
+                    yield scrapy.Request(url=self.search_url + urlencode(self.data),
+                                         headers=self.headers,
+                                         callback=self.parse_list,
+                                         dont_filter=True)
+                else:
+                    self.key_words.pop(0)
+                    self.page = 1
+                    url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
+                    yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
+
+    def get_good_data(self, item, response):
+        try:
+            if "原商品已售罄，为你推荐相似商品" in self.browser.page_source:
+                logging.error('商品详情反爬')
+                self.fail_url.append(self.browser.current_url)
+                return
             img_urls = []
             try:
                 data = re.findall('"topGallery":(\[.*?\])', self.browser.page_source)[0]
@@ -223,11 +285,9 @@ class PddSpider(SeleniumSpider):
                 img_ele = self.browser.find_elements_by_xpath('//li[contains(@class,"islider-html")]/img')
                 for i in img_ele:
                     img_urls.append(i.get_attribute('src'))
+            item['img_urls'] = ','.join(img_urls)
             detail_price = sku_price_func(self.browser, 10)
             detail_price = sorted(detail_price, key=lambda x: x["original_price"])
-            items_list = response.meta['items_list']
-            item = items_list.pop(0)
-            item['img_urls'] = ','.join(img_urls)
             service_list = self.browser.find_elements_by_xpath('//div[@class="fsI_SU5H"]/div')
             service_list = [i.text for i in service_list if i.text]
             item['service'] = ','.join(service_list)
@@ -263,28 +323,8 @@ class PddSpider(SeleniumSpider):
             except:
                 time.sleep(10)
                 res = self.s.post(url=self.goods_url, data=good_data)
-            if res.status_code != 200 or json.loads(res.content)['code']:
-                logging.error("产品保存失败" + good_data['url'])
-                logging.error(json.loads(res.content)['message'])
-                self.fail_url.append(good_data['url'])
-            else:
-                self.suc_count += 1
-            time.sleep(random.randint(5, 8))
-            # self.switch_token()
-            if items_list:
-                yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
-                                     callback=self.parse_detail,
-                                     dont_filter=True)
-            else:
-                self.page += 1
-                if self.page <= self.max_page:
-                    self.data['page'] = self.page
-                    yield scrapy.Request(url=self.search_url + urlencode(self.data),
-                                         headers=self.headers,
-                                         callback=self.parse_list,
-                                         dont_filter=True)
-                else:
-                    self.key_words.pop(0)
-                    self.page = 1
-                    url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
-                    yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
+            return {'success': True, 'res': res}
+        except Exception as e:
+            return {'success': False,
+                    'message': "行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e))}
+
