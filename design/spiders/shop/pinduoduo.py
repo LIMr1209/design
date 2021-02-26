@@ -74,7 +74,7 @@ class PddSpider(SeleniumSpider):
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.page = 15
+        self.page = 16
         self.error_retry = 0
         self.max_page = 20
         self.pdd_accessToken_list = []
@@ -212,6 +212,7 @@ class PddSpider(SeleniumSpider):
             self.page = 1
             url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
             yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
+        time.sleep(random.randint(3, 5))
         yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                              callback=self.parse_detail,
                              dont_filter=True)
@@ -254,6 +255,7 @@ class PddSpider(SeleniumSpider):
                                      callback=self.parse_detail,
                                      dont_filter=True)
             else:
+                time.sleep(random.randint(3, 5))
                 print(self.fail_url)
                 self.page += 1
                 if self.page <= self.max_page:
