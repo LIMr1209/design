@@ -72,11 +72,12 @@ class PddSpider(SeleniumSpider):
     def __init__(self, key_words=None, *args, **kwargs):
         self.key_words = key_words.split(',')
         self.price_range_list = {
-            '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
-            '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
+            '吹风机': ['price,459,750', 'price,751,999', 'price,1000,-1'],
+            '真无线蓝牙耳机 降噪 入耳式': ['price,300,900', 'price,900,3000'],
         }
-        self.page = 16
+        self.page = 3
         self.error_retry = 0
+        self.max_price_page = 10
         self.max_page = 20
         self.pdd_accessToken_list = []
         self.s = requests.Session()
@@ -167,7 +168,6 @@ class PddSpider(SeleniumSpider):
         flip = re.findall('"flip":"(.*?)"', response.text, re.S)[0]
         ctx = execjs.compile(js)
         anti_content = ctx.call('result', response.url)
-
         self.data = {
             'gid': '',
             'item_ver': 'lzqq',
@@ -177,7 +177,6 @@ class PddSpider(SeleniumSpider):
             'list_id': list_id,
             'sort': 'default',
             'filter': '',
-            # 'filter': 'price,60,260',
             'track_data': 'refer_page_id,10002_1600936236168_2wdje7q7ue;refer_search_met_pos,0',
             'q': self.key_words[0],
             'page': self.page,
@@ -186,6 +185,8 @@ class PddSpider(SeleniumSpider):
             'anti_content': anti_content,
             'pdduid': '9575597704'
         }
+        if self.key_words[0] in self.price_range_list:
+            self.data['filter'] = self.price_range_list[self.key_words[0]][0]
         yield scrapy.Request(url=self.search_url + urlencode(self.data),
                              headers=self.headers,
                              callback=self.parse_list,
@@ -205,7 +206,15 @@ class PddSpider(SeleniumSpider):
             item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
             item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
             item_data['out_number'] = item['item_data']['goods_model']['goods_id']
-            # item_data['price_range'] = self.price_range
+            if self.key_words[0] in self.price_range_list:
+                price_range_temp = self.price_range_list[self.key_words[0]][0].split(',')
+                if price_range_temp[2] == '-1':
+                    price_range = price_range_temp[1]+'以上'
+                else:
+                    price_range = price_range_temp[1] + '-' + price_range_temp[2]
+            else:
+                price_range = ''
+            item_data['price_range'] = price_range
             item_data['sale_count'] = item['item_data']['goods_model']['sales']
             item_data['site_from'] = 10
             item_data['site_type'] = 1
@@ -265,17 +274,27 @@ class PddSpider(SeleniumSpider):
                 time.sleep(random.randint(3, 5))
                 print(self.fail_url)
                 self.page += 1
-                if self.page <= self.max_page:
+                if self.key_words[0] in self.price_range_list:
+                    page = self.max_price_page
+                else:
+                    page = self.max_page
+                if self.page <= page:
                     self.data['page'] = self.page
                     yield scrapy.Request(url=self.search_url + urlencode(self.data),
                                          headers=self.headers,
                                          callback=self.parse_list,
                                          dont_filter=True)
                 else:
-                    self.key_words.pop(0)
+                    if self.key_words[0] in self.price_range_list and len(
+                            self.price_range_list[self.key_words[0]]) > 1:
+                        self.price_range_list[self.key_words[0]].pop(0)
+                    else:
+                        self.key_words.pop(0)
                     self.page = 1
-                    url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
-                    yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
+                    if self.key_words:
+                        url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
+                        yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
+
 
     def get_good_data(self, item, response):
         try:

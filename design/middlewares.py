@@ -54,8 +54,8 @@ class SeleniumMiddleware():
                 # searchRes = spider.wait.until(
                 #     EC.presence_of_element_located((By.XPATH, '//div[@class="detail detail_p"]//img'))
                 # )
-            except TimeoutException as e:
-                spider.browser.get(request.url)
+            # except TimeoutException as e:
+            #     spider.browser.get(request.url)
             except Exception:
                 spider.browser.execute_script('window.stop()')
                 # print(f"chrome getting page error, Exception = {e}",request.url)
