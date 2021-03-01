@@ -7,7 +7,7 @@ parser.add_argument("-spider", "--spider", type=str, required=True, help="爬虫
 parser.add_argument("-is_shop", "--is_shop", action='store_true', help="是否是电商爬虫, 默认是")
 # 电商爬虫
 parser.add_argument('-key_words', type=str, required=False, help="爬取关键词 ','分隔",
-                    default='空气能热水器,太阳能热水器,新风机')
+                    default='新风机')
 parser.add_argument('-dev', default=False, type=bool, required=False, help="是否是正式, 默认非正式")
 parser.add_argument('-max_page', default=15, type=int, required=False, help="爬取最大页码,默认15")  # 不足15页按照实际页码数量
 parser.add_argument('-time_out', default=20, type=int, required=False, help="selenium页面加载超时时间")  # 不足15页按照实际页码数量

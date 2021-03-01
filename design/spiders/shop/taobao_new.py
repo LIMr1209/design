@@ -15,6 +15,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 import logging
 
 from design.items import TaobaoItem
@@ -256,23 +257,29 @@ class TaobaoSpider(SeleniumSpider):
                 self.browser.add_cookie(i)
         time.sleep(2)
 
+    def browser_get(self, url):
+        try:
+            self.browser.get(url)
+        except TimeoutException as e:
+            self.browser_get(url)
+
     def start_requests(self):
         # cookies = self.browser.get_cookies()
         # fw = open('tmp/taobao.cookie', 'w')
         # fw.write(json.dumps(cookies))
-        # fw.close()
+        # fw.close()self.browser.get
         # self.update_cookie()
         # self.stringToDict()
         list_url = self.get_list_urls()
         # 爬取失败重新爬取
-        # list_url = ['https://detail.tmall.com/item.htm?id=633048858992&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=593355536014&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=623899757954&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=556048983267&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=628550942181&ns=1&abbucket=16']
+        # list_url = ['https://detail.tmall.com/item.htm?id=616342292109&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=627714326251&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=620633902950&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=568525318364&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=598384533258&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=620649475139&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=579182539123&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=528951054815&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=601227519867&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=602234600287&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=636754498138&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=612092397188&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=635758934006&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=624920400115&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=632519834203&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=551239655587&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=628547435101&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=631171726310&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=635391329067&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=569188369622&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=613615079783&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=630920217961&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=566246253164&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=589360283722&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=634606594327&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=632455820110&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=631388471248&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=574125653570&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=545242168840&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=618491251072&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=602636110248&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=604971568968&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=598178744681&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=39391917253&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=547685122098&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=638737699893&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=608683432882&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=22452451706&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=631170154022&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=632896791517&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=523229185580&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=584707929945&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=553692109875&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=577933132836&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=557392259442&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=634068857908&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=609717761184&ns=1&abbucket=16#detail']
         # self.category = '燃气热水器'
         # self.error_retry = 1
         yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True, 'list_url': list_url})
 
     def get_list_urls(self):
-        self.browser.get('https://www.taobao.com/')
+        self.browser_get('https://www.taobao.com/')
         self.browser.find_element_by_id('q').send_keys(self.key_words[0])
         self.browser.find_element_by_xpath('//div[@class="search-button"]/button').click()
         time.sleep(2)

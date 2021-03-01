@@ -13,6 +13,7 @@ from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 
 from design.utils.antiContent_Js import js
@@ -125,6 +126,11 @@ class PddSpider(SeleniumSpider):
             else:
                 self.fail_url[self.key_words[0]] = [response.url]
 
+    def browser_get(self, url):
+        try:
+            self.browser.get(url)
+        except TimeoutException as e:
+            self.browser_get(url)
 
     # 切换登陆信息
     def switch_token(self):
@@ -171,6 +177,7 @@ class PddSpider(SeleniumSpider):
             'list_id': list_id,
             'sort': 'default',
             'filter': '',
+            # 'filter': 'price,60,260',
             'track_data': 'refer_page_id,10002_1600936236168_2wdje7q7ue;refer_search_met_pos,0',
             'q': self.key_words[0],
             'page': self.page,
@@ -273,9 +280,8 @@ class PddSpider(SeleniumSpider):
     def get_good_data(self, item, response):
         try:
             if "原商品已售罄，为你推荐相似商品" in self.browser.page_source:
-                logging.error('商品详情反爬')
                 self.fail_url.append(self.browser.current_url)
-                return
+                return {'success': False, 'message': '商品详情反爬'}
             img_urls = []
             try:
                 data = re.findall('"topGallery":(\[.*?\])', self.browser.page_source)[0]

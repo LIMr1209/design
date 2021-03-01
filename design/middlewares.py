@@ -11,6 +11,7 @@ from design.settings import USER_AGENT_LIST, PROXY_LIST
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from scrapy.http import HtmlResponse
+from selenium.common.exceptions import TimeoutException
 
 
 # 浏览器中间件
@@ -53,6 +54,8 @@ class SeleniumMiddleware():
                 # searchRes = spider.wait.until(
                 #     EC.presence_of_element_located((By.XPATH, '//div[@class="detail detail_p"]//img'))
                 # )
+            except TimeoutException as e:
+                spider.browser.get(request.url)
             except Exception:
                 spider.browser.execute_script('window.stop()')
                 # print(f"chrome getting page error, Exception = {e}",request.url)
