@@ -154,7 +154,7 @@ class TaobaoSpider(SeleniumSpider):
     def __init__(self, *args, **kwargs):
         self.page = 1
         self.max_page = kwargs['max_page']
-        # self.max_price_page = 7  # 价格区间的爬10页
+        self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
@@ -270,29 +270,42 @@ class TaobaoSpider(SeleniumSpider):
         # fw.close()self.browser.get
         # self.update_cookie()
         # self.stringToDict()
-        # list_url = self.get_list_urls()
+        self.list_url = self.get_list_urls()
         # 爬取失败重新爬取
-        list_url = ['https://detail.tmall.com/item.htm?id=562885288405&ad_id=&am_id=&cm_id=140105335569ed55e27b&pm_id=&abbucket=16', 'https://detail.tmall.com/item.htm?id=545415977681&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=566603136571&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=610179020245&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=591678331825&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=609344963790&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=590203716935&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=588085110368&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=42941406030&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=617634275558&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=587466668912&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=575856438658&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=586310838669&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=623745650437&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=610431871328&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=604631887432&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=573998184616&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=566586028937&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=586657988986&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=558458160343&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=588100986739&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=563524511268&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=597214642162&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=628825125261&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=567892656209&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=610160633103&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=598803764089&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=41511262182&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=629856523034&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=615357225416&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=635160341684&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=603326665249&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=527003710835&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=616274641202&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=599133169628&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=560078892917&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=522069521939&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=623610006698&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=585660086592&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=627424684380&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=520479576952&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=546548132396&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=604114137014&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=573913987410&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=612908440923&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=43900458700&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=616621789172&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=605445081317&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=607212617199&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=574077297975&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=41300223424&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=631171435433&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=621653264717&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=557781645712&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=522907521937&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=615777983456&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=608424962740&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=43005147052&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=631506648419&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=531864831585&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=531491291907&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=606347806638&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=557113843415&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=610938237151&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=540302517094&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=585607791455&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=621233900376&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=547119419510&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=629652658539&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=568367163736&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=39666064543&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=538873386136&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=606119809300&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=616198760503&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=621536174763&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=605868483798&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=606285966744&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=633660145532&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=577321739113&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=566331560130&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=17355981854&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=41303150411&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=627950747275&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=615967730999&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=561280315404&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=599324600249&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=539796329591&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=542969445388&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=561242137365&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=581052158104&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=628950781576&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=602976986102&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=530214226087&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=605181600950&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=613213115497&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=562351770450&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=580660480666&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=612348959641&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=539695822101&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=607122012368&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=574398419374&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=626471713111&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=619985573660&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=622615519985&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=554225593302&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=633556330108&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=613371426104&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=565200921209&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=41357298325&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=592427276242&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=634838083413&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=600301558923&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=563316236499&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=25419332338&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=613947499368&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=629972892820&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=542891015052&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=622412764876&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=631484655284&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=42376893597&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=634815899723&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=567936529755&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=573649545958&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=584073535689&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=610242454958&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=560239985130&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=604867476393&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=625031457535&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=637289882162&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=610215438296&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=597474150758&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=626365231762&ns=1&abbucket=16#detail', 'https://detail.tmall.com/item.htm?id=629971501034&ns=1&abbucket=16', 'https://item.taobao.com/item.htm?id=555014683260&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=568440983998&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=616822004473&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=586156816039&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=547211431083&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=588309494609&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=618651604868&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=585336541255&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=585672757253&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=625208421117&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=613868539835&ns=1&abbucket=16#detail', 'https://item.taobao.com/item.htm?id=626963064354&ns=1&abbucket=16#detail']
-        self.category = '新风机' # 燃气热水器
-        self.error_retry = 1
-        yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
-                             meta={'usedSelenium': True, 'list_url': list_url})
+        # self.list_url = ['https://detail.tmall.com/item.htm?id=586310838669&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=604631887432&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=628825125261&ns=1&abbucket=16', 'https://detail.tmall.com/item.htm?id=567892656209&ns=1&abbucket=16']
+        # self.category = '新风机' # 燃气热水器
+        # self.error_retry = 1
+        yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
+                             meta={'usedSelenium': True})
 
     def get_list_urls(self):
         self.browser_get('https://www.taobao.com/')
         self.browser.find_element_by_id('q').send_keys(self.key_words[0])
         self.browser.find_element_by_xpath('//div[@class="search-button"]/button').click()
+        # 价位档
+        if self.key_words[0] in self.price_range_list:
+            page = self.max_price_page
+            price_range = self.price_range_list[self.key_words[0]][0]
+            temp = re.findall('(\d+)', price_range)
+            price_eles = self.browser.find_elements_by_xpath('//input[@class="J_SortbarPriceInput input"]')
+            price_eles[0].send_keys(temp[0])
+            if len(temp) > 1:
+                price_eles[1].send_keys(temp[1])
+            price_button = self.browser.find_element_by_xpath('//button[@class="J_SortbarPriceSubmit btn"]')
+            price_button.click()
+        else:
+            page = self.max_page
         time.sleep(2)
         self.page += 1
-        max_page = self.browser.find_element_by_xpath('//div[@class="total"]').get_attribute('innerText')
-        self.max_page = int(re.search('\d+', max_page).group())
-        if self.max_page >= 15:
-            self.max_page = 15
+        max_page_text = self.browser.find_element_by_xpath('//div[@class="total"]').get_attribute('innerText')
+        max_page = int(re.search('\d+', max_page_text).group())
+        if max_page <= page:
+            page = max_page
         list_urls = []
         list_url = self.browser.find_elements_by_xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
         for i in list_url:
             list_urls.append(i.get_attribute('href'))
-        while self.page <= self.max_page:
+        while self.page <= page:
             next = self.browser.find_elements_by_xpath('//a[@class="J_Ajax num icon-tag"]')
             if len(next) > 1:
                 next[1].click()
@@ -347,11 +360,10 @@ class TaobaoSpider(SeleniumSpider):
                     self.fail_url_save(response)
                 else:
                     self.suc_count += 1
-        list_url = response.meta['list_url']
-        list_url.pop(0)
-        if list_url:
-            yield scrapy.Request(list_url[0], callback=self.parse_detail,
-                                 meta={'usedSelenium': True, "list_url": list_url}, dont_filter=True, )
+        self.list_url.pop(0)
+        if self.list_url:
+            yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
+                                 meta={'usedSelenium': True}, dont_filter=True, )
         else:
             print(self.fail_url)
             if self.error_retry == 0:
@@ -361,9 +373,9 @@ class TaobaoSpider(SeleniumSpider):
                 else:
                     self.key_words.pop(0)
                 if self.key_words:
-                    list_url = self.get_list_urls()
-                    yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
-                                         meta={'usedSelenium': True, 'list_url': list_url})
+                    self.list_url = self.get_list_urls()
+                    yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
+                                         meta={'usedSelenium': True})
 
     def save_tmall_data(self, response):
         # time.sleep(2)

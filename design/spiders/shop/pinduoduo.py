@@ -75,7 +75,7 @@ class PddSpider(SeleniumSpider):
             '吹风机': ['price,459,750', 'price,751,999', 'price,1000,-1'],
             '真无线蓝牙耳机 降噪 入耳式': ['price,300,900', 'price,900,3000'],
         }
-        self.page = 3
+        self.page = 17
         self.error_retry = 0
         self.max_price_page = 10
         self.max_page = 20
@@ -242,7 +242,7 @@ class PddSpider(SeleniumSpider):
                 )
             )
             if verify_tag.is_displayed:
-                self.logger.error('发现滑块验证，请手动验证并确认验证结果')
+                self.logger.error('发现划线验证，请手动验证并确认验证结果')
                 choice = input('请输入您的选择：1，通过 2. 未通过')
         except:
             pass
@@ -298,9 +298,14 @@ class PddSpider(SeleniumSpider):
 
     def get_good_data(self, item, response):
         try:
-            if "原商品已售罄，为你推荐相似商品" in self.browser.page_source:
-                self.fail_url.append(self.browser.current_url)
-                return {'success': False, 'message': '商品详情反爬'}
+            while True:
+                if "原商品已售罄，为你推荐相似商品" in self.browser.page_source:
+                    time.sleep(900)
+                    self.browser.refresh()
+                    # self.fail_url.append(self.browser.current_url)
+                    # return {'success': False, 'message': '商品详情反爬'}
+                else:
+                    break
             img_urls = []
             try:
                 data = re.findall('"topGallery":(\[.*?\])', self.browser.page_source)[0]

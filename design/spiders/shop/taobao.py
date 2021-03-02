@@ -11,6 +11,7 @@ from pydispatch import dispatcher
 from requests.adapters import HTTPAdapter
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -152,7 +153,7 @@ class TaobaoSpider(SeleniumSpider):
 
     def __init__(self, key_words=None, *args, **kwargs):
         self.page = 5 # 烤饼机
-        # self.max_price_page = 7  # 价格区间的爬10页
+        self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
@@ -265,6 +266,12 @@ class TaobaoSpider(SeleniumSpider):
             else:
                 self.fail_url[self.key_words[0]] = [response.url]
 
+    def browser_get(self, url):
+        try:
+            self.browser.get(url)
+        except TimeoutException as e:
+            self.browser_get(url)
+
     def start_requests(self):
         # cookies = self.browser.get_cookies()
         # fw = open('tmp/taobao.cookie', 'w')
@@ -278,7 +285,7 @@ class TaobaoSpider(SeleniumSpider):
                                          price_range=self.price_range_list[self.key_words[0]][0], page_count=page_count)
         else:
             url = self.search_url.format(name=self.key_words[0], price_range='', page_count=page_count)
-        self.browser.get(url)
+        self.browser_get(url)
         time.sleep(2)
         max_page = self.browser.find_element_by_xpath('//div[@class="total"]').text
         self.max_page = int(re.search('\d+', max_page).group())
@@ -327,11 +334,11 @@ class TaobaoSpider(SeleniumSpider):
             yield scrapy.Request('https:' + list_url[0], callback=self.parse_detail,
                                  meta={'usedSelenium': True, "list_url": list_url}, dont_filter=True, )
         else:
-            # if self.key_words[0] in self.price_range_list:
-            #     page = self.max_price_page
-            # else:
-            #     page = self.max_page
-            if self.page < self.max_page:
+            if self.key_words[0] in self.price_range_list:
+                page = self.max_price_page
+            else:
+                page = self.max_page
+            if self.page < page:
                 self.page += 1
             else:
                 self.page = 1
