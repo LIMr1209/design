@@ -22,7 +22,7 @@ import scrapy
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
 
-
+# 获取 sku 价格样式
 def sku_price_func(browser, site_from):
     page_source = browser.page_source
     rex = re.compile('("attribute.*?,)"skuID')
@@ -75,7 +75,7 @@ class PddSpider(SeleniumSpider):
             '吹风机': ['price,459,750', 'price,751,999', 'price,1000,-1'],
             '真无线蓝牙耳机 降噪 入耳式': ['price,300,900', 'price,900,3000'],
         }
-        self.page = 17
+        self.page = 6
         self.error_retry = 0
         self.max_price_page = 10
         self.max_page = 20
@@ -94,7 +94,7 @@ class PddSpider(SeleniumSpider):
             })
         self.goods_url = self.settings['OPALUS_GOODS_URL']
         self.search_url = 'http://apiv3.yangkeduo.com/search?'
-        self.fail_url = []
+        self.fail_url = {}
         self.suc_count = 0
         self.headers = {
             'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -110,9 +110,13 @@ class PddSpider(SeleniumSpider):
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def except_close(self):
+        logging.error("待爬取关键词:")
         logging.error(self.key_words)
+        logging.error('页码')
         logging.error(self.page)
+        logging.error('价位档')
         logging.error(self.price_range_list)
+        logging.error('爬取失败')
         logging.error(self.fail_url)
 
     def fail_url_save(self, response):
@@ -201,7 +205,11 @@ class PddSpider(SeleniumSpider):
         for item in items:
             item_data = TaobaoItem()
             item_data['cover_url'] = item['item_data']['goods_model']['thumb_url']
-            item_data['title'] = item['item_data']['goods_model']['goods_name']
+            title = item['item_data']['goods_model']['goods_name']
+            # if self.key_words[0] not in title:
+            #     logging.error('商品不属于此分类 标题:%s 分类:%s' % (title, self.key_words[0]))
+            #     continue
+            item_data['title'] = title
             item_data['category'] = self.key_words[0]
             item_data['original_price'] = str(item['item_data']['goods_model']['normal_price'] / 100)
             item_data['promotion_price'] = str(item['item_data']['goods_model']['price'] / 100)
@@ -228,7 +236,7 @@ class PddSpider(SeleniumSpider):
             self.page = 1
             url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
             yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
-        time.sleep(random.randint(3, 5))
+        # time.sleep(random.randint(3, 5))
         yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                              callback=self.parse_detail,
                              dont_filter=True)
@@ -264,14 +272,14 @@ class PddSpider(SeleniumSpider):
                     self.fail_url_save(response)
                 else:
                     self.suc_count += 1
-            time.sleep(random.randint(9, 15))
+            # time.sleep(random.randint(9, 15))
             self.switch_token()
             if items_list:
                 yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
                                      callback=self.parse_detail,
                                      dont_filter=True)
             else:
-                time.sleep(random.randint(3, 5))
+                # time.sleep(random.randint(3, 5))
                 print(self.fail_url)
                 self.page += 1
                 if self.key_words[0] in self.price_range_list:
@@ -300,7 +308,7 @@ class PddSpider(SeleniumSpider):
         try:
             while True:
                 if "原商品已售罄，为你推荐相似商品" in self.browser.page_source:
-                    time.sleep(900)
+                    time.sleep(600)
                     self.browser.refresh()
                     # self.fail_url.append(self.browser.current_url)
                     # return {'success': False, 'message': '商品详情反爬'}

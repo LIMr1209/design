@@ -35,8 +35,7 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, *args, **kwargs):
         self.key_words = kwargs['key_words'].split(',')
-        self.page = 7
-        self.error_retry = 0
+        self.page = 9
         self.max_page = kwargs['max_page']
         self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
@@ -63,7 +62,7 @@ class JdSpider(SeleniumSpider):
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def fail_url_save(self, response):
-        if self.error_retry:
+        if not hasattr(self,'error_retry'):
             if self.category in self.fail_url:
                 self.fail_url[self.category].append(response.url)
             else:
@@ -75,9 +74,13 @@ class JdSpider(SeleniumSpider):
                 self.fail_url[self.key_words[0]] = [response.url]
 
     def except_close(self):
+        logging.error("待爬取关键词:")
         logging.error(self.key_words)
+        logging.error('页码')
         logging.error(self.page)
+        logging.error('价位档')
         logging.error(self.price_range_list)
+        logging.error('爬取失败')
         logging.error(self.fail_url)
 
     def start_requests(self):
@@ -119,6 +122,11 @@ class JdSpider(SeleniumSpider):
                 #     time.sleep(0.2)
                 # ele = self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]')
                 # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
+                title = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
+                # if not hasattr(self,'error_retry'):
+                #     if self.key_words[0] not in title:
+                #         logging.error('商品不属于此分类 标题:%s 分类:%s'%(title,self.key_words[0]))
+                #         return
                 try:
                     promotion_price = self.browser.find_element_by_xpath(
                         '//span[@class="p-price"]/span[2]').text.strip()
@@ -136,7 +144,7 @@ class JdSpider(SeleniumSpider):
                     self.browser.refresh()
                     promotion_price = self.browser.find_element_by_xpath(
                         '//span[@class="p-price"]/span[2]').text.strip()
-                item['title'] = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
+                item['title'] = title
                 item['sku_ids'] = ','.join(
                     response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
                 try:
@@ -263,7 +271,7 @@ class JdSpider(SeleniumSpider):
                                  dont_filter=True)
         else:
             print(self.fail_url)
-            if self.error_retry == 0:
+            if not hasattr(self,'error_retry'):
                 if self.key_words[0] in self.price_range_list:
                     page = self.max_price_page
                 else:

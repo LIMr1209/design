@@ -56,7 +56,7 @@ class CommentSpider:
         self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=6&page=%s&pageSize=10&isShadowSku=0&fold=1' # sortType 6 时间排序, 推荐排序 5
         # 有的商品 当前sku 无评论 切换url
         self.switch = False  # jd
-        self.comment_pdd_data_url = 'http://yangkeduo.com/proxy/api/reviews/%s/list?pdduid=9575597704&page=%s&size=20&enable_video=1&enable_group_review=1&label_id=0'
+        self.comment_pdd_data_url = 'http://apiv3.yangkeduo.com/reviews/%s/list?&size=20&page=%s&label_id=700000000'  # label_id=700000000 最新
         self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=feedbackdate&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list' # orderType sort_weight 推荐排序, feedbackdate 最新排序
         self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
         self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
@@ -377,7 +377,7 @@ class CommentSpider:
                 print("保存成功天猫", comment_page, out_number)
             pages = result['rateDetail']['paginator']['lastPage']
             if comment_page >= pages:
-                self.comment_end(out_number, headers['Referer'])
+                # self.comment_end(out_number, headers['Referer'])
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
@@ -465,7 +465,7 @@ class CommentSpider:
                 print("保存成功淘宝", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['maxPage']:
-                self.comment_end(out_number, headers['Referer'])
+                # self.comment_end(out_number, headers['Referer'])
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
