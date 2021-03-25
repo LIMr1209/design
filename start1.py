@@ -28,6 +28,14 @@ if args.is_shop:
         from design.spiders.shop.pinduoduo import PddSpider
 
         process.crawl(PddSpider, **kwargs)
+    if args.spider == 'amazon':
+        from design.spiders.shop.amazon_good import AmazonGoodSpider
+
+        process.crawl(AmazonGoodSpider, **kwargs)
+    if args.spider == "amazon_comment":
+        from design.spiders.shop.amazon_comment import AmazonCommentSpider
+
+        process.crawl(AmazonCommentSpider, **kwargs)
     process.start()
 else:
     # 普通爬虫

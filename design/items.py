@@ -143,6 +143,9 @@ class TaobaoItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     category = scrapy.Field()
+    brand = scrapy.Field()
+    comment_value = scrapy.Field()
+    feature_value = scrapy.Field()
     url = scrapy.Field()  # 链接
     title = scrapy.Field()  # 名称
     original_price = scrapy.Field()  # 原价
