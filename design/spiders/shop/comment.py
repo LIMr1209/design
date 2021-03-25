@@ -13,8 +13,10 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+
 def cookie_to_dic(cookie):
     return {item.split('=')[0]: item.split('=')[1] for item in cookie.split('; ')}
+
 
 class CommentSpider:
     def __init__(self, logger):
@@ -53,11 +55,11 @@ class CommentSpider:
         self.sleep = False
         self.random_sleep_start = 5
         self.random_sleep_end = 10
-        self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=6&page=%s&pageSize=10&isShadowSku=0&fold=1' # sortType 6 时间排序, 推荐排序 5
+        self.comment_jd_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=6&page=%s&pageSize=10&isShadowSku=0&fold=1'  # sortType 6 时间排序, 推荐排序 5
         # 有的商品 当前sku 无评论 切换url
         self.switch = False  # jd
         self.comment_pdd_data_url = 'http://apiv3.yangkeduo.com/reviews/%s/list?&size=20&page=%s&label_id=700000000'  # label_id=700000000 最新
-        self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=feedbackdate&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list' # orderType sort_weight 推荐排序, feedbackdate 最新排序
+        self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=feedbackdate&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'  # orderType sort_weight 推荐排序, feedbackdate 最新排序
         self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
         self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
         self.comment_save_url = opalus_comment_url
@@ -71,7 +73,7 @@ class CommentSpider:
                 success = True
             except requests.exceptions.RequestException as e:
                 time.sleep(10)
-                #return {'success': False, 'message': "保存失败", 'out_number': out_number}
+                # return {'success': False, 'message': "保存失败", 'out_number': out_number}
         if res.status_code != 200 or res.json()['code']:
             message = res.json()['message']
             return {'success': False, 'message': message, 'out_number': out_number}
@@ -106,7 +108,8 @@ class CommentSpider:
 
     def data_jd_handle(self, out_number):
         comment_page = 0
-        cookie_dict = cookie_to_dic('shshshfpa=91c6942d-da14-c2f8-0eb7-c05891ac1e7c-1551683113; shshshfpb=t0ymP5ujCD8z19K3fz6fuBQ%3D%3D; pinId=Wrs6UF9apuPvb2HPPQggXbV9-x-f3wj7; __jdv=122270672|direct|-|none|-|1611887512983; __jdu=2478618123; areaId=1; ipLoc-djd=1-72-55653-0; jwotest_product=99; __jda=122270672.2478618123.1586861605.1612316532.1612748600.78; __jdc=122270672; shshshfp=d4e3ec7f44eab431353b7d638561edc3; 3AB9D23F7A4B3C9B=3EXJLGG4UYPDEDNBOTSXMXQZUVX32SEKWFTXGE46WEWUM2CGLLNEBKCHIPLV3GLD7WU2RZ3UCE5VJKALZLXKCTC66U; shshshsID=85394a74a7d97047a88c583b67474b99_5_1612748653702; __jdb=122270672.5.2478618123|78.1612748600; JSESSIONID=FA599CE56385D7FF5C122737B1CD55E2.s1')
+        cookie_dict = cookie_to_dic(
+            'shshshfpa=91c6942d-da14-c2f8-0eb7-c05891ac1e7c-1551683113; shshshfpb=t0ymP5ujCD8z19K3fz6fuBQ%3D%3D; pinId=Wrs6UF9apuPvb2HPPQggXbV9-x-f3wj7; __jdv=122270672|direct|-|none|-|1611887512983; __jdu=2478618123; areaId=1; ipLoc-djd=1-72-55653-0; jwotest_product=99; __jda=122270672.2478618123.1586861605.1612316532.1612748600.78; __jdc=122270672; shshshfp=d4e3ec7f44eab431353b7d638561edc3; 3AB9D23F7A4B3C9B=3EXJLGG4UYPDEDNBOTSXMXQZUVX32SEKWFTXGE46WEWUM2CGLLNEBKCHIPLV3GLD7WU2RZ3UCE5VJKALZLXKCTC66U; shshshsID=85394a74a7d97047a88c583b67474b99_5_1612748653702; __jdb=122270672.5.2478618123|78.1612748600; JSESSIONID=FA599CE56385D7FF5C122737B1CD55E2.s1')
         self.s.cookies = requests.utils.cookiejar_from_dict(cookie_dict, cookiejar=None, overwrite=True)
         # cookies = get_jd_cookie()
         while True:
@@ -200,7 +203,7 @@ class CommentSpider:
                 print("保存成功京东", comment_page, out_number)
             pages = result['maxPage']
             if comment_page >= pages or not result['comments']:
-                self.comment_end(out_number, headers['Referer'])
+                # self.comment_end(out_number, headers['Referer'])
                 return {'success': True, 'message': "爬取完成", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
@@ -211,7 +214,7 @@ class CommentSpider:
         comment_page = 1
         goods_url = 'http://yangkeduo.com/goods.html?goods_id=%s' % out_number
         while True:
-            proxies = random.choice(self.proxies_list)
+            # proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             token = random.choice(self.pdd_accessToken_list)
             headers = {
@@ -223,7 +226,7 @@ class CommentSpider:
             url = self.comment_pdd_data_url % (out_number, comment_page)
 
             try:
-                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
+                comment_res = self.s.get(url, headers=headers, verify=False, timeout=self.time_out)
             except ProxyError as e:
                 self.logger.error('代理错误')
                 time.sleep(5)
@@ -293,14 +296,14 @@ class CommentSpider:
                 res = self.comment_save(out_number, data)
                 if not res['success']:
                     return res
-                if res['message'] == '重复爬取':
-                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
+                # if res['message'] == '重复爬取':
+                #     return {'success': True, 'message': "重复爬取", 'out_number': out_number}
                 print("保存成功拼多多", comment_page, out_number)
             if not result['data']:
                 self.comment_end(out_number, goods_url)
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
-            time.sleep(random.randint(5,8))
+            time.sleep(random.randint(5, 8))
             # if self.sleep:
             #     time.sleep(num)
             comment_page += 1
@@ -343,7 +346,7 @@ class CommentSpider:
                 time.sleep(5)
                 continue
             data = []
-            if not 'rateDetail' in result or not result['rateDetail'] :
+            if not 'rateDetail' in result or not result['rateDetail']:
                 self.logger.warning('反爬限制')
                 time.sleep(10)
                 continue
@@ -526,18 +529,28 @@ def comment_spider(name, category, reverse=0):
     logger.addHandler(fh)
     logger.setLevel(logging.DEBUG)
     while True:
+        res = get_goods_data(opalus_goods_comment_url, params, logger, reverse)
+        if not res['success']:
+            break
+
+
+def get_goods_data(url, params, logger, reverse):
+    page = 1
+    params['reverse'] = reverse
+    while True:
+        params['page'] = page
         res = requests.get(opalus_goods_comment_url, params=params, verify=False)
         res = json.loads(res.content)
         spider = CommentSpider(logger)
-        if reverse == 1:
-            res['data'].reverse()
         for i in res['data']:
             result = spider.data_handle(i)
             print(result)
             if not result['success']:
-                return
+                return result
         if not res['data']:
             break
+        page += 1
+    return {'success': True, 'message': ''}
 
 
 # 浏览器重新获取cookie 提供jd 评论爬取

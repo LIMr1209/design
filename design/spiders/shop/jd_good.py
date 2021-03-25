@@ -35,7 +35,7 @@ class JdSpider(SeleniumSpider):
 
     def __init__(self, *args, **kwargs):
         self.key_words = kwargs['key_words'].split(',')
-        self.page = 9
+        self.page = 1
         self.max_page = kwargs['max_page']
         self.max_price_page = 7  # 价格区间的爬10页
         self.price_range_list = {
@@ -62,7 +62,7 @@ class JdSpider(SeleniumSpider):
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def fail_url_save(self, response):
-        if not hasattr(self,'error_retry'):
+        if hasattr(self, 'error_retry'):
             if self.category in self.fail_url:
                 self.fail_url[self.category].append(response.url)
             else:
@@ -84,20 +84,21 @@ class JdSpider(SeleniumSpider):
         logging.error(self.fail_url)
 
     def start_requests(self):
-        if self.key_words[0] in self.price_range_list:
-            url = self.search_url.format(name=self.key_words[0],
-                                         price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
-        else:
-            url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
-        yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
+        # if self.key_words[0] in self.price_range_list:
+        #     url = self.search_url.format(name=self.key_words[0],
+        #                                  price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
+        # else:
+        #     url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
+        # yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
         # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
         #                      meta={'usedSelenium': True})
-        # list_url = ['https://item.jd.com/100007130095.html', 'https://item.jd.com/71731159610.html',
-        #          'http://item.jd.com/3767017.html']
-        # self.category = '洗碗机'
-        # self.error_retry = 1
-        # yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
-        #                      dont_filter=True)
+        res = self.s.get('https://opalus.d3ingo.com/api/good_url?site_from=11&category=燃气热水器')
+        list_url = [i['url'] for i in json.loads(res.content)['data']]
+        # list_url = ['https://item.jd.com/65535523653.html', 'https://item.jd.com/65038222014.html', 'https://item.jd.com/66796461029.html', 'https://item.jd.com/10023252782563.html', 'https://item.jd.com/72056654015.html']
+        self.category = '燃气热水器'
+        self.error_retry = 1
+        yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
+                             dont_filter=True)
 
     def parse_list(self, response):
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
@@ -127,6 +128,9 @@ class JdSpider(SeleniumSpider):
                 #     if self.key_words[0] not in title:
                 #         logging.error('商品不属于此分类 标题:%s 分类:%s'%(title,self.key_words[0]))
                 #         return
+                if '该商品已下柜' in self.browser.page_source:
+                    logging.error('该商品已下柜 {}'.format(response.url))
+                    return
                 try:
                     promotion_price = self.browser.find_element_by_xpath(
                         '//span[@class="p-price"]/span[2]').text.strip()
@@ -199,8 +203,10 @@ class JdSpider(SeleniumSpider):
                 item['url'] = response.url.replace('http:', 'https:')
                 item['reputation'] = ' '.join(reputation_list)
                 # self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
-                detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt')
-                detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd')
+                detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt[not(@class)]')
+                detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd[not(@class)]')
+                if len(detail_values)!= len(detail_values):
+                    logging.error('产品参数爬取错误 '+self.browser.current_url)
                 detail_dict = {}
                 detail_str_list = []
                 for j, i in enumerate(detail_keys):
@@ -271,7 +277,7 @@ class JdSpider(SeleniumSpider):
                                  dont_filter=True)
         else:
             print(self.fail_url)
-            if not hasattr(self,'error_retry'):
+            if not hasattr(self, 'error_retry'):
                 if self.key_words[0] in self.price_range_list:
                     page = self.max_price_page
                 else:

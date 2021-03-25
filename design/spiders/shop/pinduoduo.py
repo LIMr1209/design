@@ -75,8 +75,7 @@ class PddSpider(SeleniumSpider):
             '吹风机': ['price,459,750', 'price,751,999', 'price,1000,-1'],
             '真无线蓝牙耳机 降噪 入耳式': ['price,300,900', 'price,900,3000'],
         }
-        self.page = 6
-        self.error_retry = 0
+        self.page = 4
         self.max_price_page = 10
         self.max_page = 20
         self.pdd_accessToken_list = []
@@ -120,7 +119,7 @@ class PddSpider(SeleniumSpider):
         logging.error(self.fail_url)
 
     def fail_url_save(self, response):
-        if self.error_retry:
+        if hasattr(self,'error_retry'):
             if self.category in self.fail_url:
                 self.fail_url[self.category].append(response.url)
             else:
@@ -231,15 +230,17 @@ class PddSpider(SeleniumSpider):
                 'goods_id']
             items_list.append(item_data)
         self.switch_token()
+        # time.sleep(random.randint(3, 5))
         if not items_list:
             self.key_words.pop(0)
             self.page = 1
-            url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
-            yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
-        # time.sleep(random.randint(3, 5))
-        yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
-                             callback=self.parse_detail,
-                             dont_filter=True)
+            if self.key_words:
+                url = 'http://yangkeduo.com/search_result.html?search_key=' + self.key_words[0]
+                yield scrapy.Request(url, callback=self.get_parameters, meta={'usedSelenium': True})
+        else:
+            yield scrapy.Request(items_list[0]['url'], meta={'usedSelenium': True, "items_list": items_list},
+                                 callback=self.parse_detail,
+                                 dont_filter=True)
 
     def parse_detail(self, response):
         choice = '1'
