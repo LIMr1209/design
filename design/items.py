@@ -128,6 +128,24 @@ class MeizituItem(scrapy.Item):
     image_paths = scrapy.Field()
     title = scrapy.Field()
 
+class PositionItem(scrapy.Item):
+    title = scrapy.Field()  # 职位名称
+    company_name = scrapy.Field()  # 公司名称
+    publish_at = scrapy.Field()  # 发布时间
+    salary = scrapy.Field()  # 薪资
+    description = scrapy.Field()  # 职位描述
+    contact_name = scrapy.Field()  # 联系人
+    contact_phone = scrapy.Field()  # 联系电话
+    education = scrapy.Field()  # 学历要求
+    detail_company = scrapy.Field() # 公司信息
+    time = scrapy.Field()  # 工作时间
+    tags = scrapy.Field()  # 标签
+    url = scrapy.Field()  # 链接
+    channel = scrapy.Field()  # 爬取渠道
+    crawl_user_id = scrapy.Field()  # 爬取人
+    crawl_keyword = scrapy.Field()  # 爬取关键词
+    crawl_city = scrapy.Field()  # 爬取城市
+
 
 class CommentItem(scrapy.Item):
     type = scrapy.Field()  # 品论类型 0 好评 1 差评 2 中评

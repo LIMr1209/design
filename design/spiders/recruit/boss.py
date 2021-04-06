@@ -2,10 +2,13 @@
 import json
 import logging
 import copy
+import time
 
 import requests
 from pydispatch import dispatcher
 from scrapy import signals
+from selenium.common.exceptions import TimeoutException
+
 from design.items import ProduceItem
 from design.spiders.selenium import SeleniumSpider
 
@@ -38,7 +41,7 @@ class BossSpider(SeleniumSpider):
         self.page = 1
         self.search_url = 'https://www.zhipin.com/c%s/?query=%s&page=%s&ka=page-%s'
         self.fail_url = []
-        self.opalus_save_url = 'http://opalus-dev.taihuoniao.com/api/company/submit'
+        self.opalus_save_url = 'https://opalus.d3ingo.com/api/company/submit'
         super(BossSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
                            signal=signals.spider_closed
@@ -47,7 +50,6 @@ class BossSpider(SeleniumSpider):
         js = 'window.open("https://www.zhipin.com");'
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
-        self.start_requests()
 
     def except_close(self):
         logging.error("待爬取关键词:")
@@ -61,7 +63,14 @@ class BossSpider(SeleniumSpider):
         company_url = []
         while True:
             url = self.search_url%(self.city_code[city], keyword, self.page, self.page)
-            self.browser.get(url)
+            is_suc = True
+            while is_suc:
+                try:
+                    self.browser.get(url)
+                    is_suc = False
+                except:
+                    pass
+            time.sleep(5)
             company_names_a = self.browser.find_elements_by_xpath('//div[@class="company-text"]/h3/a')
             job_names = self.browser.find_elements_by_xpath('//span[@class="job-name"]/a')
             if not company_names_a:
@@ -70,12 +79,24 @@ class BossSpider(SeleniumSpider):
             for j,i in enumerate(company_names_a):
                 if keyword not in job_names[j].get_attribute('innerText'):
                     continue
-                company_url.append(i.get_attribute('src'))
+                href = i.get_attribute('href')
+                if href != "javascript:;":
+                    company_url.append(i.get_attribute('href'))
             self.page += 1
         for i in company_url:
-            self.browser.get(i)
+            is_suc = True
+            while is_suc:
+                try:
+                    self.browser.get(i)
+                    is_suc = False
+                except:
+                    pass
+            time.sleep(5)
             temp_data = {}
-            temp_data['name'] = self.browser.find_element_by_xpath('//div[@class="job-sec company-business"]/h4').get_attribute('innerText')
+            try:
+                temp_data['name'] = self.browser.find_element_by_xpath('//div[@class="job-sec company-business"]/h4').get_attribute('innerText')
+            except Exception as e:
+                continue
             temp_data['keywords'] = keyword
             temp_data['craw_city'] = city
             temp_data['soure_url'] = self.browser.current_url
@@ -84,7 +105,7 @@ class BossSpider(SeleniumSpider):
             temp_data['edit_pattern'] = 0
             res = requests.post(self.opalus_save_url, data=temp_data)
             result = json.loads(res.content)
-            if result['code'] != 0:
+            if result['code'] != 0 and result['message'] != "公司已存在!":
                 return False
         return True
 

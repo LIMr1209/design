@@ -106,53 +106,18 @@ s.auth = ('user', 'pass')
 s.headers.update({'x-test': 'true'})
 
 # both 'x-test' and 'x-test2' are sent
-res = s.get('http://httpbin.org/headers', headers={'x-test2': 'true'})
+# res = s.get('http://httpbin.org/headers', headers={'x-test2': 'true'})
+#
+# print(res.request.headers)
+# res.iter_content()
 
-print(res.request.headers)
-res.iter_content()
+import requests
 
-a = {
-     '挂烫机': ['https://item.jd.com/100002401863.html', 'https://item.jd.com/100009117137.html',
-             'https://item.jd.com/4502061.html', 'https://item.jd.com/10021981637445.html',
-             'https://item.jd.com/6429477.html', 'https://item.jd.com/70028993318.html',
-             'https://item.jd.com/100000076524.html', 'https://item.jd.com/57404627604.html',
-             'https://item.jd.com/67611341556.html', 'https://item.jd.com/38512449004.html',
-             'https://item.jd.com/10022734916159.html', 'https://item.jd.com/66035389662.html',
-             'https://item.jd.com/49328943409.html', 'https://item.jd.com/49328943409.html',
-             'https://item.jd.com/42286494284.html', 'https://item.jd.com/715472.html',
-             'https://item.jd.com/65223166312.html', 'https://item.jd.com/68353820093.html',
-             'https://item.jd.com/68952396894.html', 'https://item.jd.com/13183603374.html',
-             'https://item.jd.com/10020078673342.html', 'https://item.jd.com/68862685518.html',
-             'https://item.jd.com/49328943409.html', 'https://item.jd.com/10020078673342.html',
-             'https://item.jd.com/68862685518.html', 'https://item.jd.com/49328943409.html',
-             'https://item.jd.com/10025243004612.html', 'http://item.jd.com/3280109.html',
-             'http://item.jd.com/1043580.html'],
-     '烘衣机': ['https://item.jd.com/100003960176.html', 'https://item.jd.com/100004796479.html',
-             'https://item.jd.com/11642672907.html', 'https://item.jd.com/100016056428.html',
-             'https://item.jd.com/100001454118.html', 'https://item.jd.com/59736228459.html',
-             'https://item.jd.com/10023063705058.html', 'https://item.jd.com/65157951640.html',
-             'https://item.jd.com/31388538386.html',
-             'https://item.jd.com/65970073462.html', 'https://item.jd.com/57266290878.html',
-             'https://item.jd.com/100014734126.html', 'https://item.jd.com/10024944644041.html',
-             'https://item.jd.com/100009166194.html', 'https://item.jd.com/10026094752041.html',
-             'https://item.jd.com/100008918787.html', 'https://item.jd.com/23707799621.html',
-             'https://item.jd.com/10022773456006.html', 'https://item.jd.com/1301066.html',
-             'https://item.jd.com/53100971538.html', 'https://item.jd.com/100006744339.html',
-             'https://item.jd.com/11331178020.html', 'https://item.jd.com/10026032190665.html',
-             'https://item.jd.com/29157221900.html', 'https://item.jd.com/10023263243750.html',
-             'https://item.jd.com/48022530867.html'],
-     '烤箱': ['https://item.jd.com/2375700.html', 'https://item.jd.com/2375700.html', 'https://item.jd.com/2375700.html',
-            'https://item.jd.com/2375700.html', 'https://item.jd.com/30267340200.html',
-            'https://item.jd.com/2771999.html', 'https://item.jd.com/62012743827.html',
-            'https://item.jd.com/30297737858.html', 'https://item.jd.com/100005801565.html',
-            'https://item.jd.com/27861329807.html', 'https://item.jd.com/100005310232.html',
-            'https://item.jd.com/57229799297.html', 'https://item.jd.com/34934393802.html',
-            'https://item.jd.com/4665231.html', 'https://item.jd.com/10025448957258.html',
-            'https://item.jd.com/71713979509.html', 'https://item.jd.com/100007539398.html',
-            'https://item.jd.com/7076331.html', 'https://item.jd.com/10026004625891.html',
-            'https://item.jd.com/10022029245907.html', 'https://item.jd.com/2375700.html',
-            'https://item.jd.com/2375700.html', 'https://item.jd.com/40038346018.html',
-            'https://item.jd.com/50895998242.html', 'https://item.jd.com/40038346018.html',
-            'https://item.jd.com/50895998242.html', 'https://item.jd.com/50895998242.html',
-            'https://item.jd.com/50895998242.html', 'https://item.jd.com/50895998242.html',
-            'https://item.jd.com/50895998242.html']}
+long_url = "https://shop18880568.m.youzan.com/wscgoods/detail/27bd3b2zvykww?scan=1&activity=none&from=kdt&qr=directgoods_713301781&shopAutoEnter=1"
+querystring = {"url":long_url,'key':'606bc0eef1dda641df1aa6a3@4df8c4530e44064ae69e5b3f165619c3'}
+
+url = "http://suo.im/api.php"
+
+response = requests.request("GET", url, params=querystring)
+
+print(response.text)

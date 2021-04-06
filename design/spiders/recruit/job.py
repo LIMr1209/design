@@ -38,7 +38,7 @@ class JobSpider(SeleniumSpider):
         self.page = 1
         self.search_url = 'https://search.51job.com/list/%s,000000,0000,00,9,99,%s,2,%s.html'
         self.fail_url = []
-        self.opalus_save_url = 'http://opalus-dev.taihuoniao.com/api/company/submit'
+        self.opalus_save_url = 'https://opalus.d3ingo.com/api/company/submit'
         super(JobSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
                            signal=signals.spider_closed
@@ -47,7 +47,6 @@ class JobSpider(SeleniumSpider):
         js = 'window.open("https://www.51job.com/");'
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
-        self.start_requests()
 
     def except_close(self):
         logging.error("待爬取关键词:")
@@ -79,10 +78,10 @@ class JobSpider(SeleniumSpider):
                 temp_data['edit_pattern'] = 0
                 res = requests.post(self.opalus_save_url, data=temp_data)
                 result = json.loads(res.content)
-                if result['code'] != 0:
+                if result['code'] != 0 and result['message'] != "公司已存在!":
                     return False
             self.page += 1
-            return True
+        return True
 
 
     def start_requests(self):
