@@ -46,7 +46,7 @@ class ZhiLianSpider(SeleniumSpider):
                            signal=signals.spider_closed
                            )
         old_num = len(self.browser.window_handles)
-        js = 'window.open("https://www.zhaopin.com/");'
+        js = 'window.open("");'
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
@@ -82,7 +82,6 @@ class ZhiLianSpider(SeleniumSpider):
                 url = job_a[j].find_element_by_xpath('.//a[@class="joblist-box__iteminfo iteminfo"]').get_attribute('href')
                 number = url.split('?')[0].rsplit('/')[-1].replace('.htm','')
                 list_numbers.append(number)
-            break
             self.page += 1
         for i in list_numbers:
             is_suc = True
@@ -120,7 +119,7 @@ class ZhiLianSpider(SeleniumSpider):
             if res.status_code != 200 or result['code']:
                 logging.error(json.loads(res.content)['message'])
                 return
-
+        return True
 
 
     def start_requests(self):
