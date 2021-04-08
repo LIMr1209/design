@@ -1,4 +1,3 @@
-# 智联
 import json
 import logging
 import copy
@@ -10,7 +9,7 @@ from scrapy import signals
 from design.items import PositionItem
 from design.spiders.selenium import SeleniumSpider
 
-
+# 智联
 class ZhiLianSpider(SeleniumSpider):
     name = "zhilian"
     allowed_domains = ["sou.zhaopin.com"]
@@ -40,7 +39,7 @@ class ZhiLianSpider(SeleniumSpider):
         self.search_url = 'https://sou.zhaopin.com/?jl=%s&kw=%s&p=%s'
         self.fail_url = []
         self.detail_api = 'https://fe-api.zhaopin.com/c/i/jobs/position-detail-new?number=%s'
-        self.opalus_save_url = 'http://127.0.0.1:8002/api/position/save'
+        self.opalus_save_url = 'https://opalus.d3ingo.com/api/position/save'
         super(ZhiLianSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
                            signal=signals.spider_closed
