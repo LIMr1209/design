@@ -31,14 +31,14 @@ class BossSpider(SeleniumSpider):
 
     def __init__(self, *args, **kwargs):
         # 工业设计、结构设计、外观设计、平面设计、品牌设计、产品设计、产品工程师、包装设计
-        self.key_words = ['工业设计', '结构设计', '外观设计', '平面设计', '品牌设计', '产品设计', '产品工程师', '包装设计']
+        self.key_words = ['平面设计', '品牌设计', '产品设计', '产品工程师', '包装设计']
         self.city_code = {
             '杭州': '101210100',
             '苏州': '101190400',
             '宁波': '101210400',
             '丽水': '101210800'
         }
-        self.city = ["杭州", "苏州", '宁波', '丽水']
+        self.city = ['宁波','丽水']
         self.page = 1
         self.search_url = 'https://www.zhipin.com/c%s/?query=%s&page=%s&ka=page-%s'
         self.fail_url = []
@@ -68,7 +68,7 @@ class BossSpider(SeleniumSpider):
                 is_suc = False
             except:
                 pass
-        time.sleep(5)
+        time.sleep(2)
 
     def get_list(self, keyword, city):
         urls = []
@@ -154,7 +154,9 @@ class BossSpider(SeleniumSpider):
         return True
 
     def start_requests(self):
-            for i in self.key_words:
+            for x, i in enumerate(self.key_words):
+                if x != 0:
+                    self.city = ["杭州", "苏州", '宁波', '丽水']
                 for j in self.city:
                     try:
                         flag = self.get_list(i, j)
