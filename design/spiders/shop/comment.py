@@ -528,10 +528,10 @@ def comment_spider(name, category, reverse=0):
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     logger.setLevel(logging.DEBUG)
-    while True:
-        res = get_goods_data(opalus_goods_comment_url, params, logger, reverse)
-        if not res['success']:
-            break
+    # while True:
+    res = get_goods_data(opalus_goods_comment_url, params, logger, reverse)
+        # if not res['success']:
+        # break
 
 
 def get_goods_data(url, params, logger, reverse):
