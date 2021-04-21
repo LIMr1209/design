@@ -1,14 +1,13 @@
 import json
-import logging
-import copy
 import time
-
+from selenium.webdriver.support import expected_conditions as EC
 import requests
-from pydispatch import dispatcher
-from scrapy import signals
 from selenium.common.exceptions import TimeoutException
 import datetime
-from design.items import ProduceItem
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+
 from design.spiders.selenium import SeleniumSpider
 import re
 
@@ -26,39 +25,32 @@ class BossSpider(SeleniumSpider):
         },
         'DOWNLOADER_MIDDLEWARES': {
             'design.middlewares.SeleniumMiddleware': 543,
-        }
+        },
+        # 设置log日志
+        'LOG_LEVEL': 'INFO',
+        'LOG_FILE': 'log/%s.log' % name
     }
 
     def __init__(self, *args, **kwargs):
         # 工业设计、结构设计、外观设计、平面设计、品牌设计、产品设计、产品工程师、包装设计
-        self.key_words = ['平面设计', '品牌设计', '产品设计', '产品工程师', '包装设计']
+        self.key_words = ['包装设计']
         self.city_code = {
             '杭州': '101210100',
             '苏州': '101190400',
             '宁波': '101210400',
             '丽水': '101210800'
         }
-        self.city = ['宁波','丽水']
+        self.city = ['宁波', '丽水']
         self.page = 1
-        self.search_url = 'https://www.zhipin.com/c%s/?query=%s&page=%s&ka=page-%s'
+        self.search_url = 'https://www.zhipin.com/c%s/?query=%s&page=%s&ka=page-%s&period=5&ka=sel-scale-5'
         self.fail_url = []
         self.opalus_save_url = 'https://opalus.d3ingo.com/api/position/save'
         super(BossSpider, self).__init__(*args, **kwargs)
-        dispatcher.connect(receiver=self.except_close,
-                           signal=signals.spider_closed
-                           )
         old_num = len(self.browser.window_handles)
         js = 'window.open("https://www.zhipin.com");'
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
-    def except_close(self):
-        logging.error("待爬取关键词:")
-        logging.error(self.key_words)
-        logging.error('页码')
-        logging.error(self.page)
-        logging.error('爬取失败')
-        logging.error(self.fail_url)
 
     def get_url(self, url):
         is_suc = True
@@ -66,8 +58,9 @@ class BossSpider(SeleniumSpider):
             try:
                 self.browser.get(url)
                 is_suc = False
-            except:
-                pass
+            except TimeoutException as e:
+                if self.browser.current_url == url:
+                    is_suc = False
         time.sleep(2)
 
     def get_list(self, keyword, city):
@@ -78,12 +71,23 @@ class BossSpider(SeleniumSpider):
             self.get_url(url)
             job_names = self.browser.find_elements_by_xpath('//span[@class="job-name"]/a')
             publish_at_ele = self.browser.find_elements_by_xpath('//span[@class="job-pub-time"]')
+            area_ele = self.browser.find_elements_by_xpath('//span[@class="job-area"]')
+            area_not_match_count = 0
             if not job_names:
                 self.page = 1
                 break
             for j, i in enumerate(job_names):
-                if keyword not in i.get_attribute('innerText'):
+                # 排除地区
+                if city not in area_ele[j].get_attribute('innerText'):
+                    area_not_match_count += 1
                     continue
+                # 排除职位标题
+                if keyword == '品牌设计':
+                    if '品牌视觉设计' not in i.get_attribute('innerText'):
+                        continue
+                else:
+                    if keyword not in i.get_attribute('innerText'):
+                        continue
                 href = i.get_attribute('href')
                 if href != "javascript:;":
                     publish_at = publish_at_ele[j].get_attribute('innerText').replace('发布于', '')
@@ -92,10 +96,32 @@ class BossSpider(SeleniumSpider):
                             '%m{m}%d{d}').format(m='月', d='日')
                     publish_at_list.append(publish_at)
                     urls.append(i.get_attribute('href'))
+            if area_not_match_count == 25:
+                self.page = 1
+                break
+            try:
+                page_next = self.browser.find_element_by_xpath('//div[@class="page"]/a[contains(@class,"next")]')
+            except:
+                self.page = 1
+                break
+            if page_next.get_attribute('class') == "next disabled":
+                self.page = 1
+                break
             self.page += 1
         for j, i in enumerate(urls):
             self.get_url(i)
             temp_data = {}
+            while True:
+                try:
+                    elem = WebDriverWait(self.browser, 30, 0.5).until(
+                        EC.presence_of_element_located(
+                            (By.XPATH, '//div[@class="job-banner"]//div[@class="info-primary"]/div[@class="name"]/following-sibling::p[1]')
+                        )
+                    )
+                    break
+                except:
+                    self.browser.refresh()
+                time.sleep(2)
             demand_ele = self.browser.find_element_by_xpath(
                 '//div[@class="job-banner"]//div[@class="info-primary"]/div[@class="name"]/following-sibling::p[1]')
             demand_html = demand_ele.get_attribute('innerHTML')
@@ -155,12 +181,7 @@ class BossSpider(SeleniumSpider):
 
     def start_requests(self):
             for x, i in enumerate(self.key_words):
-                if x != 0:
-                    self.city = ["杭州", "苏州", '宁波', '丽水']
                 for j in self.city:
-                    try:
-                        flag = self.get_list(i, j)
-                        if not flag:
-                            return
-                    except:
-                        print(i,j)
+                    flag = self.get_list(i, j)
+                    if not flag:
+                        return
