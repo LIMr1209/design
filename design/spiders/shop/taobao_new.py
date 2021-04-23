@@ -275,14 +275,14 @@ class TaobaoSpider(SeleniumSpider):
         # fw.close()self.browser.get
         # self.update_cookie()
         # self.stringToDict()
-        # self.list_url = self.get_list_urls()  # 获取商品链接
+        self.list_url = self.get_list_urls()  # 获取商品链接
         # 爬取失败重新爬取
-        self.list_url = ['https://detail.tmall.com/item.htm?id=611366413394&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=636963069669&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=610235790512&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=640497360194&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=636829540934&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=43432436144&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=613797978345&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=563407758773&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=613797978345&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=563407758773&ns=1&abbucket=1', 'https://detail.tmall.com/item.htm?id=615312084910&ns=1&abbucket=1']
-        self.category = "吸尘器"
-        self.error_retry = 1
+        # self.list_url = ['https://detail.tmall.com/item.htm?id=599534000649&ns=1&abbucket=5', 'https://detail.tmall.com/item.htm?id=641086450171&ns=1&abbucket=5', 'https://detail.tmall.com/item.htm?id=576396550603&ns=1&abbucket=5']
+        # self.category = "绞肉机"
+        # self.error_retry = 1
         self.price_range = ''  # 459-750
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
-        meta = {'usedSelenium': True})
+                             meta={'usedSelenium': True})
 
     def get_list_urls(self):
         self.browser_get('https://www.taobao.com/')
