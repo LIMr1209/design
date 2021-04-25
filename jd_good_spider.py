@@ -17,7 +17,7 @@ if redis_cli.query('jd', 'fail_url'):
     try:
         redis_fail_url = json.loads(redis_cli.query('jd', 'fail_url'))
         if redis_fail_url:
-            kwargs['fail_url'] = OrderedDict(redis_fail_url)
+            kwargs['fail_url'] = redis_fail_url
             kwargs['error_retry'] = 1
     except:
         pass

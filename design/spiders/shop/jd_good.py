@@ -35,7 +35,7 @@ class JdSpider(SeleniumSpider):
     }
 
     def __init__(self, *args, **kwargs):
-        self.key_words = kwargs['key_words'].split(',')
+        self.key_words = kwargs['key_words'].split(',') if 'key_words' in kwargs else []
         self.page = kwargs['page'] if 'page' in kwargs else 1
         self.max_page = kwargs['max_page']
         self.max_price_page = 10  # 价格区间的爬10页
@@ -77,7 +77,6 @@ class JdSpider(SeleniumSpider):
         if not flag:
             temp = {'name':name, 'value':[response.url]}
             self.fail_url.append(temp)
-        self.fail_url[name].append(response.url)
 
     def except_close(self):
         logging.error("待爬取关键词:")
@@ -202,7 +201,7 @@ class JdSpider(SeleniumSpider):
                         comment_count = re.search('\d+', comment_text)
                         if comment_count:
                             item['comment_count'] = int(comment_count.group())
-                if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                if self.key_words and self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
                     item['category'] = '耳机'
                 else:
                     item['category'] = self.key_words[0]
