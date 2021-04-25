@@ -15,7 +15,7 @@ max_page = 15
 kwargs['max_page'] = max_page
 if redis_cli.query('jd', 'fail_url'):
     try:
-        redis_fail_url = json.loads(str(redis_cli.query('jd', 'fail_url')))
+        redis_fail_url = json.loads(redis_cli.query('jd', 'fail_url'))
         if redis_fail_url:
             kwargs['fail_url'] = OrderedDict(redis_fail_url)
             kwargs['error_retry'] = 1
@@ -29,7 +29,7 @@ elif redis_cli.verify('jd', 'page'):
 
 elif redis_cli.query('jd', 'keywords'):
     try:
-        redis_keywords = str(redis_cli.query('jd', 'keywords'))
+        redis_keywords = redis_cli.query('jd', 'keywords')
         if redis_keywords:
             kwargs['key_words'] = redis_keywords
     except:
