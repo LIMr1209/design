@@ -38,3 +38,4 @@ else:
     kwargs['key_words'] = all_keywords
 process = CrawlerProcess()
 process.crawl(JdSpider, **kwargs)
+process.start()
