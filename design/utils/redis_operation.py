@@ -13,7 +13,9 @@ class RedisHandle(object):
         self.conn.hset(name, key, value)
 
     def query(self, name, key):
-        rst = self.conn.hget(name, key).decode()
+        rst = self.conn.hget(name, key)
+        if rst:
+            rst = rst.decode()
         return rst
 
     def verify(self, name, key):
