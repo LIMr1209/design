@@ -252,7 +252,7 @@ class JdSpider(SeleniumSpider):
                         detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
                 item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
                 item['detail_str'] = ', '.join(detail_str_list)
-                if self.key_words[0] in self.price_range_list:
+                if self.key_words and self.key_words[0] in self.price_range_list:
                     price_range = self.price_range_list[self.key_words[0]][0]
                     temp = re.findall('(\d+)', price_range)
                     item['price_range'] = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
