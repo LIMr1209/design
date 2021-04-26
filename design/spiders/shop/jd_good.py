@@ -92,8 +92,10 @@ class JdSpider(SeleniumSpider):
                 self.redis_cli.insert('jd','page',self.page)
             else:
                 self.redis_cli.delete('jd', 'page')
+            if self.page == self.max_page:
+                self.key_words.pop(0)
             if self.key_words:
-                self.redis_cli.insert('jd','keywords', ','.join(self.key_words))
+                self.redis_cli.insert('jd', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('jd', 'keywords')
         if self.fail_url:

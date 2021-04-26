@@ -25,16 +25,9 @@ if fail_url:
     except Exception as e:
         kwargs['key_words'] = all_keywords
 
-elif page and keywords:
-    try:
-        redis_page = int(page)
-        if redis_page >= max_page:
-            keywords = ','.join(keywords.split(',').pop(0))
-            kwargs['page'] = 1
-        else:
-            kwargs['page'] = redis_page
-    except Exception as e:
-        kwargs['key_words'] = all_keywords
+elif page or keywords:
+    kwargs['page'] = int(page) if page else 1
+    kwargs['key_words'] = keywords
 else:
     kwargs['key_words'] = all_keywords
 process = CrawlerProcess()
