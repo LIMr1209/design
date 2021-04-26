@@ -201,10 +201,11 @@ class JdSpider(SeleniumSpider):
                         comment_count = re.search('\d+', comment_text)
                         if comment_count:
                             item['comment_count'] = int(comment_count.group())
-                if self.key_words and self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
-                    item['category'] = '耳机'
-                else:
-                    item['category'] = self.key_words[0]
+                if self.key_words:
+                   if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                        item['category'] = '耳机'
+                   else:
+                        item['category'] = self.key_words[0]
                 if hasattr(self, 'category'):
                     item['category'] = self.category
                 shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
