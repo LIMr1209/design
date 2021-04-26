@@ -14,7 +14,7 @@ max_page = 15
 # while True:
 kwargs['max_page'] = max_page
 fail_url = redis_cli.query('jd', 'fail_url')
-page = redis_cli.verify('jd', 'page')
+page = redis_cli.query('jd', 'page')
 keywords = redis_cli.query('jd', 'keywords')
 if fail_url:
     try:
