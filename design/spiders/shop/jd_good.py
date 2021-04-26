@@ -87,18 +87,19 @@ class JdSpider(SeleniumSpider):
         logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
-        if self.page != self.max_page:
-            self.redis_cli.insert('jd','page',self.page)
-        else:
-            self.redis_cli.delete('jd', 'page')
+        if not self.error_retry:
+            if self.page != self.max_page:
+                self.redis_cli.insert('jd','page',self.page)
+            else:
+                self.redis_cli.delete('jd', 'page')
+            if self.key_words:
+                self.redis_cli.insert('jd','keywords', ','.join(self.key_words))
+            else:
+                self.redis_cli.delete('jd', 'keywords')
         if self.fail_url:
             self.redis_cli.insert('jd','fail_url',json.dumps(self.fail_url))
         else:
             self.redis_cli.delete('jd', 'fail_url')
-        if self.key_words:
-            self.redis_cli.insert('jd','keywords', ','.join(self.key_words))
-        else:
-            self.redis_cli.delete('jd', 'keywords')
 
     def start_requests(self):
         if self.error_retry:
