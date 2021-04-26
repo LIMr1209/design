@@ -13,27 +13,28 @@ all_keywords = '吹风机,真无线蓝牙耳机 降噪 入耳式,果蔬干,拉�
 max_page = 15
 # while True:
 kwargs['max_page'] = max_page
-if redis_cli.query('jd', 'fail_url'):
+fail_url = redis_cli.query('jd', 'fail_url')
+page = redis_cli.verify('jd', 'page')
+keywords = redis_cli.query('jd', 'keywords')
+if fail_url:
     try:
-        redis_fail_url = json.loads(redis_cli.query('jd', 'fail_url'))
+        redis_fail_url = json.loads(fail_url)
         if redis_fail_url:
             kwargs['fail_url'] = redis_fail_url
             kwargs['error_retry'] = 1
-    except:
-        pass
+    except Exception as e:
+        kwargs['key_words'] = all_keywords
 
-elif redis_cli.verify('jd', 'page'):
-    redis_page = int(redis_cli.query('jd', 'page'))
-    if not redis_page == max_page:
-        kwargs['page'] = redis_page
-
-elif redis_cli.query('jd', 'keywords'):
+elif page and keywords:
     try:
-        redis_keywords = redis_cli.query('jd', 'keywords')
-        if redis_keywords:
-            kwargs['key_words'] = redis_keywords
-    except:
-        pass
+        redis_page = int(page)
+        if redis_page >= max_page:
+            keywords = ','.join(keywords.split(',').pop(0))
+            kwargs['page'] = 1
+        else:
+            kwargs['page'] = redis_page
+    except Exception as e:
+        kwargs['key_words'] = all_keywords
 else:
     kwargs['key_words'] = all_keywords
 process = CrawlerProcess()
