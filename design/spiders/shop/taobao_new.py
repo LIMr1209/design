@@ -23,6 +23,9 @@ from design.spiders.selenium import SeleniumSpider
 
 
 # 解析源代码方式获取 sku 价格样式
+from design.utils.redis_operation import RedisHandle
+
+
 def sku_price_func(browser, site_from):
     page_source = browser.page_source
     rex = re.compile('skuMap.*(\{";.*?}})')
@@ -160,7 +163,9 @@ class TaobaoSpider(SeleniumSpider):
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
         self.key_words = kwargs['key_words'].split(',')
-        self.fail_url = {}
+        self.redis_cli = RedisHandle('localhost', '6379')
+        self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
+        self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
         self.suc_count = 0
         self.s = requests.Session()
         self.s.mount('http://', HTTPAdapter(max_retries=5))
@@ -182,14 +187,21 @@ class TaobaoSpider(SeleniumSpider):
     def except_close(self):
         logging.error("待爬取关键词:")
         logging.error(self.key_words)
-        logging.error('页码')
-        logging.error(self.page)
         logging.error('价位档')
         logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
         logging.error('待爬取')
         logging.error(self.list_url)
+        if not self.error_retry:
+            if self.key_words:
+                self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
+            else:
+                self.redis_cli.delete('taobao', 'keywords')
+        if self.fail_url:
+            self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
+        else:
+            self.redis_cli.delete('taobao', 'fail_url')
 
     # 滑块破解
     def selenium_code(self):
@@ -268,6 +280,22 @@ class TaobaoSpider(SeleniumSpider):
         except TimeoutException as e:
             self.browser_get(url)
 
+    def fail_url_save(self, response):
+        if self.error_retry == 1:
+            name = self.category
+        else:
+            name = self.key_words[0]
+        price_range = self.get_price_range()
+        flag = False
+        for i in self.fail_url:
+            if i['name'] == name and i['price_range'] == price_range :
+                if response.url not in i['value']:
+                    i['value'].append(response.url)
+                flag = True
+        if not flag:
+            temp = {'name':name, 'value':[response.url],'price_range':price_range}
+            self.fail_url.append(temp)
+
     def start_requests(self):
         # cookies = self.browser.get_cookies()
         # fw = open('tmp/taobao.cookie', 'w')
@@ -275,12 +303,13 @@ class TaobaoSpider(SeleniumSpider):
         # fw.close()self.browser.get
         # self.update_cookie()
         # self.stringToDict()
-        self.list_url = self.get_list_urls()  # 获取商品链接
-        # 爬取失败重新爬取
-        # self.list_url = ['https://detail.tmall.com/item.htm?id=599534000649&ns=1&abbucket=5', 'https://detail.tmall.com/item.htm?id=641086450171&ns=1&abbucket=5', 'https://detail.tmall.com/item.htm?id=576396550603&ns=1&abbucket=5']
-        # self.category = "绞肉机"
-        # self.error_retry = 1
-        self.price_range = ''  # 459-750
+        if self.error_retry:
+            data = self.fail_url.pop(0)
+            self.list_url = data['value']
+            self.category = data['name']
+            self.price_range = data['price_range']
+        else:
+            self.list_url = self.get_list_urls()  # 获取商品链接
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True})
 
@@ -329,18 +358,6 @@ class TaobaoSpider(SeleniumSpider):
                 list_urls.append(i.get_attribute('href'))
         return list_urls
 
-    def fail_url_save(self, response):
-        if hasattr(self, 'error_retry'):
-            if self.category in self.fail_url:
-                self.fail_url[self.category].append(response.url)
-            else:
-                self.fail_url[self.category] = [response.url]
-        else:
-            if self.key_words[0] in self.fail_url:
-                self.fail_url[self.key_words[0]].append(response.url)
-            else:
-                self.fail_url[self.key_words[0]] = [response.url]
-
     def parse_detail(self, response):
         time.sleep(4)
         res = {}
@@ -378,7 +395,12 @@ class TaobaoSpider(SeleniumSpider):
                                  meta={'usedSelenium': True}, dont_filter=True, )
         else:
             print(self.fail_url)
-            if not hasattr(self, 'error_retry'):
+            if self.error_retry:
+                data = self.fail_url.pop(0)
+                self.list_url = data['value']
+                self.category = data['name']
+                self.price_range = data['price_range']
+            else:
                 self.page = 1
                 if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
                     self.price_range_list[self.key_words[0]].pop(0)
@@ -565,10 +587,11 @@ class TaobaoSpider(SeleniumSpider):
                     item['site_type'] = 1
                     item['price_range'] = self.get_price_range()
                     item['out_number'] = itemId
-                    if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
-                        item['category'] = '耳机'
-                    else:
-                        item['category'] = self.key_words[0]
+                    if self.key_words:
+                        if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                            item['category'] = '耳机'
+                        else:
+                            item['category'] = self.key_words[0]
                     if hasattr(self, 'category'):
                         item['category'] = self.category
                     item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
@@ -715,10 +738,11 @@ class TaobaoSpider(SeleniumSpider):
                     item['price_range'] = self.get_price_range()
                     item['out_number'] = itemId
                     # item['cover_url'] = data[0]['cover_url']
-                    if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
-                        item['category'] = '耳机'
-                    else:
-                        item['category'] = self.key_words[0]
+                    if self.key_words:
+                        if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                            item['category'] = '耳机'
+                        else:
+                            item['category'] = self.key_words[0]
                     if hasattr(self, 'category'):
                         item['category'] = self.category
                     item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
@@ -765,11 +789,11 @@ class TaobaoSpider(SeleniumSpider):
     # 获取价位档
     def get_price_range(self):
         price_range = ''
-        if not hasattr(self, price_range):
+        if self.error_retry:
+            price_range = self.price_range
+        else:
             if self.key_words[0] in self.price_range_list:
                 price_range = self.price_range_list[self.key_words[0]][0]
                 temp = re.findall('(\d+)', price_range)
                 price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
-        else:
-            price_range = self.price_range
         return price_range

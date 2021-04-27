@@ -72,7 +72,8 @@ class JdSpider(SeleniumSpider):
         flag = False
         for i in self.fail_url:
             if i['name'] == name:
-                i['value'].append(response.url)
+                if response.url not in i['value']:
+                    i['value'].append(response.url)
                 flag = True
         if not flag:
             temp = {'name':name, 'value':[response.url]}
