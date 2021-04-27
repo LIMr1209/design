@@ -255,7 +255,7 @@ class TaobaoSpider(SeleniumSpider):
         self.browser.delete_all_cookies()  # 删除cookie
         login_url = 'https://login.taobao.com/member/login.jhtml'
         username = '斌爷爷1058169464'
-        password = 'aaa1058169464'
+        password = '*******'
         cookie_file = os.path.join('tmp', '{}@{}.cookie'.format(username, self.name))
         if not os.path.exists(cookie_file):
             self.browser.get(login_url)
