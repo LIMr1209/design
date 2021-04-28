@@ -46,6 +46,7 @@ class JdSpider(SeleniumSpider):
         self.redis_cli = RedisHandle('localhost', '6379')
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
         self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
+        self.new_fail_url = []
         self.s = requests.Session()
         self.s.mount('http://', HTTPAdapter(max_retries=5))
         self.s.mount('https://', HTTPAdapter(max_retries=5))
@@ -65,19 +66,25 @@ class JdSpider(SeleniumSpider):
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def fail_url_save(self, response):
-        if self.error_retry == 1:
+        if self.error_retry:
             name = self.category
+            fail_url = self.new_fail_url
         else:
             name = self.key_words[0]
+            fail_url = self.fail_url
         flag = False
-        for i in self.fail_url:
+        for i in fail_url:
             if i['name'] == name:
                 if response.url not in i['value']:
                     i['value'].append(response.url)
                 flag = True
         if not flag:
             temp = {'name':name, 'value':[response.url]}
-            self.fail_url.append(temp)
+            fail_url.append(temp)
+        if self.error_retry:
+            self.new_fail_url = fail_url
+        else:
+            self.fail_url = fail_url
 
     def except_close(self):
         logging.error("待爬取关键词:")
@@ -88,7 +95,12 @@ class JdSpider(SeleniumSpider):
         logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
-        if not self.error_retry:
+        if self.error_retry:
+            if self.new_fail_url:
+                self.redis_cli.insert('jd','fail_url',json.dumps(self.new_fail_url))
+            else:
+                self.redis_cli.delete('jd', 'fail_url')
+        else:
             if self.page != self.max_page:
                 self.redis_cli.insert('jd','page',self.page)
             else:
@@ -99,10 +111,10 @@ class JdSpider(SeleniumSpider):
                 self.redis_cli.insert('jd', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('jd', 'keywords')
-        if self.fail_url:
-            self.redis_cli.insert('jd','fail_url',json.dumps(self.fail_url))
-        else:
-            self.redis_cli.delete('jd', 'fail_url')
+            if self.fail_url:
+                self.redis_cli.insert('jd','fail_url',json.dumps(self.fail_url))
+            else:
+                self.redis_cli.delete('jd', 'fail_url')
 
     def start_requests(self):
         if self.error_retry:

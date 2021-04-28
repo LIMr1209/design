@@ -162,10 +162,11 @@ class TaobaoSpider(SeleniumSpider):
             '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
             '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
         }
-        self.key_words = kwargs['key_words'].split(',')
+        self.key_words = kwargs['key_words'].split(',') if 'key_words' in kwargs else []
         self.redis_cli = RedisHandle('localhost', '6379')
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
         self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
+        self.new_fail_url = []
         self.suc_count = 0
         self.s = requests.Session()
         self.s.mount('http://', HTTPAdapter(max_retries=5))
@@ -191,17 +192,24 @@ class TaobaoSpider(SeleniumSpider):
         logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
+        logging.error('爬取失败')
+        logging.error(self.new_fail_url)
         logging.error('待爬取')
         logging.error(self.list_url)
-        if not self.error_retry:
+        if self.error_retry:
+            if self.new_fail_url:
+                self.redis_cli.insert('taobao', 'fail_url', json.dumps(self.new_fail_url))
+            else:
+                self.redis_cli.delete('taobao', 'fail_url')
+        else:
             if self.key_words:
                 self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('taobao', 'keywords')
-        if self.fail_url:
-            self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
-        else:
-            self.redis_cli.delete('taobao', 'fail_url')
+            if self.fail_url:
+                self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
+            else:
+                self.redis_cli.delete('taobao', 'fail_url')
 
     # 滑块破解
     def selenium_code(self):
@@ -281,20 +289,26 @@ class TaobaoSpider(SeleniumSpider):
             self.browser_get(url)
 
     def fail_url_save(self, response):
-        if self.error_retry == 1:
+        if self.error_retry:
             name = self.category
+            fail_url = self.new_fail_url
         else:
             name = self.key_words[0]
+            fail_url = self.fail_url
         price_range = self.get_price_range()
         flag = False
-        for i in self.fail_url:
+        for i in fail_url:
             if i['name'] == name and i['price_range'] == price_range :
                 if response.url not in i['value']:
                     i['value'].append(response.url)
                 flag = True
         if not flag:
             temp = {'name':name, 'value':[response.url],'price_range':price_range}
-            self.fail_url.append(temp)
+            fail_url.append(temp)
+        if self.error_retry:
+            self.new_fail_url = fail_url
+        else:
+            self.fail_url = fail_url
 
     def start_requests(self):
         # cookies = self.browser.get_cookies()
