@@ -52,7 +52,7 @@ class JdSpider(SeleniumSpider):
         self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
-        self.search_url = 'https://search.jd.com/Search?keyword={name}&enc=utf-8&spm=a.0.0&wq=&pvid=1480bd72973d4a8e957a746fc07de12d&page={page}&s=53&ev=^exprice_{price_range}^'
+        self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         self.suc_count = 0
 
