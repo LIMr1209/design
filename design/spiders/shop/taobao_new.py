@@ -428,10 +428,11 @@ class TaobaoSpider(SeleniumSpider):
                                  meta={'usedSelenium': True}, dont_filter=True, )
         else:
             if self.error_retry:
-                data = self.fail_url.pop(0)
-                self.list_url = data['value']
-                self.category = data['name']
-                self.price_range = data['price_range']
+                if self.fail_url:
+                    data = self.fail_url.pop(0)
+                    self.list_url = data['value']
+                    self.category = data['name']
+                    self.price_range = data['price_range']
             else:
                 self.page = 1
                 if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
