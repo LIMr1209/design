@@ -100,7 +100,7 @@ class JdSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('jd', 'fail_url')
         else:
-            if self.page != self.max_page:
+            if self.page != self.max_page or self.page != 1:
                 self.redis_cli.insert('jd','page',self.page)
             else:
                 self.redis_cli.delete('jd', 'page')
