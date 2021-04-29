@@ -149,162 +149,166 @@ class JdSpider(SeleniumSpider):
                              dont_filter=True)
 
     def detail_data(self, response):
-        if not 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
-            item = TaobaoItem()
+        item = TaobaoItem()
+        try:
+            # height = 0
+            # for i in range(height, 800, 200):
+            #     self.browser.execute_script('window.scrollTo(0, {})'.format(i))
+            #     time.sleep(0.2)
+            # ele = self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]')
+            # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
+            title = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
+            # if not hasattr(self,'error_retry'):
+            #     if self.key_words[0] not in title:
+            #         logging.error('商品不属于此分类 标题:%s 分类:%s'%(title,self.key_words[0]))
+            #         return
+            if '该商品已下柜' in self.browser.page_source:
+                logging.error('该商品已下柜 {}'.format(response.url))
+                return
             try:
-                # height = 0
-                # for i in range(height, 800, 200):
-                #     self.browser.execute_script('window.scrollTo(0, {})'.format(i))
-                #     time.sleep(0.2)
-                # ele = self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]')
-                # self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-                title = self.browser.find_element_by_xpath('//div[@class="sku-name"]').text.strip()
-                # if not hasattr(self,'error_retry'):
-                #     if self.key_words[0] not in title:
-                #         logging.error('商品不属于此分类 标题:%s 分类:%s'%(title,self.key_words[0]))
-                #         return
-                if '该商品已下柜' in self.browser.page_source:
-                    logging.error('该商品已下柜 {}'.format(response.url))
+                promotion_price = self.browser.find_element_by_xpath(
+                    '//span[@class="p-price"]/span[2]').text.strip()
+            except:
+                promotion_price = ''
+            if promotion_price == '':
+                if "预售剩余" in self.browser.page_source:
+                    logging.error('预售 {}'.format(response.url))
                     return
-                try:
-                    promotion_price = self.browser.find_element_by_xpath(
-                        '//span[@class="p-price"]/span[2]').text.strip()
-                except:
-                    promotion_price = ''
-                if promotion_price == '':
-                    if "预售剩余" in self.browser.page_source:
-                        logging.error('预售 {}'.format(response.url))
-                        return
-                    time.sleep(60)
-                    # 删除 cookie, localStorage, 让浏览器自动获取新cookie 旧cookie 限制爬取需要登录
-                    # js = 'window.localStorage.clear();'
-                    # self.browser.execute_script(js)
-                    # self.browser.delete_all_cookies()
-                    self.browser.refresh()
-                    promotion_price = self.browser.find_element_by_xpath(
-                        '//span[@class="p-price"]/span[2]').text.strip()
-                item['title'] = title
-                item['sku_ids'] = ','.join(
-                    response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
-                try:
-                    original_text = self.browser.find_element_by_xpath(
-                        '//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]').text.strip().replace(
-                        '￥', '')
-                except:
-                    original_text = ''
-                if original_text:
-                    item['original_price'] = original_text
-                if not 'original_price' in item:
-                    item['original_price'] = promotion_price
-                    item['promotion_price'] = ''
+                time.sleep(60)
+                # 删除 cookie, localStorage, 让浏览器自动获取新cookie 旧cookie 限制爬取需要登录
+                # js = 'window.localStorage.clear();'
+                # self.browser.execute_script(js)
+                # self.browser.delete_all_cookies()
+                self.browser.refresh()
+                promotion_price = self.browser.find_element_by_xpath(
+                    '//span[@class="p-price"]/span[2]').text.strip()
+            item['title'] = title
+            item['sku_ids'] = ','.join(
+                response.xpath('//div[contains(@id,"choose-attr")]//div[@data-sku]/@data-sku').extract())
+            try:
+                original_text = self.browser.find_element_by_xpath(
+                    '//del[@id="page_origin_price" or @id="page_opprice" or @id="page_hx_price"]').text.strip().replace(
+                    '￥', '')
+            except:
+                original_text = ''
+            if original_text:
+                item['original_price'] = original_text
+            if not 'original_price' in item:
+                item['original_price'] = promotion_price
+                item['promotion_price'] = ''
+            else:
+                item['promotion_price'] = promotion_price
+            if item['promotion_price'] == '' and item['original_price'] == '':
+                logging.error("反爬价格无法获取失败")
+                return
+            try:
+                comment_text = self.browser.find_element_by_xpath(
+                    '//a[contains(@class,"count J-comm")]').text.strip()
+            except:
+                comment_text = self.browser.find_element_by_xpath('//li[@data-anchor="#comment"]/s').text.strip()
+                comment_text = comment_text.replace('(', '').replace(')', '')
+            if comment_text:
+                index = comment_text.find('万')
+                if index != -1:
+                    item['comment_count'] = int(float(comment_text[:index]) * 10000)
                 else:
-                    item['promotion_price'] = promotion_price
-                if item['promotion_price'] == '' and item['original_price'] == '':
-                    logging.error("反爬价格无法获取失败")
-                    return
-                try:
-                    comment_text = self.browser.find_element_by_xpath(
-                        '//a[contains(@class,"count J-comm")]').text.strip()
-                except:
-                    comment_text = self.browser.find_element_by_xpath('//li[@data-anchor="#comment"]/s').text.strip()
-                    comment_text = comment_text.replace('(', '').replace(')', '')
-                if comment_text:
-                    index = comment_text.find('万')
-                    if index != -1:
-                        item['comment_count'] = int(float(comment_text[:index]) * 10000)
-                    else:
-                        comment_count = re.search('\d+', comment_text)
-                        if comment_count:
-                            item['comment_count'] = int(comment_count.group())
-                if self.key_words:
-                   if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
-                        item['category'] = '耳机'
-                   else:
-                        item['category'] = self.key_words[0]
-                if hasattr(self, 'category'):
-                    item['category'] = self.category
-                shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
-                item['shop_id'] = shop_id
-                service_ele = self.browser.find_elements_by_xpath(
-                    '//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
-                service = []
-                for i in service_ele:
-                    service.append(i.text)
-                item['service'] = ','.join(service)
-                reputation_keys = self.browser.find_elements_by_xpath('//span[@class="score-desc"]')
-                reputation_values = self.browser.find_elements_by_xpath('//span[contains(@class,"score-detail")]/em')
-                reputation_list = []
-                for j, i in enumerate(reputation_keys):
-                    reputation_list.append(i.text + ": " + reputation_values[j].text)
-                item['url'] = response.url.replace('http:', 'https:')
-                item['reputation'] = ' '.join(reputation_list)
-                # self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
-                detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt[not(@class)]')
-                detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd[not(@class)]')
-                if len(detail_values)!= len(detail_values):
-                    logging.error('产品参数爬取错误 '+self.browser.current_url)
-                detail_dict = {}
-                detail_str_list = []
-                for j, i in enumerate(detail_keys):
-                    detail_str_list.append(
-                        i.get_attribute('innerText') + ':' + detail_values[j].get_attribute('innerText'))
-                    detail_dict[i.get_attribute('innerText')] = detail_values[j].get_attribute('innerText')
-                if not detail_dict:
-                    detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
-                    for j, i in enumerate(detail_list):
-                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
-                            '\t', '').replace(
-                            '\xa0',
-                            '')
-                        if s.endswith('：') or s.endswith(':'):
-                            detail_str_list.append(s + detail_list[j + 1])
-                            continue
-                        if ':' in s or '：' in s:
-                            detail_str_list.append(s)
-                    item['detail_str'] = ', '.join(detail_str_list)
-                    for i in detail_str_list:
-                        tmp = re.split('[:：]', i)
-                        detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
-                item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
+                    comment_count = re.search('\d+', comment_text)
+                    if comment_count:
+                        item['comment_count'] = int(comment_count.group())
+            if self.key_words:
+               if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                    item['category'] = '耳机'
+               else:
+                    item['category'] = self.key_words[0]
+            if hasattr(self, 'category'):
+                item['category'] = self.category
+            shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
+            item['shop_id'] = shop_id
+            service_ele = self.browser.find_elements_by_xpath(
+                '//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
+            service = []
+            for i in service_ele:
+                service.append(i.text)
+            item['service'] = ','.join(service)
+            reputation_keys = self.browser.find_elements_by_xpath('//span[@class="score-desc"]')
+            reputation_values = self.browser.find_elements_by_xpath('//span[contains(@class,"score-detail")]/em')
+            reputation_list = []
+            for j, i in enumerate(reputation_keys):
+                reputation_list.append(i.text + ": " + reputation_values[j].text)
+            item['url'] = response.url.replace('http:', 'https:')
+            item['reputation'] = ' '.join(reputation_list)
+            # self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
+            detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt[not(@class)]')
+            detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd[not(@class)]')
+            if len(detail_values)!= len(detail_values):
+                logging.error('产品参数爬取错误 '+self.browser.current_url)
+            detail_dict = {}
+            detail_str_list = []
+            for j, i in enumerate(detail_keys):
+                detail_str_list.append(
+                    i.get_attribute('innerText') + ':' + detail_values[j].get_attribute('innerText'))
+                detail_dict[i.get_attribute('innerText')] = detail_values[j].get_attribute('innerText')
+            if not detail_dict:
+                detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
+                for j, i in enumerate(detail_list):
+                    s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
+                        '\t', '').replace(
+                        '\xa0',
+                        '')
+                    if s.endswith('：') or s.endswith(':'):
+                        detail_str_list.append(s + detail_list[j + 1])
+                        continue
+                    if ':' in s or '：' in s:
+                        detail_str_list.append(s)
                 item['detail_str'] = ', '.join(detail_str_list)
-                if self.key_words and self.key_words[0] in self.price_range_list:
-                    price_range = self.price_range_list[self.key_words[0]][0]
-                    temp = re.findall('(\d+)', price_range)
-                    item['price_range'] = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
-                else:
-                    item['price_range'] = ''
-                itemId = re.findall('\d+', response.url)[0]
-                item['out_number'] = itemId
-                item['site_from'] = 11
-                item['site_type'] = 1
-                img_urls = []
-                img_ele = self.browser.find_elements_by_xpath('//div[@id="spec-list"]/ul/li/img')
-                for i in img_ele:
-                    img_urls.append('http://img10.360buyimg.com/n12/%s' % i.get_attribute('data-url'))
-                item['cover_url'] = img_urls[0]
-                item['img_urls'] = ','.join(img_urls)
-                good_data = dict(item)
-                # data = self.get_impression(itemId)
-                # good_data.update(data)
-                print(good_data)
-                try:
-                    res = self.s.post(url=self.goods_url, data=good_data)
-                except:
-                    time.sleep(10)
-                    res = self.s.post(url=self.goods_url, data=good_data)
-                if res.status_code != 200 or json.loads(res.content)['code']:
-                    logging.error("产品保存失败" + response.url)
-                    logging.error(json.loads(res.content)['message'])
-                    self.fail_url_save(response)
-                else:
-                    self.suc_count += 1
-            except Exception as e:
-                logging.error("行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e)))
+                for i in detail_str_list:
+                    tmp = re.split('[:：]', i)
+                    detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
+            item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
+            item['detail_str'] = ', '.join(detail_str_list)
+            if self.key_words and self.key_words[0] in self.price_range_list:
+                price_range = self.price_range_list[self.key_words[0]][0]
+                temp = re.findall('(\d+)', price_range)
+                item['price_range'] = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
+            else:
+                item['price_range'] = ''
+            itemId = re.findall('\d+', response.url)[0]
+            item['out_number'] = itemId
+            item['site_from'] = 11
+            item['site_type'] = 1
+            img_urls = []
+            img_ele = self.browser.find_elements_by_xpath('//div[@id="spec-list"]/ul/li/img')
+            for i in img_ele:
+                img_urls.append('http://img10.360buyimg.com/n12/%s' % i.get_attribute('data-url'))
+            item['cover_url'] = img_urls[0]
+            item['img_urls'] = ','.join(img_urls)
+            good_data = dict(item)
+            # data = self.get_impression(itemId)
+            # good_data.update(data)
+            print(good_data)
+            try:
+                res = self.s.post(url=self.goods_url, data=good_data)
+            except:
+                time.sleep(10)
+                res = self.s.post(url=self.goods_url, data=good_data)
+            if res.status_code != 200 or json.loads(res.content)['code']:
+                logging.error("产品保存失败" + response.url)
+                logging.error(json.loads(res.content)['message'])
                 self.fail_url_save(response)
+            else:
+                self.suc_count += 1
+        except Exception as e:
+            logging.error("行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e)))
+            self.fail_url_save(response)
 
     def parse_detail(self, response):
-        self.detail_data(response)
         list_url = response.meta['list_url']
+        if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
+            logging.error('京东国际 {}'.format(response.url))
+        elif self.browser.current_url== 'https://www.jd.com/?d':
+            logging.error('链接异常 {}'.format(response.url))
+        else:
+            self.detail_data(response)
         list_url.pop(0)
         if list_url:
             yield scrapy.Request(list_url[0], meta={'usedSelenium': True, "list_url": list_url},
