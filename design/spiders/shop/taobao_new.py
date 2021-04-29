@@ -167,6 +167,7 @@ class TaobaoSpider(SeleniumSpider):
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
         self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
         self.new_fail_url = []
+        self.get_list_normal = False
         self.suc_count = 0
         self.s = requests.Session()
         self.s.mount('http://', HTTPAdapter(max_retries=5))
@@ -185,6 +186,27 @@ class TaobaoSpider(SeleniumSpider):
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
+    def fail_url_save(self, response):
+        if self.error_retry:
+            name = self.category
+            fail_url = self.new_fail_url
+        else:
+            name = self.key_words[0]
+            fail_url = self.fail_url
+        price_range = self.get_price_range()
+        for i in fail_url:
+            if i['name'] == name and i['price_range'] == price_range :
+                if response.url not in i['value']:
+                    i['value'].append(response.url)
+                break
+        else:
+            temp = {'name':name, 'value':[response.url],'price_range':price_range}
+            fail_url.append(temp)
+        if self.error_retry:
+            self.new_fail_url = fail_url
+        else:
+            self.fail_url = fail_url
+
     def except_close(self):
         logging.error("待爬取关键词:")
         logging.error(self.key_words)
@@ -200,7 +222,7 @@ class TaobaoSpider(SeleniumSpider):
             if self.list_url:
                 for i in self.new_fail_url:
                     if i['name'] == self.category:
-                        i['value']+=self.list_url
+                        i['value'] += self.list_url
                         break
                 else:
                     self.new_fail_url.append({'price_range': self.get_price_range(), 'name': self.category, 'value': self.list_url})
@@ -209,17 +231,19 @@ class TaobaoSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('taobao', 'fail_url')
         else:
+            if self.get_list_normal and self.key_words:
+                self.key_words.pop(0)
             if self.key_words:
                 self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('taobao', 'keywords')
             if self.list_url:
                 for i in self.fail_url:
-                    if i['name'] == self.category:
+                    if i['name'] == self.key_words[0]:
                         i['value'] += self.list_url
                         break
                 else:
-                    self.fail_url.append({'price_range': self.get_price_range(), 'name': self.category, 'value': self.list_url})
+                    self.fail_url.append({'price_range': self.get_price_range(), 'name': self.key_words[0], 'value': self.list_url})
             if self.fail_url:
                 self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
             else:
@@ -302,26 +326,6 @@ class TaobaoSpider(SeleniumSpider):
         except TimeoutException as e:
             self.browser_get(url)
 
-    def fail_url_save(self, response):
-        if self.error_retry:
-            name = self.category
-            fail_url = self.new_fail_url
-        else:
-            name = self.key_words[0]
-            fail_url = self.fail_url
-        price_range = self.get_price_range()
-        for i in fail_url:
-            if i['name'] == name and i['price_range'] == price_range :
-                if response.url not in i['value']:
-                    i['value'].append(response.url)
-                break
-        else:
-            temp = {'name':name, 'value':[response.url],'price_range':price_range}
-            fail_url.append(temp)
-        if self.error_retry:
-            self.new_fail_url = fail_url
-        else:
-            self.fail_url = fail_url
 
     def start_requests(self):
         # cookies = self.browser.get_cookies()
@@ -341,6 +345,7 @@ class TaobaoSpider(SeleniumSpider):
                              meta={'usedSelenium': True})
 
     def get_list_urls(self):
+        self.get_list_normal = False
         self.browser_get('https://www.taobao.com/')
         self.browser.find_element_by_id('q').send_keys(self.key_words[0])  # 搜索框输入关键词
         self.browser.find_element_by_xpath('//div[@class="search-button"]/button').click()  # 点击搜索
@@ -383,6 +388,7 @@ class TaobaoSpider(SeleniumSpider):
                 '//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
             for i in list_url:
                 list_urls.append(i.get_attribute('href'))
+        self.get_list_normal = True
         return list_urls
 
     def parse_detail(self, response):
@@ -421,7 +427,6 @@ class TaobaoSpider(SeleniumSpider):
             yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
                                  meta={'usedSelenium': True}, dont_filter=True, )
         else:
-            print(self.fail_url)
             if self.error_retry:
                 data = self.fail_url.pop(0)
                 self.list_url = data['value']
