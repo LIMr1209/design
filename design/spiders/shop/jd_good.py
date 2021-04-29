@@ -52,7 +52,7 @@ class JdSpider(SeleniumSpider):
         self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
-        self.search_url = 'https://search.jd.com/Search?keyword={name}&enc=utf-8&spm=a.0.0&wq=&pvid=1480bd72973d4a8e957a746fc07de12d&page={page}&s=53&ev=^exprice_{price_range}^'
+        self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         self.suc_count = 0
 
@@ -72,13 +72,14 @@ class JdSpider(SeleniumSpider):
         else:
             name = self.key_words[0]
             fail_url = self.fail_url
+        price_range = self.get_price_range()
         for i in fail_url:
-            if i['name'] == name:
+            if i['name'] == name and i['price_range'] == price_range:
                 if response.url not in i['value']:
                     i['value'].append(response.url)
                 break
         else:
-            temp = {'name':name, 'value':[response.url]}
+            temp = {'name': name, 'value': [response.url], 'price_range': price_range}
             fail_url.append(temp)
         if self.error_retry:
             self.new_fail_url = fail_url
@@ -96,12 +97,12 @@ class JdSpider(SeleniumSpider):
         logging.error(self.fail_url)
         if self.error_retry:
             if self.new_fail_url:
-                self.redis_cli.insert('jd','fail_url',json.dumps(self.new_fail_url))
+                self.redis_cli.insert('jd', 'fail_url', json.dumps(self.new_fail_url))
             else:
                 self.redis_cli.delete('jd', 'fail_url')
         else:
             if self.page != self.max_page or self.page != 1:
-                self.redis_cli.insert('jd','page',self.page)
+                self.redis_cli.insert('jd', 'page', self.page)
             else:
                 self.redis_cli.delete('jd', 'page')
             if self.page == self.max_page:
@@ -111,42 +112,40 @@ class JdSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('jd', 'keywords')
             if self.fail_url:
-                self.redis_cli.insert('jd','fail_url',json.dumps(self.fail_url))
+                self.redis_cli.insert('jd', 'fail_url', json.dumps(self.fail_url))
             else:
                 self.redis_cli.delete('jd', 'fail_url')
 
     def start_requests(self):
         if self.error_retry:
             data = self.fail_url.pop(0)
-            list_url = data['value']
+            self.list_url = data['value']
             self.category = data['name']
-            yield scrapy.Request(list_url[0], callback=self.parse_detail,
-                                 meta={'usedSelenium': True, 'list_url': list_url},
-                                 dont_filter=True)
+            self.price_range = data['price_range']
         else:
+            self.list_url = self.get_list_urls()
+        yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
+                             meta={'usedSelenium': True}, dont_filter=True)
+
+    def get_list_urls(self):
+        list_url = []
+        if self.key_words:
             if self.key_words[0] in self.price_range_list:
                 url = self.search_url.format(name=self.key_words[0],
                                              price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
             else:
                 url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
-            yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
-        # yield scrapy.Request('https://item.jd.com/68157902835.html', callback=self.parse_detail,
-        #                      meta={'usedSelenium': True})
-        # res = self.s.get('https://opalus.d3ingo.com/api/good_url?site_from=11&category=燃气热水器')
-        # list_url = [i['url'] for i in json.loads(res.content)['data']]
-
-    def parse_list(self, response):
-        urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
-        list_url = []
-        for i in urls:
-            list_url.append(i.get_attribute('href'))
-        if not list_url:
-            self.browser.refresh()
-        urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
-        for i in urls:
-            list_url.append(i.get_attribute('href'))
-        yield scrapy.Request(list_url[0], callback=self.parse_detail, meta={'usedSelenium': True, 'list_url': list_url},
-                             dont_filter=True)
+            self.browser.get(url)
+            time.sleep(3)
+            urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
+            for i in urls:
+                list_url.append(i.get_attribute('href'))
+            if not list_url:
+                self.browser.refresh()
+            urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
+            for i in urls:
+                list_url.append(i.get_attribute('href'))
+        return list_url
 
     def detail_data(self, response):
         item = TaobaoItem()
@@ -216,9 +215,9 @@ class JdSpider(SeleniumSpider):
                     if comment_count:
                         item['comment_count'] = int(comment_count.group())
             if self.key_words:
-               if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
+                if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
                     item['category'] = '耳机'
-               else:
+                else:
                     item['category'] = self.key_words[0]
             if hasattr(self, 'category'):
                 item['category'] = self.category
@@ -240,8 +239,8 @@ class JdSpider(SeleniumSpider):
             # self.browser.find_element_by_xpath('//li[@data-anchor="#detail"][2]').click()
             detail_keys = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dt[not(@class)]')
             detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd[not(@class)]')
-            if len(detail_values)!= len(detail_values):
-                logging.error('产品参数爬取错误 '+self.browser.current_url)
+            if len(detail_values) != len(detail_values):
+                logging.error('产品参数爬取错误 ' + self.browser.current_url)
             detail_dict = {}
             detail_str_list = []
             for j, i in enumerate(detail_keys):
@@ -266,12 +265,7 @@ class JdSpider(SeleniumSpider):
                     detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
             item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
             item['detail_str'] = ', '.join(detail_str_list)
-            if self.key_words and self.key_words[0] in self.price_range_list:
-                price_range = self.price_range_list[self.key_words[0]][0]
-                temp = re.findall('(\d+)', price_range)
-                item['price_range'] = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
-            else:
-                item['price_range'] = ''
+            item['price_range'] = self.get_price_range()
             itemId = re.findall('\d+', response.url)[0]
             item['out_number'] = itemId
             item['site_from'] = 11
@@ -302,27 +296,24 @@ class JdSpider(SeleniumSpider):
             self.fail_url_save(response)
 
     def parse_detail(self, response):
-        list_url = response.meta['list_url']
         if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             logging.error('京东国际 {}'.format(response.url))
-        elif self.browser.current_url== 'https://www.jd.com/?d':
+        elif self.browser.current_url == 'https://www.jd.com/?d':
             logging.error('链接异常 {}'.format(response.url))
         else:
             self.detail_data(response)
-        list_url.pop(0)
-        if list_url:
-            yield scrapy.Request(list_url[0], meta={'usedSelenium': True, "list_url": list_url},
+        self.list_url.pop(0)
+        if self.list_url:
+            yield scrapy.Request(self.list_url[0], meta={'usedSelenium': True},
                                  callback=self.parse_detail,
                                  dont_filter=True)
         else:
             print(self.fail_url)
             if self.error_retry:
                 data = self.fail_url.pop(0)
-                list_url = data['value']
+                self.list_url = data['value']
                 self.category = data['name']
-                yield scrapy.Request(list_url[0], callback=self.parse_detail,
-                                     meta={'usedSelenium': True, 'list_url': list_url},
-                                     dont_filter=True)
+                self.price_range = data['price_range']
             else:
                 if self.key_words[0] in self.price_range_list:
                     page = self.max_price_page
@@ -336,14 +327,9 @@ class JdSpider(SeleniumSpider):
                         self.price_range_list[self.key_words[0]].pop(0)
                     else:
                         self.key_words.pop(0)
-                if self.key_words:
-                    if self.key_words[0] in self.price_range_list:
-                        url = self.search_url.format(name=self.key_words[0],
-                                                     price_range=self.price_range_list[self.key_words[0]][0],
-                                                     page=self.page)
-                    else:
-                        url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
-                    yield scrapy.Request(url, callback=self.parse_list, meta={'usedSelenium': True}, dont_filter=True)
+                self.list_url = self.get_list_urls()
+            yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
+                                 meta={'usedSelenium': True}, dont_filter=True)
 
     def get_impression(self, itemId):
         data = {}
@@ -372,3 +358,14 @@ class JdSpider(SeleniumSpider):
             impression += j['name'] + '(' + str(j['count']) + ')  '
         data['impression'] = impression
         return data
+
+    def get_price_range(self):
+        price_range = ''
+        if self.error_retry:
+            price_range = self.price_range
+        else:
+            if self.key_words and self.key_words[0] in self.price_range_list:
+                price_range = self.price_range_list[self.key_words[0]][0]
+                temp = re.findall('(\d+)', price_range)
+                price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
+        return price_range
