@@ -197,6 +197,13 @@ class TaobaoSpider(SeleniumSpider):
         logging.error('待爬取')
         logging.error(self.list_url)
         if self.error_retry:
+            if self.list_url:
+                for i in self.new_fail_url:
+                    if i['name'] == self.category:
+                        i['value']+=self.list_url
+                        break
+                else:
+                    self.new_fail_url.append({'price_range': self.get_price_range(), 'name': self.category, 'value': self.list_url})
             if self.new_fail_url:
                 self.redis_cli.insert('taobao', 'fail_url', json.dumps(self.new_fail_url))
             else:
@@ -206,6 +213,13 @@ class TaobaoSpider(SeleniumSpider):
                 self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('taobao', 'keywords')
+            if self.list_url:
+                for i in self.fail_url:
+                    if i['name'] == self.category:
+                        i['value'] += self.list_url
+                        break
+                else:
+                    self.fail_url.append({'price_range': self.get_price_range(), 'name': self.category, 'value': self.list_url})
             if self.fail_url:
                 self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
             else:
