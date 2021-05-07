@@ -164,6 +164,7 @@ class TaobaoSpider(SeleniumSpider):
         }
         self.key_words = kwargs['key_words'].split(',') if 'key_words' in kwargs else []
         self.redis_cli = RedisHandle('localhost', '6379')
+        self.list_url = []
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
         self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
         self.new_fail_url = []
@@ -231,6 +232,7 @@ class TaobaoSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('taobao', 'fail_url')
         else:
+            price_range = self.get_price_range()
             if self.get_list_normal and self.key_words:
                 self.key_words.pop(0)
             if self.key_words:
@@ -243,7 +245,7 @@ class TaobaoSpider(SeleniumSpider):
                         i['value'] += self.list_url
                         break
                 else:
-                    self.fail_url.append({'price_range': self.get_price_range(), 'name': self.key_words[0], 'value': self.list_url})
+                    self.fail_url.append({'price_range': price_range, 'name': self.key_words[0], 'value': self.list_url})
             if self.fail_url:
                 self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
             else:
@@ -825,7 +827,7 @@ class TaobaoSpider(SeleniumSpider):
         if self.error_retry:
             price_range = self.price_range
         else:
-            if self.key_words[0] in self.price_range_list:
+            if self.key_words and self.key_words[0] in self.price_range_list:
                 price_range = self.price_range_list[self.key_words[0]][0]
                 temp = re.findall('(\d+)', price_range)
                 price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
