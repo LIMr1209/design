@@ -44,6 +44,7 @@ class JdSpider(SeleniumSpider):
             '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
         }
         self.redis_cli = RedisHandle('localhost', '6379')
+        self.list_url = []
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
         self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
         self.new_fail_url = []
