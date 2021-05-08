@@ -158,10 +158,13 @@ class TaobaoSpider(SeleniumSpider):
         self.page = 1
         self.max_page = kwargs['max_page']
         self.max_price_page = 7  # 价格区间的爬10页
-        self.price_range_list = {
-            '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
-            '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
-        }
+        if 'price_range_list' in kwargs and kwargs['price_range_list']:
+            self.price_range_list = kwargs['price_range_list']
+        else:
+            self.price_range_list = {
+                '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
+                '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
+            }
         self.key_words = kwargs['key_words'].split(',') if 'key_words' in kwargs else []
         self.redis_cli = RedisHandle('localhost', '6379')
         self.list_url = []
@@ -218,8 +221,8 @@ class TaobaoSpider(SeleniumSpider):
         logging.error(self.new_fail_url)
         logging.error('待爬取')
         logging.error(self.list_url)
-        price_range = self.get_price_range()
         category = self.get_category()
+        price_range = self.get_price_range()
         if self.error_retry:
             if self.list_url:
                 for i in self.new_fail_url:
@@ -233,12 +236,6 @@ class TaobaoSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('taobao', 'fail_url')
         else:
-            if self.get_list_normal and self.key_words:
-                self.key_words.pop(0)
-            if self.key_words:
-                self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
-            else:
-                self.redis_cli.delete('taobao', 'keywords')
             if self.list_url:
                 for i in self.fail_url:
                     if i['name'] == category and i['price_range'] == price_range:
@@ -250,6 +247,16 @@ class TaobaoSpider(SeleniumSpider):
                 self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
             else:
                 self.redis_cli.delete('taobao', 'fail_url')
+            if self.get_list_normal and self.key_words:
+                if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
+                    self.price_range_list[self.category].pop(0)
+                else:
+                    self.key_words.pop(0)
+            if self.key_words:
+                self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
+            else:
+                self.redis_cli.delete('taobao', 'keywords')
+            self.redis_cli.insert('taobao','price_range_list', json.dumps(self.price_range_list))
 
     # 滑块破解
     def selenium_code(self):
@@ -823,6 +830,7 @@ class TaobaoSpider(SeleniumSpider):
         if self.error_retry:
             price_range = self.price_range
         else:
+
             if self.category in self.price_range_list:
                 price_range = self.price_range_list[self.category][0]
                 temp = re.findall('(\d+)', price_range)
