@@ -355,8 +355,8 @@ class TaobaoSpider(SeleniumSpider):
             self.category = data['name']
             self.price_range = data['price_range']
         else:
-            self.list_url = self.get_list_urls()  # 获取商品链接
             self.category = self.key_words[0]
+            self.list_url = self.get_list_urls()  # 获取商品链接
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True})
 
@@ -456,8 +456,8 @@ class TaobaoSpider(SeleniumSpider):
                 else:
                     self.key_words.pop(0)
                 if self.key_words:
-                    self.list_url = self.get_list_urls()
                     self.category = self.key_words[0]
+                    self.list_url = self.get_list_urls()
                     yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
                                          meta={'usedSelenium': True})
 
