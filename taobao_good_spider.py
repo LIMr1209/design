@@ -14,6 +14,7 @@ max_page = 15
 kwargs['max_page'] = max_page
 fail_url = redis_cli.query('taobao', 'fail_url')
 keywords = redis_cli.query('taobao', 'keywords')
+price_range_list = redis_cli.query('taobao', 'price_range_list')
 if fail_url:
     try:
         redis_fail_url = json.loads(fail_url)
@@ -25,6 +26,8 @@ if fail_url:
 
 elif keywords:
     kwargs['key_words'] = keywords
+    if price_range_list:
+        kwargs['price_range_list'] = json.loads(price_range_list)
 else:
     kwargs['key_words'] = all_keywords
 process = CrawlerProcess()
