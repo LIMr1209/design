@@ -21,7 +21,6 @@ import logging
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
 
-
 # 解析源代码方式获取 sku 价格样式
 from design.utils.redis_operation import RedisHandle
 
@@ -198,12 +197,12 @@ class TaobaoSpider(SeleniumSpider):
         name = self.get_category()
         price_range = self.get_price_range()
         for i in fail_url:
-            if i['name'] == name and i['price_range'] == price_range :
+            if i['name'] == name and i['price_range'] == price_range:
                 if response.url not in i['value']:
                     i['value'].append(response.url)
                 break
         else:
-            temp = {'name':name, 'value':[response.url],'price_range':price_range}
+            temp = {'name': name, 'value': [response.url], 'price_range': price_range}
             fail_url.append(temp)
         if self.error_retry:
             self.new_fail_url = fail_url
@@ -244,7 +243,7 @@ class TaobaoSpider(SeleniumSpider):
                 else:
                     self.fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
             if self.fail_url:
-                self.redis_cli.insert('taobao','fail_url',json.dumps(self.fail_url))
+                self.redis_cli.insert('taobao', 'fail_url', json.dumps(self.fail_url))
             else:
                 self.redis_cli.delete('taobao', 'fail_url')
             if self.get_list_normal and self.key_words:
@@ -256,7 +255,7 @@ class TaobaoSpider(SeleniumSpider):
                 self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('taobao', 'keywords')
-            self.redis_cli.insert('taobao','price_range_list', json.dumps(self.price_range_list))
+            self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
 
     # 滑块破解
     def selenium_code(self):
@@ -340,7 +339,6 @@ class TaobaoSpider(SeleniumSpider):
             except Exception as e:
                 pass
             self.browser_get(url)
-
 
     def start_requests(self):
         # cookies = self.browser.get_cookies()
@@ -644,7 +642,8 @@ class TaobaoSpider(SeleniumSpider):
                     # item['impression'] = impression
                     good_data = dict(item)
                     print(good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-                          good_data['comment_count'], good_data['price_range'], good_data['category'], good_data['out_number'])
+                          good_data['comment_count'], good_data['price_range'], good_data['category'],
+                          good_data['out_number'])
                     try:
                         res = self.s.post(url=self.goods_url, data=good_data)
                     except:
@@ -789,7 +788,8 @@ class TaobaoSpider(SeleniumSpider):
                     # item['impression'] = impression
                     good_data = dict(item)
                     print(good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-                          good_data['comment_count'], good_data['price_range'], good_data['category'], good_data['out_number'])
+                          good_data['comment_count'], good_data['price_range'], good_data['category'],
+                          good_data['out_number'])
                     try:
                         res = self.s.post(url=self.goods_url, data=good_data)
                     except:
