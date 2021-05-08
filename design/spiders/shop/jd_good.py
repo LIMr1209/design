@@ -40,10 +40,13 @@ class JdSpider(SeleniumSpider):
         self.page = kwargs['page'] if 'page' in kwargs else 1
         self.max_page = kwargs['max_page']
         self.max_price_page = 10  # 价格区间的爬10页
-        self.price_range_list = {
-            '吹风机': ['459-750', '751-999', '1000gt'],
-            '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
-        }
+        if 'price_range_list' in kwargs and kwargs['price_range_list']:
+            self.price_range_list = kwargs['price_range_list']
+        else:
+            self.price_range_list = {
+                '吹风机': ['459-750', '751-999', '1000gt'],
+                '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
+            }
         self.redis_cli = RedisHandle('localhost', '6379')
         self.list_url = []
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
@@ -69,11 +72,10 @@ class JdSpider(SeleniumSpider):
 
     def fail_url_save(self, response):
         if self.error_retry:
-            name = self.category
             fail_url = self.new_fail_url
         else:
-            name = self.key_words[0]
             fail_url = self.fail_url
+        name = self.get_category()
         price_range = self.get_price_range()
         for i in fail_url:
             if i['name'] == name and i['price_range'] == price_range:
@@ -108,8 +110,12 @@ class JdSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('jd', 'page')
             if self.page == self.max_page:
-                self.key_words.pop(0)
+                if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
+                    self.price_range_list[self.category].pop(0)
+                else:
+                    self.key_words.pop(0)
             if self.key_words:
+                self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
                 self.redis_cli.insert('jd', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('jd', 'keywords')
@@ -137,28 +143,28 @@ class JdSpider(SeleniumSpider):
             self.category = data['name']
             self.price_range = data['price_range']
         else:
+            self.category = self.key_words[0]
             self.list_url = self.get_list_urls()
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
                              meta={'usedSelenium': True}, dont_filter=True)
 
     def get_list_urls(self):
         list_url = []
-        if self.key_words:
-            if self.key_words[0] in self.price_range_list:
-                url = self.search_url.format(name=self.key_words[0],
-                                             price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
-            else:
-                url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
-            self.browser_get(url)
-            time.sleep(3)
-            urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
-            for i in urls:
-                list_url.append(i.get_attribute('href'))
-            if not list_url:
-                self.browser.refresh()
-            urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
-            for i in urls:
-                list_url.append(i.get_attribute('href'))
+        if self.category in self.price_range_list:
+            url = self.search_url.format(name=self.category,
+                                         price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
+        else:
+            url = self.search_url.format(name=self.category, price_range='', page=self.page)
+        self.browser_get(url)
+        time.sleep(3)
+        urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
+        for i in urls:
+            list_url.append(i.get_attribute('href'))
+        if not list_url:
+            self.browser.refresh()
+        urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
+        for i in urls:
+            list_url.append(i.get_attribute('href'))
         return list_url
 
     def detail_data(self, response):
@@ -228,13 +234,7 @@ class JdSpider(SeleniumSpider):
                     comment_count = re.search('\d+', comment_text)
                     if comment_count:
                         item['comment_count'] = int(comment_count.group())
-            if self.key_words:
-                if self.key_words[0] == '真无线蓝牙耳机 降噪 入耳式':
-                    item['category'] = '耳机'
-                else:
-                    item['category'] = self.key_words[0]
-            if hasattr(self, 'category'):
-                item['category'] = self.category
+            item['category'] = self.get_category()
             shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
             item['shop_id'] = shop_id
             service_ele = self.browser.find_elements_by_xpath(
@@ -329,7 +329,7 @@ class JdSpider(SeleniumSpider):
                 self.category = data['name']
                 self.price_range = data['price_range']
             else:
-                if self.key_words[0] in self.price_range_list:
+                if self.category in self.price_range_list:
                     page = self.max_price_page
                 else:
                     page = self.max_page
@@ -337,13 +337,16 @@ class JdSpider(SeleniumSpider):
                     self.page += 1
                 else:
                     self.page = 1
-                    if self.key_words[0] in self.price_range_list and len(self.price_range_list[self.key_words[0]]) > 1:
-                        self.price_range_list[self.key_words[0]].pop(0)
+                    if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
+                        self.price_range_list[self.category].pop(0)
                     else:
                         self.key_words.pop(0)
-                self.list_url = self.get_list_urls()
-            yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
-                                 meta={'usedSelenium': True}, dont_filter=True)
+                if self.key_words:
+                    self.category = self.key_words[0]
+                    self.list_url = self.get_list_urls()
+            if self.list_url:
+                yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
+                                     meta={'usedSelenium': True}, dont_filter=True)
 
     def get_impression(self, itemId):
         data = {}
@@ -383,3 +386,9 @@ class JdSpider(SeleniumSpider):
                 temp = re.findall('(\d+)', price_range)
                 price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
         return price_range
+
+    def get_category(self):
+        if self.category == '真无线蓝牙耳机 降噪 入耳式':
+            return '耳机'
+        else:
+            return self.category

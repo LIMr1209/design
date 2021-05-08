@@ -16,6 +16,7 @@ kwargs['max_page'] = max_page
 fail_url = redis_cli.query('jd', 'fail_url')
 page = redis_cli.query('jd', 'page')
 keywords = redis_cli.query('jd', 'keywords')
+price_range_list = redis_cli.query('jd', 'price_range_list')
 if fail_url:
     try:
         redis_fail_url = json.loads(fail_url)
@@ -28,6 +29,8 @@ if fail_url:
 elif page or keywords:
     kwargs['page'] = int(page) if page else 1
     kwargs['key_words'] = keywords
+    if price_range_list:
+        kwargs['price_range_list'] = json.loads(price_range_list)
 else:
     kwargs['key_words'] = all_keywords
 process = CrawlerProcess()

@@ -458,8 +458,9 @@ class TaobaoSpider(SeleniumSpider):
                 if self.key_words:
                     self.category = self.key_words[0]
                     self.list_url = self.get_list_urls()
-                    yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
-                                         meta={'usedSelenium': True})
+            if self.list_url:
+                yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
+                                     meta={'usedSelenium': True})
 
     def save_tmall_data(self, response):
         # time.sleep(2)
