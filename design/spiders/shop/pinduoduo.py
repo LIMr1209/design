@@ -13,7 +13,7 @@ from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support import expected_conditions as EC
 
 from design.utils.antiContent_Js import js
@@ -134,6 +134,12 @@ class PddSpider(SeleniumSpider):
         try:
             self.browser.get(url)
         except TimeoutException as e:
+            self.browser_get(url)
+        except WebDriverException as e:
+            try:
+                self.browser.execute_script('window.stop()')
+            except Exception as e:
+                pass
             self.browser_get(url)
 
     # 切换登陆信息

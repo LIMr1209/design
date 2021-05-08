@@ -141,6 +141,7 @@ class SeleniumSpider(scrapy.Spider):
         # if self.windowHeight and self.windowWidth:
         #     self.browser.set_window_size(900, 900)
         self.browser.set_page_load_timeout(kwargs['time_out'])  # 页面加载超时时间
+        self.browser.set_script_timeout(10) # 执行js 超时时间
         self.wait = WebDriverWait(self.browser, 30)  # 指定元素加载超时时间
         # 设置信号量，当收到spider_closed信号时，调用mySpiderCloseHandle方法，关闭chrome
         # dispatcher.connect(receiver=self.mySpiderCloseHandle,

@@ -62,8 +62,11 @@ class SeleniumMiddleware():
                                     encoding='utf-8',
                                     status=200)
             except Exception as e:
-                spider.browser.execute_script('window.stop()')
-                print(f"chrome getting page error, Exception = {e}",request.url)
+                try:
+                    spider.browser.execute_script('window.stop()')
+                    print(f"chrome getting page error, Exception = {e}",request.url)
+                except:
+                    pass
                 return HtmlResponse(url=request.url, status=500, request=request)
             # 页面爬取成功，构造一个成功的Response对象(HtmlResponse是它的子类)
             return HtmlResponse(url=request.url,

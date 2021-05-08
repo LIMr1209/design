@@ -11,6 +11,7 @@ from pydispatch import dispatcher
 from requests.adapters import HTTPAdapter
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
@@ -117,6 +118,18 @@ class JdSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('jd', 'fail_url')
 
+    def browser_get(self, url):
+        try:
+            self.browser.get(url)
+        except TimeoutException as e:
+            self.browser_get(url)
+        except WebDriverException as e:
+            try:
+                self.browser.execute_script('window.stop()')
+            except Exception as e:
+                pass
+            self.browser_get(url)
+
     def start_requests(self):
         if self.error_retry:
             data = self.fail_url.pop(0)
@@ -136,7 +149,7 @@ class JdSpider(SeleniumSpider):
                                              price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
             else:
                 url = self.search_url.format(name=self.key_words[0], price_range='', page=self.page)
-            self.browser.get(url)
+            self.browser_get(url)
             time.sleep(3)
             urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
             for i in urls:
