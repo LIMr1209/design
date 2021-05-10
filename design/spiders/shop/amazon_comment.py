@@ -80,7 +80,7 @@ class AmazonCommentSpider(SeleniumSpider):
 
 
     def start_requests(self):
-        params = {'category': '', 'site_from': 12, 'per_page': 1000}
+        params = {'category': '烤饼机', 'site_from': 12, 'per_page': 1000}
         res = self.s.get(self.comment_url, params=params, verify=False)
         res = json.loads(res.content)
         goods_data = res['data']

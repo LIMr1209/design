@@ -14,6 +14,7 @@ from pydispatch import dispatcher
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from design.spiders.selenium import SeleniumSpider
+from design.utils.redis_operation import RedisHandle
 
 
 class AmazonGoodSpider(SeleniumSpider):
@@ -31,24 +32,25 @@ class AmazonGoodSpider(SeleniumSpider):
     }
 
     def __init__(self, *args, **kwargs):
-        self.key_words = kwargs['key_words'].split(',')
+        self.key_words = kwargs['key_words']
         self.page = 1
-        self.error_retry = 0
+        self.redis_cli = RedisHandle('localhost', '6379')
+        self.list_url = []
+        self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
+        self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
+        self.new_fail_url = []
+        self.zh_category = ''
+        self.yx_category = ''
+        self.get_list_normal = False
+        self.suc_count = 0
         # self.max_page = kwargs['max_page']
         # self.max_price_page = 7  # 价格区间的爬10页
-        # self.price_range_list = {
-        #     '吹风机': ['459-750', '751-999', '1000gt'],
-        #     '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
-        # }
         self.s = requests.Session()
         self.s.mount('http://', HTTPAdapter(max_retries=5))
         self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
         self.search_url = 'https://www.amazon.com/s?k=%s&page=%s&qid=1616466294&ref=sr_pg_%s'
-        self.comment_data_url = ''
-        self.fail_url = {}
-        self.suc_count = 0
 
         super(AmazonGoodSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -62,15 +64,50 @@ class AmazonGoodSpider(SeleniumSpider):
     def except_close(self):
         logging.error("待爬取关键词:")
         logging.error(self.key_words)
-        logging.error('页码')
-        logging.error(self.page)
-        # logging.error('价位档')
-        # logging.error(self.price_range_list)
+        logging.error('价位档')
+        logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
+        logging.error('爬取失败')
+        logging.error(self.new_fail_url)
+        logging.error('待爬取')
+        logging.error(self.list_url)
+        category = self.zh_category
+        price_range = ''
+        if self.error_retry:
+            if self.list_url:
+                for i in self.new_fail_url:
+                    if i['name'] == category and i['price_range'] == price_range:
+                        i['value'] += self.list_url
+                        break
+                else:
+                    self.new_fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
+            if self.new_fail_url:
+                self.redis_cli.insert('amazon', 'fail_url', json.dumps(self.new_fail_url))
+            else:
+                self.redis_cli.delete('amazon', 'fail_url')
+        else:
+            if self.list_url:
+                for i in self.fail_url:
+                    if i['name'] == category and i['price_range'] == price_range:
+                        i['value'] += self.list_url
+                        break
+                else:
+                    self.fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
+            if self.fail_url:
+                self.redis_cli.insert('amazon', 'fail_url', json.dumps(self.fail_url))
+            else:
+                self.redis_cli.delete('amazon', 'fail_url')
+            if self.get_list_normal and self.key_words:
+                self.key_words.pop(0)
+            if self.key_words:
+                self.redis_cli.insert('amazon', 'keywords', json.dumps(self.key_words))
+            else:
+                self.redis_cli.delete('amazon', 'keywords')
 
     def get_list_urls(self):
-        self.browser.get(self.search_url % (self.key_words[0], self.page, self.page))
+        self.get_list_normal = False
+        self.browser.get(self.search_url % (self.yx_category, self.page, self.page))
         time.sleep(2)
         max_page = int(
             self.browser.find_element_by_xpath('//li[@class="a-last"]/preceding-sibling::li[1]').get_attribute(
@@ -88,27 +125,35 @@ class AmazonGoodSpider(SeleniumSpider):
                 '//span[@data-component-type="s-product-image"]/../..//a[@class="a-link-normal s-no-outline"]')
             for i in list_url:
                 list_urls.append(i.get_attribute('href'))
+        self.get_list_normal = True
         return list_urls
 
-    def fail_url_save(self, url):
+    def fail_url_save(self, response):
         if self.error_retry:
-            if self.category in self.fail_url:
-                self.fail_url[self.category].append(url)
-            else:
-                self.fail_url[self.category] = [url]
+            fail_url = self.new_fail_url
         else:
-            if self.key_words[0] in self.fail_url:
-                self.fail_url[self.key_words[0]].append(url)
-            else:
-                self.fail_url[self.key_words[0]] = [url]
+            fail_url = self.fail_url
+        name = self.zh_category
+        price_range = ''
+        for i in fail_url:
+            if i['name'] == name and i['price_range'] == price_range:
+                if response.url not in i['value']:
+                    i['value'].append(response.url)
+                break
+        else:
+            temp = {'name': name, 'value': [response.url], 'price_range': price_range}
+            fail_url.append(temp)
+        if self.error_retry:
+            self.new_fail_url = fail_url
+        else:
+            self.fail_url = fail_url
 
     def start_requests(self):
-        # list_url = self.get_list_urls()
-        list_url = ['https://www.amazon.com/Kero-World-KW-24G-Portable-Convection/dp/B000050I7X/ref=sr_1_119?dchild=1&keywords=heater&qid=1616554368&sr=8-119', 'https://www.amazon.com/Soleil-Personal-Electric-Ceramic-Heater/dp/B08TZX4WZH/ref=sr_1_225_mod_primary_new?dchild=1&keywords=heater&qid=1616554382&sbo=RZvfv%2F%2FHxDF%2BO5021pAnSA%3D%3D&sr=8-225', 'https://www.amazon.com/Mr-Heater-Corporation-Vent-Free-Radiant/dp/B01DPZ5BPU/ref=sr_1_265?dchild=1&keywords=heater&qid=1616554391&sr=8-265', 'https://www.amazon.com/EdenPURE-GEN21-Infrared-Heater-Cooler/dp/B01MXXJEL2/ref=sr_1_266?dchild=1&keywords=heater&qid=1616554391&sr=8-266', 'https://www.amazon.com/Portable-Electric-Heaters-Thermostat-Bedroom/dp/B08LDVRSLT/ref=sr_1_270_sspa?dchild=1&keywords=heater&qid=1616554391&sr=8-270-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUEyUjQ0VUdVT1BVVlpKJmVuY3J5cHRlZElkPUEwNzUzMzUwM0s0WVg5UEhaVDVRMiZlbmNyeXB0ZWRBZElkPUEwNzUxNzQ4M00wMDk3U1JMQ1o5RiZ3aWRnZXROYW1lPXNwX210ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=', 'https://www.amazon.com/Edenpure-EdenPURE-GEN40-Hybrid-Heater/dp/B08358Y7SJ/ref=sr_1_311_sspa?dchild=1&keywords=heater&qid=1616554399&sr=8-311-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUEzQlZHOUszMEw2SVpKJmVuY3J5cHRlZElkPUEwNDA1NDk1MTI2MzNOSDFOSUo5VCZlbmNyeXB0ZWRBZElkPUEwMjk5OTA5MjhOQU9KQlRINzZFSyZ3aWRnZXROYW1lPXNwX210ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=']
-        self.category = '取暖器'
-        self.error_retry = 1
-        yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
-                             meta={'usedSelenium': True, 'list_url': list_url})
+        self.zh_category = self.key_words[0]['name']
+        self.yx_category = self.key_words[0]['value']
+        self.list_url = self.get_list_urls()
+        yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
+                             meta={'usedSelenium': True})
 
     def parse_detail(self, response):
         res = self.save_amazon_data(response)
@@ -123,20 +168,27 @@ class AmazonGoodSpider(SeleniumSpider):
                 self.fail_url_save(self.browser.current_url)
             else:
                 self.suc_count += 1
-        list_url = response.meta['list_url']
-        list_url.pop(0)
-        if list_url:
-            yield scrapy.Request(list_url[0], callback=self.parse_detail,
-                                 meta={'usedSelenium': True, "list_url": list_url}, dont_filter=True, )
+        self.list_url.pop(0)
+        if self.list_url:
+            yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
+                                 meta={'usedSelenium': True}, dont_filter=True)
         else:
             print(self.fail_url)
-            if self.error_retry == 0:
+            if self.error_retry:
+                if self.fail_url:
+                    data = self.fail_url.pop(0)
+                    self.list_url = data['value']
+                    self.zh_category = data['name']
+                    self.price_range = data['price_range']
+            else:
                 self.page = 1
-                self.key_words.pop(0)
                 if self.key_words:
-                    list_url = self.get_list_urls()
-                    yield scrapy.Request(list_url[0], callback=self.parse_detail, dont_filter=True,
-                                         meta={'usedSelenium': True, 'list_url': list_url})
+                    self.zh_category = self.key_words[0]['name']
+                    self.yx_category = self.key_words[0]['name']
+                    self.list_url = self.get_list_urls()
+            if self.list_url:
+                yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
+                                     meta={'usedSelenium': True})
 
     def save_amazon_data(self, response):
         item = TaobaoItem()
@@ -262,7 +314,7 @@ class AmazonGoodSpider(SeleniumSpider):
             out_number = url.rsplit('/', 1)[1]
             item['url'] = url
             item['out_number'] = out_number
-            item['category'] = '取暖器'
+            item['category'] = '烤饼机'
             good_data = dict(item)
             print(good_data)
             try:
