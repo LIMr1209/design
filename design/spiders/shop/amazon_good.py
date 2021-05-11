@@ -119,7 +119,7 @@ class AmazonGoodSpider(SeleniumSpider):
             list_urls.append(i.get_attribute('href'))
         while self.page < max_page:
             self.page += 1
-            self.browser.get(self.search_url % (self.key_words[0], self.page, self.page))
+            self.browser.get(self.search_url % (self.yx_category, self.page, self.page))
             time.sleep(2)
             list_url = self.browser.find_elements_by_xpath(
                 '//span[@data-component-type="s-product-image"]/../..//a[@class="a-link-normal s-no-outline"]')
@@ -184,7 +184,7 @@ class AmazonGoodSpider(SeleniumSpider):
                 self.page = 1
                 if self.key_words:
                     self.zh_category = self.key_words[0]['name']
-                    self.yx_category = self.key_words[0]['name']
+                    self.yx_category = self.key_words[0]['value']
                     self.list_url = self.get_list_urls()
             if self.list_url:
                 yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
@@ -314,7 +314,7 @@ class AmazonGoodSpider(SeleniumSpider):
             out_number = url.rsplit('/', 1)[1]
             item['url'] = url
             item['out_number'] = out_number
-            item['category'] = '烤饼机'
+            item['category'] = self.zh_category
             good_data = dict(item)
             print(good_data)
             try:

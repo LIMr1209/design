@@ -9,7 +9,8 @@ from design.utils.redis_operation import RedisHandle
 redis_cli = RedisHandle('localhost', '6379')
 kwargs = {"se_port": '9222', 'time_out': 5, 'dev': False}
 all_keywords = [
-    {'name': '烤饼机', 'value':'electric baking pan'},
+    # {'name': '烤饼机', 'value':'electric baking pan'},
+    {'name': '空气炸锅', 'value':'AirFryer'},
 ]
 # max_page = 15
 # while True:
