@@ -64,8 +64,6 @@ class AmazonGoodSpider(SeleniumSpider):
     def except_close(self):
         logging.error("待爬取关键词:")
         logging.error(self.key_words)
-        logging.error('价位档')
-        logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
         logging.error('爬取失败')
@@ -158,14 +156,14 @@ class AmazonGoodSpider(SeleniumSpider):
     def parse_detail(self, response):
         res = self.save_amazon_data(response)
         if not res['success']:
-            self.fail_url_save(self.browser.current_url)
+            self.fail_url_save(response)
             logging.error(res['message'])
         else:
             respon = res['res']
             if respon.status_code != 200 or json.loads(respon.content)['code']:
                 logging.error("产品保存失败" + response.url)
                 logging.error(json.loads(respon.content)['message'])
-                self.fail_url_save(self.browser.current_url)
+                self.fail_url_save(response)
             else:
                 self.suc_count += 1
         self.list_url.pop(0)
