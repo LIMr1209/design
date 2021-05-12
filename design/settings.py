@@ -176,6 +176,7 @@ OPALUS_GOODS_URL = cf.get('api', 'opalus_goods_url')
 OPALUS_COMMENT_URL = cf.get('api', 'opalus_comment_url')
 OPALUS_GOODS_COMMENT_URL = cf.get('api', 'opalus_goods_comment_url')
 PRODUCT_SAVE_URL = cf.get('api', 'product_save_url')
+# OPALUS_GOODS_CATEGORY_URL = cf.get('api', 'opalus_goods_category_url')
 IMG_SAVE_PATH = cf.get('img', 'save_path')
 # 隧道代理
 TUNNEL_DOMAIN = cf.get('proxies', 'tunnel_domain')

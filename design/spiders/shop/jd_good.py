@@ -323,7 +323,7 @@ class JdSpider(SeleniumSpider):
                                  dont_filter=True)
         else:
             print(self.fail_url)
-            if self.error_retry:
+            if self.error_retry and self.fail_url:
                 data = self.fail_url.pop(0)
                 self.list_url = data['value']
                 self.category = data['name']

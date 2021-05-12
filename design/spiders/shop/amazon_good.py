@@ -172,12 +172,11 @@ class AmazonGoodSpider(SeleniumSpider):
                                  meta={'usedSelenium': True}, dont_filter=True)
         else:
             print(self.fail_url)
-            if self.error_retry:
-                if self.fail_url:
-                    data = self.fail_url.pop(0)
-                    self.list_url = data['value']
-                    self.zh_category = data['name']
-                    self.price_range = data['price_range']
+            if self.error_retry and self.fail_url:
+                data = self.fail_url.pop(0)
+                self.list_url = data['value']
+                self.zh_category = data['name']
+                self.price_range = data['price_range']
             else:
                 self.page = 1
                 if self.key_words:

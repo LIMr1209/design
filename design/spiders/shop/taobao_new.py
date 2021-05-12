@@ -441,7 +441,7 @@ class TaobaoSpider(SeleniumSpider):
             yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
                                  meta={'usedSelenium': True}, dont_filter=True, )
         else:
-            if self.error_retry:
+            if self.error_retry and self.fail_url:
                 if self.fail_url:
                     data = self.fail_url.pop(0)
                     self.list_url = data['value']
