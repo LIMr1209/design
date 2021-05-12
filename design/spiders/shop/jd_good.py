@@ -325,11 +325,12 @@ class JdSpider(SeleniumSpider):
                                  dont_filter=True)
         else:
             print(self.fail_url)
-            if self.error_retry and self.fail_url:
-                data = self.fail_url.pop(0)
-                self.list_url = data['value']
-                self.category = data['name']
-                self.price_range = data['price_range']
+            if self.error_retry:
+                if self.fail_url:
+                    data = self.fail_url.pop(0)
+                    self.list_url = data['value']
+                    self.category = data['name']
+                    self.price_range = data['price_range']
             else:
                 if self.category in self.price_range_list:
                     page = self.max_price_page
