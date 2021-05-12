@@ -230,6 +230,13 @@ class TaobaoSpider(SeleniumSpider):
                         break
                 else:
                     self.new_fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
+            if self.fail_url:
+                for i in self.fail_url:
+                    for j in self.new_fail_url:
+                        if i['name'] == j['name'] and i['price_range'] == j['price_range']:
+                            j['value'] = list(set(i['value']+j['value']))
+                            break
+
             if self.new_fail_url:
                 self.redis_cli.insert('taobao', 'fail_url', json.dumps(self.new_fail_url))
             else:
