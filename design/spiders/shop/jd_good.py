@@ -100,6 +100,14 @@ class JdSpider(SeleniumSpider):
         logging.error('爬取失败')
         logging.error(self.fail_url)
         if self.error_retry:
+            if self.fail_url:
+                for i in self.fail_url:
+                    for j in self.new_fail_url:
+                        if i['name'] == j['name'] and i['price_range'] == j['price_range']:
+                            j['value'] = list(set(i['value']+j['value']))
+                            break
+                    else:
+                        self.new_fail_url.append(i)
             if self.new_fail_url:
                 self.redis_cli.insert('jd', 'fail_url', json.dumps(self.new_fail_url))
             else:
