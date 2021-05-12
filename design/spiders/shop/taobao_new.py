@@ -236,6 +236,8 @@ class TaobaoSpider(SeleniumSpider):
                         if i['name'] == j['name'] and i['price_range'] == j['price_range']:
                             j['value'] = list(set(i['value']+j['value']))
                             break
+                    else:
+                        self.new_fail_url.append(i)
 
             if self.new_fail_url:
                 self.redis_cli.insert('taobao', 'fail_url', json.dumps(self.new_fail_url))
