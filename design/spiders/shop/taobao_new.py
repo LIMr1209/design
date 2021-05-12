@@ -557,7 +557,7 @@ class TaobaoSpider(SeleniumSpider):
                         item['comment_count'] = self.browser.find_element_by_xpath(
                             '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
                     except:
-                        pass
+                        item['comment_count'] = 0
                     try:
                         sale_xpath = self.browser.find_element_by_xpath(
                             '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]').get_attribute(
