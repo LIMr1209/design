@@ -312,6 +312,8 @@ class JdSpider(SeleniumSpider):
     def parse_detail(self, response):
         if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             logging.error('京东国际 {}'.format(response.url))
+        elif 'paimai.jd.com' in self.browser.current_url:  # 京东拍卖不爬
+            logging.error('京东拍卖 {}'.format(response.url))
         elif self.browser.current_url == 'https://www.jd.com/?d':
             logging.error('链接异常 {}'.format(response.url))
         else:
