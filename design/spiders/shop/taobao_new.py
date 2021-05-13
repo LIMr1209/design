@@ -17,14 +17,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException, WebDriverException
 import logging
-
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
-
-# 解析源代码方式获取 sku 价格样式
 from design.utils.redis_operation import RedisHandle
 
-
+# 解析源代码方式获取 sku 价格样式
 def sku_price_func(browser, site_from):
     page_source = browser.page_source
     rex = re.compile('skuMap.*(\{";.*?}})')
@@ -50,9 +47,31 @@ def sku_price_func(browser, site_from):
                 style[cate] = text
         detail_price.append({
             'skuid': skuid,
+            'style_list_num': style_list_num,
             'original_price': original_price,
-            'style': style
+            'style': style,
         })
+    if site_from == 9:
+        asset = re.compile('propertyPics.*({";.*?})')
+        try:
+            asset_res = re.findall(asset, page_source)[0]
+        except:
+            return ''
+        asset_list = json.loads(asset_res)
+    else:
+        asset_list = {}
+        asset_li = browser.find_elements_by_xpath('//ul[contains(@class,"J_TSaleProp")]/li/a[contains(@style,"background")]/..')
+        for i in asset_li:
+            key = i.get_attribute('data-value')
+            # background:url(//gd2.alicdn.com/imgextra/i1/1984614308/O1CN0145QGCF1hh6rcfvzES_!!1984614308.jpg_30x30.jpg) center no-repeat;
+            value = i.find_element_by_xpath('./a/').get_attribute('style')
+            value = 'https:' + re.findall('background:url\((.*)\)', value)[0].rsplit('_', 1)[0]
+            asset_list[key] = value
+    for key, value in asset_list.items():
+        for i in detail_price:
+            if key in i['style_list_num']:
+                i['cover_url'] = value
+            i.pop('style_list_num')
     return detail_price
 
 
