@@ -63,9 +63,9 @@ def sku_price_func(browser, site_from):
         asset_li = browser.find_elements_by_xpath('//ul[contains(@class,"J_TSaleProp")]/li/a[contains(@style,"background")]/..')
         for i in asset_li:
             key = i.get_attribute('data-value')
-            value = i.find_element_by_xpath('./a/').get_attribute('style')
-            value = re.findall('background:url\((.*)\)', value)[0].rsplit('_', 1)[0]
-            asset_list[key] = value
+            value = i.find_element_by_xpath('./a').get_attribute('style')
+            value = re.findall('background: url\("(.*)"\)', value)[0].rsplit('_', 1)[0]
+            asset_list[key] = [value]
     for i in detail_price:
         for key, value in asset_list.items():
             if key.replace(';','') in i['style_list_num']:
