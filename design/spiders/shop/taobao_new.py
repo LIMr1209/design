@@ -52,7 +52,7 @@ def sku_price_func(browser, site_from):
             'style': style,
         })
     if site_from == 9:
-        asset = re.compile('propertyPics.*({";.*?})')
+        asset = re.compile('propertyPics":({".*?})')
         try:
             asset_res = re.findall(asset, page_source)[0]
         except:
@@ -66,11 +66,11 @@ def sku_price_func(browser, site_from):
             value = i.find_element_by_xpath('./a/').get_attribute('style')
             value = re.findall('background:url\((.*)\)', value)[0].rsplit('_', 1)[0]
             asset_list[key] = value
-    for key, value in asset_list.items():
-        for i in detail_price:
-            if key in i['style_list_num']:
-                i['cover_url'] = 'https' + value
-            i.pop('style_list_num')
+    for i in detail_price:
+        for key, value in asset_list.items():
+            if key.replace(';','') in i['style_list_num']:
+                i['cover_url'] = 'https:' + value[0]
+        i.pop('style_list_num')
     return detail_price
 
 
