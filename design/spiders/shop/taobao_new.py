@@ -63,14 +63,13 @@ def sku_price_func(browser, site_from):
         asset_li = browser.find_elements_by_xpath('//ul[contains(@class,"J_TSaleProp")]/li/a[contains(@style,"background")]/..')
         for i in asset_li:
             key = i.get_attribute('data-value')
-            # background:url(//gd2.alicdn.com/imgextra/i1/1984614308/O1CN0145QGCF1hh6rcfvzES_!!1984614308.jpg_30x30.jpg) center no-repeat;
             value = i.find_element_by_xpath('./a/').get_attribute('style')
-            value = 'https:' + re.findall('background:url\((.*)\)', value)[0].rsplit('_', 1)[0]
+            value = re.findall('background:url\((.*)\)', value)[0].rsplit('_', 1)[0]
             asset_list[key] = value
     for key, value in asset_list.items():
         for i in detail_price:
             if key in i['style_list_num']:
-                i['cover_url'] = value
+                i['cover_url'] = 'https' + value
             i.pop('style_list_num')
     return detail_price
 
