@@ -44,7 +44,8 @@ def sku_price_func(browser, site_from):
                     continue
                 cate = ele.find_element_by_xpath('../../ul').get_attribute('data-property')
                 text = ele.find_element_by_xpath('./a/span').get_attribute('innerText')
-                style[cate] = text
+                if cate and text:
+                    style[cate] = text
         detail_price.append({
             'skuid': skuid,
             'style_list_num': style_list_num,
