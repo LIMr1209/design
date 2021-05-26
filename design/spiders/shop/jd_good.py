@@ -198,7 +198,7 @@ class JdSpider(SeleniumSpider):
             except:
                 promotion_price = ''
             if promotion_price == '':
-                if "预售剩余" in self.browser.page_source:
+                if "预售" in self.browser.page_source:
                     logging.error('预售 {}'.format(response.url))
                     return
                 time.sleep(60)
