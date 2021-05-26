@@ -513,6 +513,8 @@ class TaobaoSpider(SeleniumSpider):
                     item = TaobaoItem()
                     if "此商品已下架" in self.browser.page_source:
                         return {'success': True, 'message': '此商品已下架'}
+                    if "此商品太受欢迎了，当前库存已提前售罄。" in self.browser.page_source:
+                        return {'success': True, 'message': '当前库存已提前售罄'}
                     if '起拍价格' in self.browser.page_source:
                         return {'success': True, 'message': '商品拍卖'}
                     try:
