@@ -592,8 +592,8 @@ class TaobaoSpider(SeleniumSpider):
                         if '预售价' in self.browser.page_source:
                             item['sale_count'] = 0
                         else:
-                            print("产品爬取失败", response.url, str("验证码"))
-                            return {'success': False, 'message': "验证码销量无法获取"}
+                            print("产品爬取失败", response.url, str("天猫验证码销量无法获取"))
+                            return {'success': False, 'message': "天猫验证码销量无法获取"}
 
                     try:
                         elem = WebDriverWait(self.browser, 20, 0.5).until(
@@ -745,9 +745,14 @@ class TaobaoSpider(SeleniumSpider):
                         pass
                     try:
                         item['comment_count'] = self.browser.find_element_by_xpath(
-                            '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
+                            '//*[@id="J_RateCounter"]').get_attribute('innerText')
+                            # '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
                     except:
-                        pass
+                        print("产品爬取失败", response.url, str("淘宝验证码评论量无法获取"))
+                        return {'success': False, 'message': '验证码评论量无法获取'}
+                    if item['comment_count'] == '-':
+                        print("产品爬取失败", response.url, str("验证码"))
+                        return {'success': False, 'message': '淘宝验证码销量无法获取'}
                     sale_xpath = self.browser.find_element_by_xpath('//*[@id="J_SellCounter"]').get_attribute(
                         'innerText')
                     if sale_xpath:
