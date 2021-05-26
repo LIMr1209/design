@@ -513,6 +513,8 @@ class TaobaoSpider(SeleniumSpider):
                     item = TaobaoItem()
                     if "此商品已下架" in self.browser.page_source:
                         return {'success': True, 'message': '此商品已下架'}
+                    if "此商品太受欢迎了，当前库存已提前售罄。" in self.browser.page_source:
+                        return {'success': True, 'message': '当前库存已提前售罄'}
                     if '起拍价格' in self.browser.page_source:
                         return {'success': True, 'message': '商品拍卖'}
                     try:
@@ -671,9 +673,10 @@ class TaobaoSpider(SeleniumSpider):
                     # impression = self.get_impression(itemId)
                     # item['impression'] = impression
                     good_data = dict(item)
-                    print(good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-                          good_data['comment_count'], good_data['price_range'], good_data['category'],
-                          good_data['out_number'])
+                    print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
+                    good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
+                    good_data['comment_count'], good_data['price_range'], good_data['category'],
+                    good_data['out_number']))
                     try:
                         res = self.s.post(url=self.goods_url, data=good_data)
                     except:
