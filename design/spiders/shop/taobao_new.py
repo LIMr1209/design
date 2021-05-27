@@ -814,7 +814,7 @@ class TaobaoSpider(SeleniumSpider):
                             if not 'tbvideo' in img_url:
                                 img_urls.append(img_url)
                         item['cover_url'] = img_urls[0]
-                        item['img_urls'] = img_urls
+                        item['img_urls'] = ','.join(img_urls)
                     except:
                         pass
                     item['site_from'] = 8
