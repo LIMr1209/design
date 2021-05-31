@@ -137,6 +137,7 @@ class SeleniumSpider(scrapy.Spider):
         # caps["pageLoadStrategy"] = "none"
         # 初始化chrome对象
         self.browser = webdriver.Chrome(options=chrome_options, desired_capabilities=caps)
+        self.se_port = kwargs['se_port']
 
         # self.browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
         #     "source": """

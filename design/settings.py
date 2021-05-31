@@ -190,4 +190,4 @@ PDD_ACCESS_TOKEN_LIST = cf.get('pdd_user', 'access_token_list').split('\n')
 PDD_VERIFY_AUTH_TOKEN = cf.get('pdd_user', 'verify_auth_token').split('\n')
 # 拼多多用户鉴权
 JD_ACCOUNT_LIST = cf.get('jd_user', 'account_list').split('\n')
-JD_PASSWORD_lIST = cf.get('jd_user', 'password_list').split('\n')
+JD_PASSWORD_LIST = cf.get('jd_user', 'password_list').split('\n')
