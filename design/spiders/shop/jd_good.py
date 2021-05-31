@@ -341,8 +341,7 @@ class JdSpider(SeleniumSpider):
     def parse_detail(self, response):
         if self.comment_no_count >= 10:
             # 反爬限制  需要登陆
-            pass
-        self.jd_login()
+            self.jd_login()
         if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             logging.error('京东国际 {}'.format(response.url))
         elif 'paimai.jd.com' in self.browser.current_url:  # 京东拍卖不爬
