@@ -25,41 +25,12 @@ from design.utils.redis_operation import RedisHandle
 urllib3.disable_warnings()
 
 
-def input_account_password(browser):
-    browser.get("https://passport.jd.com/new/login.aspx")
-    a_ele = browser.find_element_by_xpath('//div[@class="login-tab login-tab-r"]/a')
-    a_ele.click()
-    account_ele = browser.find_element_by_id('loginname')
-    account_ele.clear()
-    account_ele.send_keys('17635700440')
-    password_ele = browser.find_element_by_id('nloginpwd')
-    password_ele.clear()
-    password_ele.send_keys('aaa1058169464')
-    browser.find_element_by_id('loginsubmit').click()
-    time.sleep(2)
-
-
-def base64_to_image(base64_str, image_path=None):
+def base64_to_image(base64_str):
     base64_data = re.sub('^data:image/.+;base64,', '', base64_str)
     imgString = base64.b64decode(base64_data)
     nparr = np.fromstring(imgString, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     return image
-
-
-def get_distance(browser):
-    img_big_ele = browser.find_element_by_xpath('//div[@class="JDJRV-bigimg"]/img')
-    image_big = img_big_ele.get_attribute('src')
-    img_big = base64_to_image(image_big)
-
-    img_small_ele = browser.find_element_by_xpath('//div[@class="JDJRV-smallimg"]/img')
-    image_small = img_small_ele.get_attribute('src')
-    img_small = base64_to_image(image_small)
-    res = cv2.matchTemplate(img_big, img_small, cv2.TM_CCORR_NORMED)
-    value = cv2.minMaxLoc(res)[2][0]
-    distance = value * 278 / 360
-    return distance
-
 
 def slide_tracks(distance):
     # Computational simulation of notch sliding trajectory
@@ -83,25 +54,6 @@ def slide_tracks(distance):
     if diff_value > 0:
         back_tracks.append(-diff_value)
     return forward_tracks, sorted(back_tracks)
-
-
-def drag_slider(browser, forward_tracks, back_tracks):
-    button = browser.find_element_by_xpath('//div[@class="JDJRV-slide-inner JDJRV-slide-btn"]')
-    ActionChains(browser).click_and_hold(button).perform()  # 点击
-    time.sleep(random.randint(5, 10) / 10)
-    # 向后移动
-    for ft in forward_tracks:
-        ActionChains(browser).move_by_offset(xoffset=ft,
-                                             yoffset=0).perform()
-    time.sleep(random.randint(8, 12) / 10)
-    # 像前移动
-    for bt in back_tracks:
-        ActionChains(browser).move_by_offset(xoffset=bt,
-                                             yoffset=0).perform()
-    time.sleep(random.randint(5, 10) / 10)
-    ActionChains(browser).release(button).perform()  # 释放鼠标
-    time.sleep(1)
-
 
 class JdSpider(SeleniumSpider):
     name = "jd_good"
@@ -138,6 +90,15 @@ class JdSpider(SeleniumSpider):
         self.s.mount('http://', HTTPAdapter(max_retries=5))
         self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
+        self.jd_account_list = []
+        if len(self.settings['JD_ACCOUNT_LIST']) != len(self.settings['JD_PASSWORD_lIST']):
+            logging.error('JD用户信息长度不匹配')
+            return
+        for i, j in enumerate(self.settings['JD_ACCOUNT_LIST']):
+            self.jd_account_list.append({
+                'account': j,
+                'password': self.settings['JD_PASSWORD_lIST'][i]
+            })
         self.goods_url = self.setting['OPALUS_GOODS_URL']
         self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
@@ -499,16 +460,63 @@ class JdSpider(SeleniumSpider):
             return self.category
 
     def jd_login(self):
-        self.browser_get("https://passport.jd.com/new/login.aspx")
-        input_account_password(self.browser)
+        self.input_account_password()
         while True:
             # Get the verification code picture and calculate the gap offset
-            offset = get_distance(self.browser)
+            offset = self.get_distance()
             # Calculating the sliding trajectory and move slider
             forward_tracks, back_tracks = slide_tracks(offset)
-            drag_slider(self.browser, forward_tracks, back_tracks)
+            self.drag_slider(forward_tracks, back_tracks)
             time.sleep(5)
             try:
                 self.browser.find_element_by_xpath('//div[@class="JDJRV-bigimg"]/img')
             except:
                 break
+
+    def input_account_password(self):
+        account_information = random.choice(self.jd_account_list)
+        if not account_information:
+            logging.error('暂无账号信息，反爬限制')
+            return
+        self.browser_get("https://passport.jd.com/new/login.aspx")
+        a_ele = self.browser.find_element_by_xpath('//div[@class="login-tab login-tab-r"]/a')
+        a_ele.click()
+        account_ele = self.browser.find_element_by_id('loginname')
+        account_ele.clear()
+        account_ele.send_keys(account_information['account'])
+        password_ele = self.browser.find_element_by_id('nloginpwd')
+        password_ele.clear()
+        password_ele.send_keys(account_information['password'])
+        self.browser.find_element_by_id('loginsubmit').click()
+        time.sleep(2)
+
+    def get_distance(self):
+        img_big_ele = self.browser.find_element_by_xpath('//div[@class="JDJRV-bigimg"]/img')
+        image_big = img_big_ele.get_attribute('src')
+        img_big = base64_to_image(image_big)
+
+        img_small_ele = self.browser.find_element_by_xpath('//div[@class="JDJRV-smallimg"]/img')
+        image_small = img_small_ele.get_attribute('src')
+        img_small = base64_to_image(image_small)
+        res = cv2.matchTemplate(img_big, img_small, cv2.TM_CCORR_NORMED)
+        value = cv2.minMaxLoc(res)[2][0]
+        distance = value * 278 / 360
+        return distance
+
+
+    def drag_slider(self, forward_tracks, back_tracks):
+        button = self.browser.find_element_by_xpath('//div[@class="JDJRV-slide-inner JDJRV-slide-btn"]')
+        ActionChains(self.browser).click_and_hold(button).perform()  # 点击
+        time.sleep(random.randint(5, 10) / 10)
+        # 向后移动
+        for ft in forward_tracks:
+            ActionChains(self.browser).move_by_offset(xoffset=ft,
+                                                 yoffset=0).perform()
+        time.sleep(random.randint(8, 12) / 10)
+        # 像前移动
+        for bt in back_tracks:
+            ActionChains(self.browser).move_by_offset(xoffset=bt,
+                                                 yoffset=0).perform()
+        time.sleep(random.randint(5, 10) / 10)
+        ActionChains(self.browser).release(button).perform()  # 释放鼠标
+        time.sleep(1)
