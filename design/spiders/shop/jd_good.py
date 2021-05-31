@@ -1,9 +1,12 @@
 # 京东电商
+import base64
 import json
 import logging
+import random
 import re
 import time
-
+import numpy as np
+import cv2
 import requests
 import scrapy
 from fake_useragent import UserAgent
@@ -12,6 +15,7 @@ from requests.adapters import HTTPAdapter
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.webdriver import ActionChains
 
 from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
@@ -19,6 +23,84 @@ import urllib3
 from design.utils.redis_operation import RedisHandle
 
 urllib3.disable_warnings()
+
+
+def input_account_password(browser):
+    browser.get("https://passport.jd.com/new/login.aspx")
+    a_ele = browser.find_element_by_xpath('//div[@class="login-tab login-tab-r"]/a')
+    a_ele.click()
+    account_ele = browser.find_element_by_id('loginname')
+    account_ele.clear()
+    account_ele.send_keys('17635700440')
+    password_ele = browser.find_element_by_id('nloginpwd')
+    password_ele.clear()
+    password_ele.send_keys('aaa1058169464')
+    browser.find_element_by_id('loginsubmit').click()
+    time.sleep(2)
+
+
+def base64_to_image(base64_str, image_path=None):
+    base64_data = re.sub('^data:image/.+;base64,', '', base64_str)
+    imgString = base64.b64decode(base64_data)
+    nparr = np.fromstring(imgString, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    return image
+
+
+def get_distance(browser):
+    img_big_ele = browser.find_element_by_xpath('//div[@class="JDJRV-bigimg"]/img')
+    image_big = img_big_ele.get_attribute('src')
+    img_big = base64_to_image(image_big)
+
+    img_small_ele = browser.find_element_by_xpath('//div[@class="JDJRV-smallimg"]/img')
+    image_small = img_small_ele.get_attribute('src')
+    img_small = base64_to_image(image_small)
+    res = cv2.matchTemplate(img_big, img_small, cv2.TM_CCORR_NORMED)
+    value = cv2.minMaxLoc(res)[2][0]
+    distance = value * 278 / 360
+    return distance
+
+
+def slide_tracks(distance):
+    # Computational simulation of notch sliding trajectory
+    distance += 10  # 偏移位置增加20个像素（超过目标20个像素）
+    v, t, current = [0, 0.3, 0]
+    forward_tracks = []
+    middle = distance * 3 / 5
+    while current < distance:
+        if current < middle:
+            a = 8
+        else:
+            a = -9
+        s = v * t + (1 / 2) * a * (t ** 2)  # 偏移量
+        v = v + a * t  # 速度
+        current += s
+        forward_tracks.append(round(s))
+        t += 0.05
+    back_tracks = [-4, -4, -3, -3, -2, -2, -1, -1]  # 超过20 个像素 重新移动回来
+    # 补全差异
+    diff_value = sum(forward_tracks) - distance
+    if diff_value > 0:
+        back_tracks.append(-diff_value)
+    return forward_tracks, sorted(back_tracks)
+
+
+def drag_slider(browser, forward_tracks, back_tracks):
+    button = browser.find_element_by_xpath('//div[@class="JDJRV-slide-inner JDJRV-slide-btn"]')
+    ActionChains(browser).click_and_hold(button).perform()  # 点击
+    time.sleep(random.randint(5, 10) / 10)
+    # 向后移动
+    for ft in forward_tracks:
+        ActionChains(browser).move_by_offset(xoffset=ft,
+                                             yoffset=0).perform()
+    time.sleep(random.randint(8, 12) / 10)
+    # 像前移动
+    for bt in back_tracks:
+        ActionChains(browser).move_by_offset(xoffset=bt,
+                                             yoffset=0).perform()
+    time.sleep(random.randint(5, 10) / 10)
+    ActionChains(browser).release(button).perform()  # 释放鼠标
+    time.sleep(1)
 
 
 class JdSpider(SeleniumSpider):
@@ -60,6 +142,7 @@ class JdSpider(SeleniumSpider):
         self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         self.suc_count = 0
+        self.comment_no_count = 0
 
         super(JdSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -104,7 +187,7 @@ class JdSpider(SeleniumSpider):
                 for i in self.fail_url:
                     for j in self.new_fail_url:
                         if i['name'] == j['name'] and i['price_range'] == j['price_range']:
-                            j['value'] = list(set(i['value']+j['value']))
+                            j['value'] = list(set(i['value'] + j['value']))
                             break
                     else:
                         self.new_fail_url.append(i)
@@ -242,6 +325,11 @@ class JdSpider(SeleniumSpider):
                     comment_count = re.search('\d+', comment_text)
                     if comment_count:
                         item['comment_count'] = int(comment_count.group())
+
+            if item['comment_count'] == '0':
+                self.comment_no_count += 1
+            else:
+                self.comment_no_count = 0
             item['category'] = self.get_category()
             shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
             item['shop_id'] = shop_id
@@ -301,9 +389,10 @@ class JdSpider(SeleniumSpider):
             good_data = dict(item)
             # data = self.get_impression(itemId)
             # good_data.update(data)
-            print("原价%s,优惠价%s, 评论%s, 价位档%s, 分类%s, 站外编号%s "%(good_data['original_price'], good_data['promotion_price'],
-                  good_data['comment_count'], good_data['price_range'], good_data['category'],
-                  good_data['out_number']))
+            print("原价%s,优惠价%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (good_data['original_price'], good_data['promotion_price'],
+                                                              good_data['comment_count'], good_data['price_range'],
+                                                              good_data['category'],
+                                                              good_data['out_number']))
             try:
                 res = self.s.post(url=self.goods_url, data=good_data)
             except:
@@ -328,6 +417,9 @@ class JdSpider(SeleniumSpider):
             logging.error('链接异常 {}'.format(response.url))
         else:
             self.detail_data(response)
+        if self.comment_no_count >= 10:
+            # 反爬限制  需要登陆
+            self.jd_login()
         self.list_url.pop(0)
         if self.list_url:
             yield scrapy.Request(self.list_url[0], meta={'usedSelenium': True},
@@ -405,3 +497,18 @@ class JdSpider(SeleniumSpider):
             return '耳机'
         else:
             return self.category
+
+    def jd_login(self):
+        self.browser_get("https://passport.jd.com/new/login.aspx")
+        input_account_password(self.browser)
+        while True:
+            # Get the verification code picture and calculate the gap offset
+            offset = get_distance(self.browser)
+            # Calculating the sliding trajectory and move slider
+            forward_tracks, back_tracks = slide_tracks(offset)
+            drag_slider(self.browser, forward_tracks, back_tracks)
+            time.sleep(5)
+            try:
+                self.browser.find_element_by_xpath('//div[@class="JDJRV-bigimg"]/img')
+            except:
+                break

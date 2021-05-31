@@ -34,3 +34,4 @@ scrapyd-client==1.1.0
 requests==2.24.0
 fake-useragent==0.1.11
 fire==0.3.1
+opencv-python-4.5.2.52
