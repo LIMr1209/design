@@ -310,6 +310,10 @@ class TaobaoSpider(SeleniumSpider):
         except:
             return {'success': True}
 
+    # 滑块破解
+    def pyppeteer_code(self):
+        time.sleep(2)
+
     def stringToDict(self):
         '''
         将从浏览器上Copy来的cookie字符串转化为Scrapy能使用的Dict
@@ -489,357 +493,347 @@ class TaobaoSpider(SeleniumSpider):
                                      meta={'usedSelenium': True})
 
     def save_tmall_data(self, response):
-        # time.sleep(2)
-        choice = "1"
+        # while True:
+        #     try:
+        #         code_ele = self.browser.find_element_by_xpath()
+        #         # pyppeteer 滑块
+        #         self.pyppeteer_code()
+        #     except:
+        #         break
         try:
-            pass
-            # res = self.selenium_code()
-            # 休息会吧
-            # if not res['success']:
-            #     choice = input('出现验证码 自动验证失败 请手动验证，请输入您的选择：1.通过 2.未通过')
-        except:
-            pass
-        finally:
-            if choice == '1':
-                try:
-                    # try:
-                    #     elem = WebDriverWait(self.browser, 10, 0.5).until(
-                    #         EC.presence_of_element_located(
-                    #             (By.ID, 'side-shop-info')
-                    #         )
-                    #     )
-                    # except:
-                    #     pass
-                    item = TaobaoItem()
-                    if "此商品已下架" in self.browser.page_source:
-                        return {'success': True, 'message': '此商品已下架'}
-                    if "此商品太受欢迎了，当前库存已提前售罄。" in self.browser.page_source:
-                        return {'success': True, 'message': '当前库存已提前售罄'}
-                    if '起拍价格' in self.browser.page_source:
-                        return {'success': True, 'message': '商品拍卖'}
-                    try:
-                        elem = WebDriverWait(self.browser, 10, 0.5).until(
-                            EC.presence_of_element_located(
-                                (By.XPATH, '//span[@class="tm-price"]')
-                            )
-                        )
-                    except:
-                        self.browser.refresh()
-                        time.sleep(2)
-                    # try:
-                    #     elem = WebDriverWait(self.browser, 10, 0.5).until(
-                    #         EC.presence_of_element_located(
-                    #             (By.XPATH, '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]')
-                    #         )
-                    #     )
-                    # except:
-                    #     self.browser.refresh()
-                    #     time.sleep(2)
-                    title = self.browser.find_element_by_xpath(
-                        '//div[@class="tb-detail-hd"]/h1').get_attribute('innerText').strip()
-                    # if not hasattr(self,'error_retry'):
-                    #     if self.key_words[0] not in title:
-                    #         logging.error('商品不属于此分类 标题:%s 分类:%s' % (title, self.key_words[0]))
-                    #         return
-                    try:
-                        item['original_price'] = self.browser.find_element_by_xpath(
-                            '//dl[@id="J_StrPriceModBox"]//span').get_attribute('innerText')
-                    except:
-                        item['original_price'] = self.browser.find_element_by_xpath(
-                            '//span[@class="tm-price"]').get_attribute('innerText')
-                    try:
-                        item['promotion_price'] = self.browser.find_element_by_xpath(
-                            '//dl[@id="J_PromoPrice"]//span').get_attribute('innerText').replace('¥', '')
-                    except:
-                        item['promotion_price'] = ''
-                    detail_price = sku_price_func(self.browser, 9)
-                    height = 0
-                    # 滑动滑块 加载js
-                    for i in range(height, 1500, 200):
-                        self.browser.execute_script('window.scrollTo(0, {})'.format(i))
-                        time.sleep(0.5)
-                    # 移动滚动条至详情数据
-                    ele = self.browser.find_element_by_id('J_TabBar')
-                    self.browser.execute_script("arguments[0].scrollIntoView();", ele)
+            # try:
+            #     elem = WebDriverWait(self.browser, 10, 0.5).until(
+            #         EC.presence_of_element_located(
+            #             (By.ID, 'side-shop-info')
+            #         )
+            #     )
+            # except:
+            #     pass
+            item = TaobaoItem()
+            if "此商品已下架" in self.browser.page_source:
+                return {'success': True, 'message': '此商品已下架'}
+            if "此商品太受欢迎了，当前库存已提前售罄。" in self.browser.page_source:
+                return {'success': True, 'message': '当前库存已提前售罄'}
+            if '起拍价格' in self.browser.page_source:
+                return {'success': True, 'message': '商品拍卖'}
+            try:
+                elem = WebDriverWait(self.browser, 10, 0.5).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, '//span[@class="tm-price"]')
+                    )
+                )
+            except:
+                self.browser.refresh()
+                time.sleep(2)
+            # try:
+            #     elem = WebDriverWait(self.browser, 10, 0.5).until(
+            #         EC.presence_of_element_located(
+            #             (By.XPATH, '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]')
+            #         )
+            #     )
+            # except:
+            #     self.browser.refresh()
+            #     time.sleep(2)
+            title = self.browser.find_element_by_xpath(
+                '//div[@class="tb-detail-hd"]/h1').get_attribute('innerText').strip()
+            # if not hasattr(self,'error_retry'):
+            #     if self.key_words[0] not in title:
+            #         logging.error('商品不属于此分类 标题:%s 分类:%s' % (title, self.key_words[0]))
+            #         return
+            try:
+                item['original_price'] = self.browser.find_element_by_xpath(
+                    '//dl[@id="J_StrPriceModBox"]//span').get_attribute('innerText')
+            except:
+                item['original_price'] = self.browser.find_element_by_xpath(
+                    '//span[@class="tm-price"]').get_attribute('innerText')
+            try:
+                item['promotion_price'] = self.browser.find_element_by_xpath(
+                    '//dl[@id="J_PromoPrice"]//span').get_attribute('innerText').replace('¥', '')
+            except:
+                item['promotion_price'] = ''
+            detail_price = sku_price_func(self.browser, 9)
+            height = 0
+            # 滑动滑块 加载js
+            for i in range(height, 1500, 200):
+                self.browser.execute_script('window.scrollTo(0, {})'.format(i))
+                time.sleep(0.5)
+            # 移动滚动条至详情数据
+            ele = self.browser.find_element_by_id('J_TabBar')
+            self.browser.execute_script("arguments[0].scrollIntoView();", ele)
 
-                    item['detail_sku'] = json.dumps(detail_price)
-                    item['title'] = title
-                    service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
-                    item['service'] = ','.join([i.get_attribute('innerText') for i in service])
-                    try:
-                        reputation = self.browser.find_elements_by_xpath('//span[@class="shopdsr-score-con"]')
-                        item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                            reputation[0].get_attribute('innerText').strip(),
-                            reputation[1].get_attribute('innerText').strip(),
-                            reputation[2].get_attribute('innerText').strip())
-                    except:
-                        pass
-                    try:
-                        item['comment_count'] = self.browser.find_element_by_xpath(
-                            '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
-                    except:
-                        item['comment_count'] = 0
-                    try:
-                        sale_xpath = self.browser.find_element_by_xpath(
-                            '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]').get_attribute(
-                            'innerText')
-                        index = sale_xpath.find('万')
-                        if index != -1:
-                            item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
-                        else:
-                            sale_count = re.search('\d+', sale_xpath)
-                            if sale_count:
-                                item['sale_count'] = int(sale_count.group())
-                    except:
-                        if '预售价' in self.browser.page_source:
-                            item['sale_count'] = 0
-                        else:
-                            print("产品爬取失败", response.url, str("天猫验证码销量无法获取"))
-                            return {'success': False, 'message': "天猫验证码销量无法获取"}
+            item['detail_sku'] = json.dumps(detail_price)
+            item['title'] = title
+            service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
+            item['service'] = ','.join([i.get_attribute('innerText') for i in service])
+            try:
+                reputation = self.browser.find_elements_by_xpath('//span[@class="shopdsr-score-con"]')
+                item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
+                    reputation[0].get_attribute('innerText').strip(),
+                    reputation[1].get_attribute('innerText').strip(),
+                    reputation[2].get_attribute('innerText').strip())
+            except:
+                pass
+            try:
+                item['comment_count'] = self.browser.find_element_by_xpath(
+                    '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
+            except:
+                item['comment_count'] = 0
+            try:
+                sale_xpath = self.browser.find_element_by_xpath(
+                    '//*[@id="J_DetailMeta"]//li[@class="tm-ind-item tm-ind-sellCount"]//span[@class="tm-count"]').get_attribute(
+                    'innerText')
+                index = sale_xpath.find('万')
+                if index != -1:
+                    item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
+                else:
+                    sale_count = re.search('\d+', sale_xpath)
+                    if sale_count:
+                        item['sale_count'] = int(sale_count.group())
+            except:
+                if '预售价' in self.browser.page_source:
+                    item['sale_count'] = 0
+                else:
+                    print("产品爬取失败", response.url, str("天猫验证码销量无法获取"))
+                    return {'success': False, 'message': "天猫验证码销量无法获取"}
 
-                    try:
-                        elem = WebDriverWait(self.browser, 20, 0.5).until(
-                            EC.presence_of_element_located(
-                                (By.ID, 'J_CollectCount')
-                            )
-                        )
-                        if elem.is_displayed:
-                            favorite_count_text = self.browser.find_element_by_xpath('//span[@id="J_CollectCount"]')
-                            d = re.search("\d+", favorite_count_text.get_attribute('innerText'))
-                            if d:
-                                item['favorite_count'] = int(d.group())
-                    except:
-                        item['favorite_count'] = 0
-                    detail_keys = self.browser.find_elements_by_xpath(
-                        '//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/th')
-                    if not detail_keys:
-                        detail_keys = self.browser.find_elements_by_xpath(
-                            '//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/th')
-                    detail_values = self.browser.find_elements_by_xpath(
-                        '//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/td')
-                    if not detail_values:
-                        detail_values = self.browser.find_elements_by_xpath(
-                            '//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/td')
-                    detail_dict = {}
-                    detail_str_list = []
-                    for j, i in enumerate(detail_keys):
-                        detail_str_list.append(
-                            i.get_attribute('innerText').replace('\xa0', '').replace('.', '') + ':' + detail_values[
-                                j].get_attribute(
-                                'innerText').replace('\xa0', ''))
-                        detail_dict[i.get_attribute('innerText').replace('\xa0', '').replace('.', '')] = detail_values[
-                            j].get_attribute(
-                            'innerText').replace('\xa0', '')
-                    if not detail_dict:
-                        detail_list = self.browser.find_elements_by_xpath('//ul[@id="J_AttrUL"]/li')
-                        for j, i in enumerate(detail_list):
-                            s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r',
-                                                                                                        '').replace(
-                                '\t', '').replace('\xa0', '').replace('.', '')
-                            if s.endswith('：') or s.endswith(':'):
-                                detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
-                                continue
-                            if ':' in s or '：' in s:
-                                detail_str_list.append(s)
-                        item['detail_str'] = ', '.join(detail_str_list)
-                        detail_dict = {}
-                        for i in detail_str_list:
-                            tmp = re.split('[:：]', i)
-                            detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
-                    item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
-                    item['detail_str'] = ', '.join(detail_str_list)
-                    try:
-                        img_urls = []
-                        img_urls_ele = self.browser.find_elements_by_xpath(
-                            '//ul[@id="J_UlThumb"]/li//img')
-                        for i in img_urls_ele:
-                            img_url = i.get_attribute('src')
-                            if not img_url.startswith("http"):
-                                img_url = "https:" + img_url
-                            img_url = img_url.rsplit('_', 1)[0]
-                            img_urls.append(img_url)
-                        item['cover_url'] = img_urls[0]
-                        item['img_urls'] = ','.join(img_urls)
-                    except:
-                        pass
-                    itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
+            try:
+                elem = WebDriverWait(self.browser, 20, 0.5).until(
+                    EC.presence_of_element_located(
+                        (By.ID, 'J_CollectCount')
+                    )
+                )
+                if elem.is_displayed:
+                    favorite_count_text = self.browser.find_element_by_xpath('//span[@id="J_CollectCount"]')
+                    d = re.search("\d+", favorite_count_text.get_attribute('innerText'))
+                    if d:
+                        item['favorite_count'] = int(d.group())
+            except:
+                item['favorite_count'] = 0
+            detail_keys = self.browser.find_elements_by_xpath(
+                '//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/th')
+            if not detail_keys:
+                detail_keys = self.browser.find_elements_by_xpath(
+                    '//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/th')
+            detail_values = self.browser.find_elements_by_xpath(
+                '//table[@class="tm-tableAttr"]/tbody/tr[@class=""]/td')
+            if not detail_values:
+                detail_values = self.browser.find_elements_by_xpath(
+                    '//table[@class="tm-tableAttr"]/tbody/tr[not(@class)]/td')
+            detail_dict = {}
+            detail_str_list = []
+            for j, i in enumerate(detail_keys):
+                detail_str_list.append(
+                    i.get_attribute('innerText').replace('\xa0', '').replace('.', '') + ':' + detail_values[
+                        j].get_attribute(
+                        'innerText').replace('\xa0', ''))
+                detail_dict[i.get_attribute('innerText').replace('\xa0', '').replace('.', '')] = detail_values[
+                    j].get_attribute(
+                    'innerText').replace('\xa0', '')
+            if not detail_dict:
+                detail_list = self.browser.find_elements_by_xpath('//ul[@id="J_AttrUL"]/li')
+                for j, i in enumerate(detail_list):
+                    s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r',
+                                                                                                '').replace(
+                        '\t', '').replace('\xa0', '').replace('.', '')
+                    if s.endswith('：') or s.endswith(':'):
+                        detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
+                        continue
+                    if ':' in s or '：' in s:
+                        detail_str_list.append(s)
+                item['detail_str'] = ', '.join(detail_str_list)
+                detail_dict = {}
+                for i in detail_str_list:
+                    tmp = re.split('[:：]', i)
+                    detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
+            item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
+            item['detail_str'] = ', '.join(detail_str_list)
+            try:
+                img_urls = []
+                img_urls_ele = self.browser.find_elements_by_xpath(
+                    '//ul[@id="J_UlThumb"]/li//img')
+                for i in img_urls_ele:
+                    img_url = i.get_attribute('src')
+                    if not img_url.startswith("http"):
+                        img_url = "https:" + img_url
+                    img_url = img_url.rsplit('_', 1)[0]
+                    img_urls.append(img_url)
+                item['cover_url'] = img_urls[0]
+                item['img_urls'] = ','.join(img_urls)
+            except:
+                pass
+            itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
 
-                    item['site_from'] = 9
-                    item['site_type'] = 1
-                    item['price_range'] = self.get_price_range()
-                    item['out_number'] = itemId
-                    item['category'] = self.get_category()
-                    item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
-                    # impression = self.get_impression(itemId)
-                    # item['impression'] = impression
-                    good_data = dict(item)
-                    print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
-                    good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-                    good_data['comment_count'], good_data['price_range'], good_data['category'],
-                    good_data['out_number']))
-                    try:
-                        res = self.s.post(url=self.goods_url, data=good_data)
-                    except:
-                        time.sleep(5)
-                        res = self.s.post(url=self.goods_url, data=good_data)
-                    return {'success': True, 'res': res}
-                except Exception as e:
-                    return {'success': False,
-                            'message': "行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e))}
+            item['site_from'] = 9
+            item['site_type'] = 1
+            item['price_range'] = self.get_price_range()
+            item['out_number'] = itemId
+            item['category'] = self.get_category()
+            item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
+            # impression = self.get_impression(itemId)
+            # item['impression'] = impression
+            good_data = dict(item)
+            print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
+            good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
+            good_data['comment_count'], good_data['price_range'], good_data['category'],
+            good_data['out_number']))
+            try:
+                res = self.s.post(url=self.goods_url, data=good_data)
+            except:
+                time.sleep(5)
+                res = self.s.post(url=self.goods_url, data=good_data)
+            return {'success': True, 'res': res}
+        except Exception as e:
+            return {'success': False,
+                    'message': "行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e))}
 
     def save_taobao_data(self, response):
-        # time.sleep(2)
-        choice = "1"
+        # while True:
+        #     try:
+        #         code_ele = self.browser.find_element_by_xpath('//div[@class="baxia-dialog-content"]')
+        #         # pyppeteer 滑块
+        #         self.pyppeteer_code()
+        #     except:
+        #         break
         try:
-            pass
-            # res = self.selenium_code()
-            # 休息会吧
-            # if not res['success']:
-            #     choice = input('出现验证码 自动验证失败 请手动验证，请输入您的选择：1.通过 2.未通过')
-        except:
-            pass
-        finally:
-            if choice == '1':
-                try:
-                    item = TaobaoItem()
-                    if "很抱歉，您查看的宝贝不存在，可能已下架或者被转移。" in self.browser.page_source:
-                        return {'success': True, 'message': '此商品已下架'}
-                    title = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').get_attribute(
-                        'innerText').strip()
-                    # if not hasattr(self,'error_retry'):
-                    #     if self.key_words[0] not in title:
-                    #         logging.error('商品不属于此分类 标题:%s 分类:%s' % (title, self.key_words[0]))
-                    #         return
-                    item['original_price'] = self.browser.find_element_by_xpath(
-                        '//*[@id="J_StrPrice"]/em[@class="tb-rmb-num"]').get_attribute('innerText').strip()
-                    try:
-                        item['promotion_price'] = self.browser.find_element_by_xpath(
-                            '//*[@id="J_PromoPriceNum"]').get_attribute('innerText').strip()
-                    except:
-                        item['promotion_price'] = ''
-                    detail_price = sku_price_func(self.browser, 8)
+            item = TaobaoItem()
+            if "很抱歉，您查看的宝贝不存在，可能已下架或者被转移。" in self.browser.page_source:
+                return {'success': True, 'message': '此商品已下架'}
+            title = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').get_attribute(
+                'innerText').strip()
+            # if not hasattr(self,'error_retry'):
+            #     if self.key_words[0] not in title:
+            #         logging.error('商品不属于此分类 标题:%s 分类:%s' % (title, self.key_words[0]))
+            #         return
+            item['original_price'] = self.browser.find_element_by_xpath(
+                '//*[@id="J_StrPrice"]/em[@class="tb-rmb-num"]').get_attribute('innerText').strip()
+            try:
+                item['promotion_price'] = self.browser.find_element_by_xpath(
+                    '//*[@id="J_PromoPriceNum"]').get_attribute('innerText').strip()
+            except:
+                item['promotion_price'] = ''
+            detail_price = sku_price_func(self.browser, 8)
 
-                    ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
-                    self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-                    item['detail_sku'] = json.dumps(detail_price)
-                    item['title'] = title
-                    service = self.browser.find_elements_by_xpath('//dt[contains(text(),"承诺")]/following-sibling::dd/a')
-                    item['service'] = ','.join([i.get_attribute('innerText') for i in service])
-                    try:
-                        reputation = self.browser.find_elements_by_xpath('//dd[contains(@class,"tb-rate-")]/a')
-                        if not reputation:
-                            reputation = self.browser.find_elements_by_xpath(
-                                '//li[@class="shop-service-info-item"]//em')
-                        item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                            reputation[0].get_attribute('innerText').strip(),
-                            reputation[1].get_attribute('innerText').strip(),
-                            reputation[2].get_attribute('innerText').strip())
-                    except:
-                        item['reputation'] = ''
-                    try:
-                        if not item['reputation']:
-                            reputation = self.browser.find_elements_by_xpath(
-                                '//li[@class="shop-service-info-item"]//em')
-                            item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
-                                reputation[0].get_attribute('innerText').strip(),
-                                reputation[1].get_attribute('innerText').strip(),
-                                reputation[2].get_attribute('innerText').strip())
-                    except:
-                        pass
-                    try:
-                        item['comment_count'] = self.browser.find_element_by_xpath(
-                            '//*[@id="J_RateCounter"]').get_attribute('innerText')
-                            # '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
-                    except:
-                        print("产品爬取失败", response.url, str("淘宝验证码评论量无法获取"))
-                        return {'success': False, 'message': '验证码评论量无法获取'}
-                    if item['comment_count'] == '-':
+            ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
+            self.browser.execute_script("arguments[0].scrollIntoView();", ele)
+            item['detail_sku'] = json.dumps(detail_price)
+            item['title'] = title
+            service = self.browser.find_elements_by_xpath('//dt[contains(text(),"承诺")]/following-sibling::dd/a')
+            item['service'] = ','.join([i.get_attribute('innerText') for i in service])
+            try:
+                reputation = self.browser.find_elements_by_xpath('//dd[contains(@class,"tb-rate-")]/a')
+                if not reputation:
+                    reputation = self.browser.find_elements_by_xpath(
+                        '//li[@class="shop-service-info-item"]//em')
+                item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
+                    reputation[0].get_attribute('innerText').strip(),
+                    reputation[1].get_attribute('innerText').strip(),
+                    reputation[2].get_attribute('innerText').strip())
+            except:
+                item['reputation'] = ''
+            try:
+                if not item['reputation']:
+                    reputation = self.browser.find_elements_by_xpath(
+                        '//li[@class="shop-service-info-item"]//em')
+                    item['reputation'] = "描述: %s 服务: %s 物流: %s" % (
+                        reputation[0].get_attribute('innerText').strip(),
+                        reputation[1].get_attribute('innerText').strip(),
+                        reputation[2].get_attribute('innerText').strip())
+            except:
+                pass
+            try:
+                item['comment_count'] = self.browser.find_element_by_xpath(
+                    '//*[@id="J_RateCounter"]').get_attribute('innerText')
+                    # '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
+            except:
+                print("产品爬取失败", response.url, str("淘宝验证码评论量无法获取"))
+                return {'success': False, 'message': '验证码评论量无法获取'}
+            if item['comment_count'] == '-':
+                print("产品爬取失败", response.url, str("验证码"))
+                return {'success': False, 'message': '淘宝验证码销量无法获取'}
+            sale_xpath = self.browser.find_element_by_xpath('//*[@id="J_SellCounter"]').get_attribute(
+                'innerText')
+            if sale_xpath:
+                index = sale_xpath.find('万')
+                if index != -1:
+                    item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
+                else:
+                    if sale_xpath == '-':
                         print("产品爬取失败", response.url, str("验证码"))
-                        return {'success': False, 'message': '淘宝验证码销量无法获取'}
-                    sale_xpath = self.browser.find_element_by_xpath('//*[@id="J_SellCounter"]').get_attribute(
-                        'innerText')
-                    if sale_xpath:
-                        index = sale_xpath.find('万')
-                        if index != -1:
-                            item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
-                        else:
-                            if sale_xpath == '-':
-                                print("产品爬取失败", response.url, str("验证码"))
-                                return {'success': False, 'message': '验证码销量无法获取'}
-                            sale_count = re.search('\d+', sale_xpath)
-                            if sale_count:
-                                item['sale_count'] = int(sale_count.group())
-                    try:
-                        elem = WebDriverWait(self.browser, 20, 0.5).until(
-                            EC.presence_of_element_located(
-                                (By.CLASS_NAME, 'J_FavCount')
-                            )
-                        )
-                        if elem.is_displayed:
-                            favorite_count_text = self.browser.find_element_by_xpath('//em[@class="J_FavCount"]')
-                            d = re.search("\d+", favorite_count_text.get_attribute('innerText'))
-                            if d:
-                                item['favorite_count'] = int(d.group())
-                    except:
-                        item['favorite_count'] = 0
-                    itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
-                    # detail_list = response.xpath('//ul[@class="attributes-list"]/li//text()').extract()
-                    detail_list = self.browser.find_elements_by_xpath('//ul[@class="attributes-list"]/li')
-                    detail_str_list = []
-                    for j, i in enumerate(detail_list):
-                        s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
-                            '\t', '').replace('\xa0', '')
-                        if s:
-                            if s.endswith('：') or s.endswith(':'):
-                                detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
-                                continue
-                            if ':' in s or '：' in s:
-                                detail_str_list.append(s)
-                    item['detail_str'] = ', '.join(detail_str_list)
-                    detail_dict = {}
-                    for i in detail_str_list:
-                        tmp = re.split('[:：]', i)
-                        detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
-                    item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
-                    try:
-                        img_urls = []
-                        img_urls_ele = self.browser.find_elements_by_xpath(
-                            '//ul[@id="J_UlThumb"]/li//img')
-                        for i in img_urls_ele:
-                            img_url = i.get_attribute('src')
-                            if not img_url.startswith("http"):
-                                img_url = "https:" + img_url
-                            img_url = img_url.rsplit('_', 1)[0].replace('_50x50.jpg', '')
-                            # 视频图片过
-                            if not 'tbvideo' in img_url:
-                                img_urls.append(img_url)
-                        item['cover_url'] = img_urls[0]
-                        item['img_urls'] = ','.join(img_urls)
-                    except:
-                        pass
-                    item['site_from'] = 8
-                    item['site_type'] = 1
-                    item['price_range'] = self.get_price_range()
-                    item['out_number'] = itemId
-                    # item['cover_url'] = data[0]['cover_url']
-                    item['category'] = self.get_category()
-                    item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
-                    # impression = self.get_impression(itemId)
-                    # item['impression'] = impression
-                    good_data = dict(item)
-                    print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
-                    good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-                    good_data['comment_count'], good_data['price_range'], good_data['category'],
-                    good_data['out_number']))
-                    try:
-                        res = self.s.post(url=self.goods_url, data=good_data)
-                    except:
-                        time.sleep(10)
-                        res = self.s.post(url=self.goods_url, data=good_data)
-                    return {'success': True, 'res': res}
-                except Exception as e:
-                    return {'success': False,
-                            'message': "行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e))}
+                        return {'success': False, 'message': '验证码销量无法获取'}
+                    sale_count = re.search('\d+', sale_xpath)
+                    if sale_count:
+                        item['sale_count'] = int(sale_count.group())
+            try:
+                elem = WebDriverWait(self.browser, 20, 0.5).until(
+                    EC.presence_of_element_located(
+                        (By.CLASS_NAME, 'J_FavCount')
+                    )
+                )
+                if elem.is_displayed:
+                    favorite_count_text = self.browser.find_element_by_xpath('//em[@class="J_FavCount"]')
+                    d = re.search("\d+", favorite_count_text.get_attribute('innerText'))
+                    if d:
+                        item['favorite_count'] = int(d.group())
+            except:
+                item['favorite_count'] = 0
+            itemId = parse.parse_qs(parse.urlparse(response.url).query)['id'][0]
+            # detail_list = response.xpath('//ul[@class="attributes-list"]/li//text()').extract()
+            detail_list = self.browser.find_elements_by_xpath('//ul[@class="attributes-list"]/li')
+            detail_str_list = []
+            for j, i in enumerate(detail_list):
+                s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
+                    '\t', '').replace('\xa0', '')
+                if s:
+                    if s.endswith('：') or s.endswith(':'):
+                        detail_str_list.append(s + detail_list[j + 1].get_attribute('innerText'))
+                        continue
+                    if ':' in s or '：' in s:
+                        detail_str_list.append(s)
+            item['detail_str'] = ', '.join(detail_str_list)
+            detail_dict = {}
+            for i in detail_str_list:
+                tmp = re.split('[:：]', i)
+                detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
+            item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
+            try:
+                img_urls = []
+                img_urls_ele = self.browser.find_elements_by_xpath(
+                    '//ul[@id="J_UlThumb"]/li//img')
+                for i in img_urls_ele:
+                    img_url = i.get_attribute('src')
+                    if not img_url.startswith("http"):
+                        img_url = "https:" + img_url
+                    img_url = img_url.rsplit('_', 1)[0].replace('_50x50.jpg', '')
+                    # 视频图片过
+                    if not 'tbvideo' in img_url:
+                        img_urls.append(img_url)
+                item['cover_url'] = img_urls[0]
+                item['img_urls'] = ','.join(img_urls)
+            except:
+                pass
+            item['site_from'] = 8
+            item['site_type'] = 1
+            item['price_range'] = self.get_price_range()
+            item['out_number'] = itemId
+            # item['cover_url'] = data[0]['cover_url']
+            item['category'] = self.get_category()
+            item['url'] = 'https://item.taobao.com/item.htm?id=' + str(itemId)
+            # impression = self.get_impression(itemId)
+            # item['impression'] = impression
+            good_data = dict(item)
+            print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
+            good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
+            good_data['comment_count'], good_data['price_range'], good_data['category'],
+            good_data['out_number']))
+            try:
+                res = self.s.post(url=self.goods_url, data=good_data)
+            except:
+                time.sleep(10)
+                res = self.s.post(url=self.goods_url, data=good_data)
+            return {'success': True, 'res': res}
+        except Exception as e:
+            return {'success': False,
+                    'message': "行号 {}, 产品爬取失败 {} {}".format(e.__traceback__.tb_lineno, response.url, str(e))}
 
     # 大家印象
     def get_impression(self, out_number):
