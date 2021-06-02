@@ -256,7 +256,7 @@ class JdSpider(SeleniumSpider):
                     if comment_count:
                         item['comment_count'] = int(comment_count.group())
 
-            if item['comment_count'] == '0':
+            if item['comment_count'] == 0:
                 self.comment_no_count += 1
             else:
                 self.comment_no_count = 0
