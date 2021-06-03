@@ -342,6 +342,8 @@ class JdSpider(SeleniumSpider):
         if self.comment_no_count >= 10:
             # 反爬限制  需要登陆
             self.jd_login()
+        if 'passport.jd.com/new/login.aspx' in self.browser.current_url:
+            self.jd_login()
         if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             logging.error('京东国际 {}'.format(response.url))
         elif 'paimai.jd.com' in self.browser.current_url:  # 京东拍卖不爬
