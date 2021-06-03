@@ -439,4 +439,5 @@ class JdSpider(SeleniumSpider):
             res = self.s.get('http://127.0.0.1:%s/json/version' % self.se_port)
             browser_ws_endpoint = json.loads(res.content)['webSocketDebuggerUrl']
             asyncio.get_event_loop().run_until_complete(jd_code(account_information['account'], account_information['password'], browser_ws_endpoint))
+            self.comment_no_count = 0
 
