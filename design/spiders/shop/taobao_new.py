@@ -698,6 +698,8 @@ class TaobaoSpider(SeleniumSpider):
             item = TaobaoItem()
             if "很抱歉，您查看的宝贝不存在，可能已下架或者被转移。" in self.browser.page_source:
                 return {'success': True, 'message': '此商品已下架'}
+            if '此宝贝已下架' in self.browser.page_source:
+                return {'success': True, 'message': '此商品已下架'}
             title = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').get_attribute(
                 'innerText').strip()
             # if not hasattr(self,'error_retry'):
