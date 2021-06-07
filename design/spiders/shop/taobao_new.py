@@ -800,7 +800,7 @@ class TaobaoSpider(SeleniumSpider):
             try:
                 img_urls = []
                 img_urls_ele = self.browser.find_elements_by_xpath(
-                    '//ul[@id="J_UlThumb"]/li//img')
+                    '//ul[@id="J_UlThumb"]/li[@data-index]//img')
                 for i in img_urls_ele:
                     img_url = i.get_attribute('src')
                     if not img_url.startswith("http"):

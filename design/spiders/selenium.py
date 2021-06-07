@@ -127,6 +127,7 @@ class SeleniumSpider(scrapy.Spider):
         #
         # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\AutomationProfile"
         chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:{}".format(kwargs['se_port']))
+        # chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
         # 其中PageLoadStrategy有三种选择： 默认normal
         # (1) NONE: 当html下载完成之后，不等待解析完成，selenium会直接返回
         # (2) EAGER: 要等待整个dom树加载完成，即DOMContentLoaded这个事件完成，仅对html的内容进行下载解析
