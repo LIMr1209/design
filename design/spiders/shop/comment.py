@@ -539,7 +539,13 @@ def get_goods_data(url, params, logger, reverse):
     params['reverse'] = reverse
     while True:
         params['page'] = page
-        res = requests.get(opalus_goods_comment_url, params=params, verify=False)
+        success = False
+        while not success:
+            try:
+                res = requests.get(opalus_goods_comment_url, params=params, verify=False)
+                success = True
+            except requests.exceptions.RequestException as e:
+                time.sleep(10)
         res = json.loads(res.content)
         spider = CommentSpider(logger)
         for i in res['data']:
