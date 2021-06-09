@@ -62,3 +62,4 @@ async def jd_code(account, password, browser_ws_endpoint):
             await page.mouse.move(box['x'] + distance + 29, box['y'], {'steps': 30})
             await page.mouse.up()
             await page.waitFor(3000)
+    await page.close()

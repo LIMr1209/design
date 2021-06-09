@@ -78,10 +78,12 @@ class JdSpider(SeleniumSpider):
         dispatcher.connect(receiver=self.except_close,
                            signal=signals.spider_closed
                            )
-        old_num = len(self.browser.window_handles)
         js = 'window.open("https://www.jd.com/");'
         self.browser.execute_script(js)
-        self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
+        self.browser.close()
+        self.browser.switch_to_window(self.browser.window_handles[0])
+        # old_num = len(self.browser.window_handles)
+        # self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def fail_url_save(self, response):
         if self.error_retry:
