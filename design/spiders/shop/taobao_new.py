@@ -516,6 +516,8 @@ class TaobaoSpider(SeleniumSpider):
                 return {'success': True, 'message': '当前库存已提前售罄'}
             if '起拍价格' in self.browser.page_source:
                 return {'success': True, 'message': '商品拍卖'}
+            if '很抱歉，您查看的商品找不到了！' in self.browser.page_source:
+                return {'success': True, 'message': '您查看的商品找不到了'}
             try:
                 elem = WebDriverWait(self.browser, 10, 0.5).until(
                     EC.presence_of_element_located(
