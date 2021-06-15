@@ -702,6 +702,8 @@ class TaobaoSpider(SeleniumSpider):
                 return {'success': True, 'message': '此商品已下架'}
             if '此宝贝已下架' in self.browser.page_source:
                 return {'success': True, 'message': '此商品已下架'}
+            if '起拍价格' in self.browser.page_source:
+                return {'success': True, 'message': '此商品是拍卖品'}
             title = self.browser.find_element_by_xpath('//h3[@class="tb-main-title"]').get_attribute(
                 'innerText').strip()
             # if not hasattr(self,'error_retry'):
