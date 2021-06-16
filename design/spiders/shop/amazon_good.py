@@ -49,7 +49,17 @@ class AmazonGoodSpider(SeleniumSpider):
         self.s.mount('http://', HTTPAdapter(max_retries=5))
         self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
+        if not self.error_retry and not self.key_words:
+            res = self.s.get(self.setting['OPALUS_GOODS_CATEGORY_URL'])
+            result = json.loads(res.content)
+            for i in result['data']:
+                if i['en_name']:
+                    self.key_words.append({
+                        'name': i['tags'][0],
+                        'value': i['en_name']
+                    })
         self.goods_url = self.setting['OPALUS_GOODS_URL']
+        # 10041 纽约代码
         self.search_url = 'https://www.amazon.com/s?k=%s&page=%s&qid=1616466294&ref=sr_pg_%s'
 
         super(AmazonGoodSpider, self).__init__(*args, **kwargs)
