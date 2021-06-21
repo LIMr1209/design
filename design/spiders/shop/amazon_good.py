@@ -8,6 +8,7 @@ import scrapy
 import time
 
 from requests.adapters import HTTPAdapter
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from design.items import ProduceItem, TaobaoItem
 from pydispatch import dispatcher
@@ -32,7 +33,7 @@ class AmazonGoodSpider(SeleniumSpider):
     }
 
     def __init__(self, *args, **kwargs):
-        self.key_words = kwargs['key_words']
+        self.key_words = kwargs['key_words'] if 'key_words' in kwargs else []
         self.page = 1
         self.redis_cli = RedisHandle('localhost', '6379')
         self.list_url = []
@@ -121,9 +122,21 @@ class AmazonGoodSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('amazon', 'keywords')
 
+    def browser_get(self, url):
+        try:
+            self.browser.get(url)
+        except TimeoutException as e:
+            self.browser_get(url)
+        except WebDriverException as e:
+            try:
+                self.browser.execute_script('window.stop()')
+            except Exception as e:
+                pass
+            self.browser_get(url)
+
     def get_list_urls(self):
         self.get_list_normal = False
-        self.browser.get(self.search_url % (self.yx_category, self.page, self.page))
+        self.browser_get(self.search_url % (self.yx_category, self.page, self.page))
         time.sleep(2)
         max_page = int(
             self.browser.find_element_by_xpath('//li[@class="a-last"]/preceding-sibling::li[1]').get_attribute(
@@ -135,7 +148,7 @@ class AmazonGoodSpider(SeleniumSpider):
             list_urls.append(i.get_attribute('href'))
         while self.page < max_page:
             self.page += 1
-            self.browser.get(self.search_url % (self.yx_category, self.page, self.page))
+            self.browser_get(self.search_url % (self.yx_category, self.page, self.page))
             time.sleep(2)
             list_url = self.browser.find_elements_by_xpath(
                 '//span[@data-component-type="s-product-image"]/../..//a[@class="a-link-normal s-no-outline"]')
@@ -165,9 +178,16 @@ class AmazonGoodSpider(SeleniumSpider):
             self.fail_url = fail_url
 
     def start_requests(self):
-        self.zh_category = self.key_words[0]['name']
-        self.yx_category = self.key_words[0]['value']
-        self.list_url = self.get_list_urls()
+        if self.error_retry:
+            if self.fail_url:
+                data = self.fail_url.pop(0)
+                self.list_url = data['value']
+                self.zh_category = data['name']
+                self.price_range = data['price_range']
+        else:
+            self.zh_category = self.key_words[0]['name']
+            self.yx_category = self.key_words[0]['value']
+            self.list_url = self.get_list_urls()
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True})
 
@@ -177,13 +197,16 @@ class AmazonGoodSpider(SeleniumSpider):
             self.fail_url_save(response)
             logging.error(res['message'])
         else:
-            respon = res['res']
-            if respon.status_code != 200 or json.loads(respon.content)['code']:
-                logging.error("产品保存失败" + response.url)
-                logging.error(json.loads(respon.content)['message'])
-                self.fail_url_save(response)
+            if 'continue' in res and res['continue']:
+                pass
             else:
-                self.suc_count += 1
+                respon = res['res']
+                if respon.status_code != 200 or json.loads(respon.content)['code']:
+                    logging.error("产品保存失败" + response.url)
+                    logging.error(json.loads(respon.content)['message'])
+                    self.fail_url_save(response)
+                else:
+                    self.suc_count += 1
         self.list_url.pop(0)
         if self.list_url:
             yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
@@ -235,9 +258,12 @@ class AmazonGoodSpider(SeleniumSpider):
                             '//table[@id="HLCXComparisonTable"]//tr[@id="comparison_price_row"]/td[1]//span[@class="a-offscreen"]').get_attribute(
                             'innerText')
                     except:
-                        promotion_price_text = self.browser.find_element_by_xpath(
-                            '//table[@id="HLCXComparisonTable"]//tr[@id="comparison_price_row"]/td[1]/span').get_attribute(
-                            'innerText')
+                        try:
+                            promotion_price_text = self.browser.find_element_by_xpath(
+                                '//table[@id="HLCXComparisonTable"]//tr[@id="comparison_price_row"]/td[1]/span').get_attribute(
+                                'innerText')
+                        except:
+                            return {'success': True, 'continue': True}
                     promotion_price = promotion_price_text.replace('From ', '')
             try:
                 original_price = self.browser.find_element_by_xpath(
