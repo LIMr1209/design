@@ -9,6 +9,9 @@ import time
 
 from requests.adapters import HTTPAdapter
 from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from design.items import ProduceItem, TaobaoItem
 from pydispatch import dispatcher
@@ -236,8 +239,16 @@ class AmazonGoodSpider(SeleniumSpider):
             # for i in range(height, 2000, 200):
             #     self.browser.execute_script('window.scrollTo(0, {})'.format(i))
             #     time.sleep(0.05)
+            elem = WebDriverWait(self.browser, 20, 0.5).until(
+                EC.presence_of_element_located(
+                    (By.ID, 'productTitle')
+                )
+            )
             title = self.browser.find_element_by_xpath('//span[@id="productTitle"]').get_attribute('innerText').strip()
-            brand = self.browser.find_element_by_xpath('//a[@id="bylineInfo"]').get_attribute('innerText')
+            try:
+                brand = self.browser.find_element_by_xpath('//a[@id="bylineInfo"]').get_attribute('innerText')
+            except:
+                brand = ''
             try:
                 xpath = '//span[@id="priceblock_ourprice" or @id="priceblock_saleprice" or @id="priceblock_dealprice" or @id="priceblock_pospromoprice"]'
                 promotion_price = self.browser.find_element_by_xpath(xpath).get_attribute(
@@ -337,7 +348,6 @@ class AmazonGoodSpider(SeleniumSpider):
                 impression.append(i.get_attribute('innerText').strip())
             impression = ','.join(impression)
             item['title'] = title
-            item['brand'] = brand
             item['original_price'] = original_price
             item['promotion_price'] = promotion_price
             item['service'] = service
