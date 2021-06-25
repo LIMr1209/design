@@ -21,6 +21,8 @@ from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
 from design.utils.redis_operation import RedisHandle
 
+# chrome.exe --remote-debugging-port=9666 --user-data-dir="C:\selenium_copy_12\AutomationProfile"
+
 # 解析源代码方式获取 sku 价格样式
 def sku_price_func(browser, site_from):
     page_source = browser.page_source
@@ -180,8 +182,8 @@ class TaobaoSpider(SeleniumSpider):
             self.price_range_list = kwargs['price_range_list']
         else:
             self.price_range_list = {
-                '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
-                '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
+                # '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
+                # '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
             }
         self.key_words = kwargs['key_words'].split(',') if 'key_words' in kwargs else []
         self.redis_cli = RedisHandle('localhost', '6379')
