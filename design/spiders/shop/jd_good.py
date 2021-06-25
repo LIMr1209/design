@@ -47,8 +47,8 @@ class JdSpider(SeleniumSpider):
             self.price_range_list = kwargs['price_range_list']
         else:
             self.price_range_list = {
-                '吹风机': ['459-750', '751-999', '1000gt'],
-                '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
+                # '吹风机': ['459-750', '751-999', '1000gt'],
+                # '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
             }
         self.redis_cli = RedisHandle('localhost', '6379')
         self.list_url = []
@@ -433,7 +433,7 @@ class JdSpider(SeleniumSpider):
             return self.category
 
     def jd_login(self):
-        if '你好，请登录' in self.browser.page_source:
+        if '你好，请登录' in self.browser.page_source or '欢迎登录' in self.browser.page_source:
             account_information = random.choice(self.jd_account_list)
             if not account_information:
                 logging.error('暂无账号信息，反爬限制')
