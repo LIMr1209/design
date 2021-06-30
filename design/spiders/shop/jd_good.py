@@ -265,6 +265,9 @@ class JdSpider(SeleniumSpider):
             item['category'] = self.get_category()
             shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
             item['shop_id'] = shop_id
+            shop_name = self.browser.find_element_by_xpath('//div[@id="popbox"]//h3/a')
+            shop_name = shop_name.get_attribute('innerText').strip()
+            item['shop_name'] = shop_name
             service_ele = self.browser.find_elements_by_xpath(
                 '//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
             service = []

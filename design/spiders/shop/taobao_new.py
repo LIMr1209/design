@@ -567,6 +567,9 @@ class TaobaoSpider(SeleniumSpider):
 
             item['detail_sku'] = json.dumps(detail_price)
             item['title'] = title
+            shop_name = self.browser.find_element_by_xpath('//a[@class="shopLink"]')
+            shop_name = shop_name.get_attribute('innerText').strip()
+            item['shop_name'] = shop_name
             service = self.browser.find_elements_by_xpath('//ul[@class="tb-serPromise"]/li/a')
             item['service'] = ','.join([i.get_attribute('innerText') for i in service])
             try:
@@ -719,6 +722,10 @@ class TaobaoSpider(SeleniumSpider):
                     '//*[@id="J_PromoPriceNum"]').get_attribute('innerText').strip()
             except:
                 item['promotion_price'] = ''
+
+            shop_name = self.browser.find_element_by_xpath('//div[@class="tb-shop-name"]//a')
+            shop_name = shop_name.get_attribute('innerText').strip()
+            item['shop_name'] = shop_name
             detail_price = sku_price_func(self.browser, 8)
 
             ele = self.browser.find_element_by_xpath('//*[@id="J_TabBar"]')
