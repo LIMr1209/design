@@ -265,7 +265,11 @@ class JdSpider(SeleniumSpider):
             item['category'] = self.get_category()
             shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
             item['shop_id'] = shop_id
-            shop_name = self.browser.find_element_by_xpath('//div[@id="popbox"]//h3/a')
+            try:
+                shop_name = self.browser.find_element_by_xpath(
+                    '//div[@class="J-hove-wrap EDropdown fr"]//div[@class="name"]/a')
+            except:
+                shop_name = self.browser.find_element_by_xpath('//div[@id="popbox"]//h3/a')
             shop_name = shop_name.get_attribute('innerText').strip()
             item['shop_name'] = shop_name
             service_ele = self.browser.find_elements_by_xpath(
@@ -348,7 +352,11 @@ class JdSpider(SeleniumSpider):
             # 反爬限制  需要登陆
             self.jd_login()
         if 'passport.jd.com/new/login.aspx' in self.browser.current_url:
-            self.jd_login()
+            while True:
+                time.sleep(2)
+                self.browser.get(response.url)
+                if response.url == self.browser.current_url:
+                    break
         if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             logging.error('京东国际 {}'.format(response.url))
         elif 'paimai.jd.com' in self.browser.current_url:  # 京东拍卖不爬
@@ -443,6 +451,6 @@ class JdSpider(SeleniumSpider):
                 return
             res = self.s.get('http://127.0.0.1:%s/json/version' % self.se_port)
             browser_ws_endpoint = json.loads(res.content)['webSocketDebuggerUrl']
-            asyncio.get_event_loop().run_until_complete(jd_code(account_information['account'], account_information['password'], browser_ws_endpoint))
+            asyncio.get_event_loop().run_until_complete(
+                jd_code(account_information['account'], account_information['password'], browser_ws_endpoint))
             self.comment_no_count = 0
-
