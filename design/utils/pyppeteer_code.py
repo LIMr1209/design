@@ -6,8 +6,8 @@ from urllib import request
 
 # 滑块的缺口距离识别
 async def get_distance():
-    img = cv2.imread('tmp/jd_big.png', 0)
-    template = cv2.imread('tmp/jd_small.png', 0)
+    img = cv2.imread('design/tmp/jd_big.png', 0)
+    template = cv2.imread('design/tmp/jd_small.png', 0)
     res = cv2.matchTemplate(img, template, cv2.TM_CCORR_NORMED)
     value = cv2.minMaxLoc(res)[2][0]
     distance = value * 278/360
@@ -48,9 +48,9 @@ async def jd_code(account, password, browser_ws_endpoint):
             break
         else:
             image_src = await page.Jeval('.JDJRV-bigimg >img', 'el => el.src')
-            request.urlretrieve(image_src, 'tmp/jd_big.png')
+            request.urlretrieve(image_src, 'design/tmp/jd_big.png')
             template_src = await page.Jeval('.JDJRV-smallimg >img', 'el => el.src')
-            request.urlretrieve(template_src, 'tmp/jd_small.png')
+            request.urlretrieve(template_src, 'design/tmp/jd_small.png')
             await page.waitFor(3000)
             el = await page.J('div.JDJRV-slide-btn')
             box = await el.boundingBox()
