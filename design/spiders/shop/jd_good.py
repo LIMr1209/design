@@ -265,13 +265,18 @@ class JdSpider(SeleniumSpider):
             item['category'] = self.get_category()
             shop_id = re.findall('shopId.*?(\d+)', self.browser.page_source)[0]
             item['shop_id'] = shop_id
+            shop_name = ''
             try:
                 shop_name = self.browser.find_element_by_xpath(
                     '//div[@class="J-hove-wrap EDropdown fr"]//div[@class="name"]/a')
             except:
-                shop_name = self.browser.find_element_by_xpath('//div[@id="popbox"]//h3/a')
-            shop_name = shop_name.get_attribute('innerText').strip()
-            item['shop_name'] = shop_name
+                try:
+                    shop_name = self.browser.find_element_by_xpath('//div[@id="popbox"]//h3/a')
+                except:
+                    pass
+            if shop_name:
+                shop_name = shop_name.get_attribute('innerText').strip()
+                item['shop_name'] = shop_name
             service_ele = self.browser.find_elements_by_xpath(
                 '//div[@id="J_SelfAssuredPurchase"]/div[@class="dd"]//a')
             service = []
@@ -354,9 +359,12 @@ class JdSpider(SeleniumSpider):
         if 'passport.jd.com/new/login.aspx' in self.browser.current_url:
             while True:
                 time.sleep(2)
-                self.browser.get(response.url)
-                if response.url == self.browser.current_url:
-                    break
+                try:
+                    self.browser.get(response.url)
+                    if response.url == self.browser.current_url:
+                        break
+                except:
+                    pass
         if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             logging.error('京东国际 {}'.format(response.url))
         elif 'paimai.jd.com' in self.browser.current_url:  # 京东拍卖不爬
