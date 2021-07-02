@@ -357,14 +357,19 @@ class JdSpider(SeleniumSpider):
             # 反爬限制  需要登陆
             self.jd_login()
         if 'passport.jd.com/new/login.aspx' in self.browser.current_url:
-            while True:
-                time.sleep(2)
-                try:
-                    self.browser.get(response.url)
-                    if response.url == self.browser.current_url:
-                        break
-                except:
-                    pass
+            self.browser.get('https://jd.com')
+            time.sleep(2)
+            if '你好，请登录' in self.browser.page_source:
+                self.jd_login()
+            else:
+                while True:
+                    time.sleep(5)
+                    try:
+                        self.browser.get(response.url)
+                        if 'passport.jd.com/new/login.aspx' not in  self.browser.current_url:
+                            break
+                    except:
+                        pass
         if 'pcitem.jd.hk' in self.browser.current_url:  # 京东国际不爬
             logging.error('京东国际 {}'.format(response.url))
         elif 'paimai.jd.com' in self.browser.current_url:  # 京东拍卖不爬
