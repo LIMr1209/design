@@ -17,14 +17,12 @@ from selenium.webdriver.chrome.options import Options
 def cookie_to_dic(cookie):
     return {item.split('=')[0]: item.split('=')[1] for item in cookie.split('; ')}
 
-
 def dict_to_cookie(data):
     cookie = ''
-    for key, value in data.items():
-        cookie += key + '=' + value + ';'
+    for key,value in data.items():
+        cookie += key+'='+value+';'
     cookie = cookie[:-1]
     return cookie
-
 
 class CommentSpider:
     def __init__(self, logger):
@@ -318,50 +316,45 @@ class CommentSpider:
 
     def data_tmall_handle(self, out_number):
         comment_page = 1
-        x5sec = ''
         while True:
             res = self.get_taobao_impression(out_number, 9)
             if res['success']:
                 impression = res['impression']
                 break
-        cookie_dict = {
-            't': '7eb89f5c2e118140ef49e1f31237a35e',
-            '_tb_token_': 'f3e5557aebd57',
-            'cookie2': '1c695a1217e5b117d4e5225a55e7d40b',
-            'unb': '2210910815481',
-            'cookie17': 'UUpgRs05urYo2upivg%3D%3D',
-        }
-        # cookie_dict = {'cna': 'c2lgGTuTPWYCAXt1qJPODrdS', 'xlly_s': '1', 't': 'b53111f044cc56cea4bdbd22205e0fe4',
-        #                '_tb_token_': '3e5346e8efebe', 'cookie2': '15dbceb414da28c49afecdd702a60790',
-        #                'dnk': 'tb202938556', 'uc1': 'cookie15', 'uc3': 'id2', 'tracknick': 'tb202938556',
-        #                'lid': 'tb202938556', 'uc4': 'id4', '_l_g_': 'Ug%3D%3D', 'unb': '2210910815481',
-        #                'lgc': 'tb202938556', 'cookie1': 'Vyh4QzqjFdE47ql2BKurTZEx6r6Q36e1fsdd5othmPc%3D',
-        #                'login': 'true', 'cookie17': 'UUpgRs05urYo2upivg%3D%3D', '_nk_': 'tb202938556',
-        #                'sgcookie': 'E100MVeu3Q3GSOW6vqkASpovTtS3xb9ErWVswaNvYItzVNn4O7ZcWs31EnC5oxf9syY9mMJ9lg6N9rCBRNvza2Bedg%3D%3D',
-        #                'sg': '613', 'csg': 'cb0dbed4',
-        #                'enc': 'V7FQMwMAHQy%2BAJxRmZYGoq5cI%2B1fCa7zdA%2FyPaANcQrnv45NgDS3JUECSPxfFuAG2E0SFNWvgg0qm0Qqi%2FmVAtQuTWf6jNAbTtED%2BAz9bfk%3D',
-        #                '_m_h5_tk': '1e4e83f6a007e2bfe8ab4a99ad0a9191_1624942602305',
-        #                '_m_h5_tk_enc': 'd5c59f614e3534ac076cb0f37202c166',
-        #                'x5sec': '7b22617365727665723b32223a226330643031343464316339616262356664653237303130373130396562373231434f4f4a366f5947454d793175763735333562667a674561447a49794d5441354d5441344d5455304f4445374d5443756f66474e41673d3d227d',
-        #                'tfstk': 'c1eOBO6nTwbiyImL45ChGpf7FT3OaqptkhgyHGl1-WI6ptpvhsX0E8Etx1iJWvId.',
-        #                'l': 'eBPOjgiljWcuue_jBO5a-urza7796IdfGPVzaNbMiInca6TFgZzszNCBQJf6zdtjgt5X9etrFQx-eReXS-zLRx_ceTwhKXIpBhv68e1..',
-        #                'isg': 'BPr6A2T9Tq-lm8LATxbqNiZJSyAcq36FmP0hKgTyVgxX954x7DjglXRBR4Mr4vYd'}
+            time.sleep(5)
+        cookie_list = [
+            {
+                't': '7eb89f5c2e118140ef49e1f31237a35e',
+                '_tb_token_': 'f3e5557aebd57',
+                'cookie2': '1c695a1217e5b117d4e5225a55e7d40b',
+                'unb': '2210910815481',
+                'cookie17': 'UUpgRs05urYo2upivg%3D%3D',
+            },
+            {
+                'unb': '2671514723',
+                'cookie17': 'UU6m3oSoOMkDcQ%3D%3D',
+                'cookie2': '14afef918099fa1af5cef3074ead2ec3',
+                't': '0906303aa9a7f271161bb03f51f721cd',
+                '_tb_token_': 'eeee3b3750ed',
+            }
+        ]
+        index = 0
         while True:
-            if x5sec:
-                cookie_dict['x5sec'] = x5sec
-            # time.sleep(random.randint(7,12))
-            cookie = dict_to_cookie(cookie_dict)
+            time.sleep(random.randint(7,12))
+            index += 1
+            cookie = dict_to_cookie(cookie_list[index%2])
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
                 'Referer': 'https://detail.tmall.com/item.htm?id=%s' % out_number,
                 'User-Agent': ua,
-                'Cookie': cookie
+                'Cookie': 'cna=CsZJGa3SrA0CAXt1qaHrs6Mu; hng=CN%7Czh-CN%7CCNY%7C156; sm4=110100; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; enc=iK%2B%2Fr8GkrhsC%2F28GshDory1JoMeZPGit6nr%2B%2FV5wboKC3NCIW1EjZyVmOLd3rxnbIjMQGtfZyRzAqkguS9Gmmg%3D%3D; xlly_s=1; sgcookie=E1005EAYIeU8wL6ku8nzSMAqoNcbgQsT2M%2FUep%2B1GzTNaIM%2BeEbMIYnBOqRrCW1QU7q%2Bk2uygAx6miG%2F8mrZNryh%2BA%3D%3D; t=0906303aa9a7f271161bb03f51f721cd; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&lg2=W5iHLLyFOGW7aA%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&vt3=F8dCuwzh0Ayl3hHKXDo%3D; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSUjIAGq%2Bo1j&nk4=0%400AdtZS03tnds0llDWCRcSihqN1rqY6jGZgtS; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; _tb_token_=56b8eb3e3860b; cookie2=1fa6409e956fde0350df87c82188b43e; _m_h5_tk=4bef43b6b770fa7729029504bb0f4945_1624857244387; _m_h5_tk_enc=6aec39be343994d05c40eb7e2613f12e; x5sec=7b22617365727665723b32223a223764313938313032626339383831376635343361633139386435666237633631434b6a7035495947454a32517438626f765053504f786f4d4d6a59334d5455784e4463794d7a73784d4b366838593043227d; tfstk=c76lBA1tc_RS_kAc1895q6lJDnjhatUyz9WR396lt8qPEAW24s0tgf7oDoYVr9hC.; l=eBQJ2fCIQDOlzIUXBO5Cnurza77OEIObzPVzaNbMiInca1z5iG_qeNCBCHNkrdtjgtfAHety7NlrrRFHSTad0ZqhuJM8GPLVexJ6-; isg=BGVlRHMDab3nzLNoRo7kzEb_dCGfohk05BYIrGdLbxxefofwL_EZBIBYCOII-zHs'
+                # 'Cookie': cookie
             }
             url = self.comment_tm_data_url % (out_number, comment_page)
 
             try:
-                comment_res = self.s.get(url, headers=headers, proxies=proxies, verify=False, timeout=self.time_out)
+                comment_res = self.s.get(url, headers=headers, verify=False, timeout=self.time_out)
             except ProxyError as e:
                 self.logger.error('代理错误')
                 time.sleep(5)
@@ -382,7 +375,6 @@ class CommentSpider:
             data = []
             if not 'rateDetail' in result or not result['rateDetail']:
                 self.logger.warning('反爬限制')
-                x5sec = get_tmall_x5sec(result['url'])
                 time.sleep(10)
                 continue
             for i in result['rateDetail']['rateList']:
@@ -565,8 +557,8 @@ def comment_spider(name, category, reverse=0):
     logger.setLevel(logging.DEBUG)
     # while True:
     res = get_goods_data(opalus_goods_comment_url, params, logger, reverse)
-    # if not res['success']:
-    # break
+        # if not res['success']:
+        # break
 
 
 def get_goods_data(url, params, logger, reverse):
@@ -610,29 +602,6 @@ def get_jd_cookie():
     cookies = [i['name'] + "=" + i['value'] for i in cookies]
     cookies = '; '.join(cookies)
     return cookies
-
-
-# 浏览器重新获取cookie 提供jd 评论爬取
-def get_tmall_x5sec(url):
-    if not url.startswith('https'):
-        url = 'https:'+url
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-    # 初始化chrome对象
-    browser = webdriver.Chrome(options=chrome_options)
-    while True:
-        try:
-            browser.get(url)
-            break
-        except:
-            pass
-    while True:
-        if not '拦截' in browser.title:
-            break
-    time.sleep(2)
-    x5sec = browser.get_cookie('x5sec')
-    return x5sec
 
 
 if __name__ == '__main__':
