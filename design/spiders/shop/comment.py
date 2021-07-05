@@ -4,6 +4,8 @@ import json
 import random
 import re
 import time
+from copy import deepcopy
+
 import requests
 from fake_useragent import UserAgent
 from requests.adapters import HTTPAdapter, ProxyError
@@ -68,17 +70,28 @@ class CommentSpider:
         self.switch = False  # jd
         self.comment_pdd_data_url = 'http://apiv3.yangkeduo.com/reviews/%s/list?&size=20&page=%s&label_id=700000000'  # label_id=700000000 最新
         self.comment_tb_data_url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=%s&currentPageNum=%s&pageSize=20&orderType=feedbackdate&attribute=&sku=&hasSku=false&folded=0&callback=jsonp_tbcrate_reviews_list'  # orderType sort_weight 推荐排序, feedbackdate 最新排序
-        self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=3&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
+        self.comment_tm_data_url = 'https://rate.tmall.com/list_detail_rate.htm?itemId=%s&spuId=972811287&sellerId=2901218787&order=1&currentPage=%s&append=0&content=1&tagId=&posi=&picture=&groupId=&needFold=0&_ksTS=1606704651028_691&callback=jsonp692'
         self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
         self.comment_save_url = opalus_comment_url
 
     # 保存评论
-    def comment_save(self, out_number, data):
+    def comment_save(self, out_number, json_data, new_time):
+        data = json_data['data']
         success = False
-        data.sort(key=lambda x: x['date'], reverse=True)
+        # data.sort(key=lambda x:x['date'])
+        # new_data = []
+        # if new_time:
+        #     for i in data:
+        #         if i['date'] > new_time:
+        #             new_data.append(i)
+        # else:
+        #     new_data = deepcopy(data)
+        # if not new_data:
+        #     return {'success': True, 'message': '重复爬取', 'out_number': out_number}
+        # json_data['data'] = new_data
         while not success:
             try:
-                res = self.s.post(self.comment_save_url, json=data)
+                res = self.s.post(self.comment_save_url, json=json_data)
                 success = True
             except requests.exceptions.RequestException as e:
                 time.sleep(10)
@@ -90,6 +103,8 @@ class CommentSpider:
         # 重复爬取
         if 'existence_count' in res.json() and res.json()['existence_count'] == len(data):
             return {'success': True, 'message': '重复爬取', 'out_number': out_number}
+        # if len(new_data) < len(data):
+        #     return {'success': True, 'message': '重复爬取', 'out_number': out_number}
         return {'success': True, 'message': ''}
 
     # 终止爬取评论
@@ -105,18 +120,18 @@ class CommentSpider:
 
     def data_handle(self, i):
         if i['site_from'] == 8:
-            res = self.data_taobao_handle(i['number'])
+            res = self.data_taobao_handle(i['number'], i['_id'],i['site_from'],  i['new_time'])
         elif i['site_from'] == 9:
-            res = self.data_tmall_handle(i['number'])
+            res = self.data_tmall_handle(i['number'], i['_id'], i['site_from'], i['new_time'])
         elif i['site_from'] == 10:
-            res = self.data_pdd_handle(i['number'])
+            res = self.data_pdd_handle(i['number'], i['_id'], i['site_from'], i['new_time'])
         elif i['site_from'] == 11:
-            res = self.data_jd_handle(i['number'])
+            res = self.data_jd_handle(i['number'], i['_id'], i['site_from'], i['new_time'])
         else:
             res = '渠道错误'
         return res
 
-    def data_jd_handle(self, out_number):
+    def data_jd_handle(self, out_number, id, site_from, new_time):
         comment_page = 0
         cookie_dict = cookie_to_dic(
             'JSESSIONID=F6406AC900FCDF0F957FB9D6C4F9FDCB.s1; Path=/')
@@ -168,8 +183,8 @@ class CommentSpider:
             if 'comments' in result:
                 for i in result['comments']:
                     comment = {}
-                    comment['positive_review'] = result['productCommentSummary']['goodCount']
-                    comment['comment_count'] = result['productCommentSummary']['commentCount']
+                    positive_review = result['productCommentSummary']['goodCount']
+                    comment_count = result['productCommentSummary']['commentCount']
                     impression = ''
                     for j in result['hotCommentTagStatistics']:
                         impression += j['name'] + '(' + str(j['count']) + ')  '
@@ -188,9 +203,7 @@ class CommentSpider:
                         comment['type'] = 2
                     elif i['score'] in [1]:
                         comment['type'] = 1
-                    comment['impression'] = impression
                     comment['site_from'] = 11
-                    comment['good_url'] = headers['Referer']
                     if i['content'] == '此用户没有填写评论!':
                         comment['first'] = ''
                     elif i['content'] == '评价方未及时做出评价,系统默认好评!':
@@ -204,8 +217,12 @@ class CommentSpider:
                     comment['date'] = i['creationTime']
                     data.append(comment)
             if data:
+                json_data = {
+                    'good': {'impression': impression, 'positive_review': positive_review, 'comment_count':comment_count, 'id': id, 'site_from': site_from},
+                    'data': data,
+                }
                 # data = json.dumps(data, ensure_ascii=False)
-                res = self.comment_save(out_number, data)
+                res = self.comment_save(out_number, json_data, new_time)
                 if not res['success']:
                     return res
                 if res['message'] == '重复爬取':
@@ -220,7 +237,7 @@ class CommentSpider:
                 time.sleep(num)
             comment_page += 1
 
-    def data_pdd_handle(self, out_number):
+    def data_pdd_handle(self, out_number, id, site_from, new_time):
         comment_page = 1
         goods_url = 'http://yangkeduo.com/goods.html?goods_id=%s' % out_number
         while True:
@@ -284,7 +301,6 @@ class CommentSpider:
                         comment['type'] = 2
                     else:
                         comment['type'] = 0
-                comment['good_url'] = goods_url
                 if i['comment'] != "此用户未填写文字评论":
                     comment['first'] = i['comment']
                 if 'append' in i and i['append']:
@@ -302,8 +318,12 @@ class CommentSpider:
                     comment['date'] = otherStyleTime
                 data.append(comment)
             if data:
+                json_data = {
+                    'good': {'impression': '', 'id': id, 'site_from': site_from},
+                    'data': data,
+                }
                 # data = json.dumps(data, ensure_ascii=False)
-                res = self.comment_save(out_number, data)
+                res = self.comment_save(out_number, json_data, new_time)
                 if not res['success']:
                     return res
                 # if res['message'] == '重复爬取':
@@ -318,7 +338,7 @@ class CommentSpider:
             #     time.sleep(num)
             comment_page += 1
 
-    def data_tmall_handle(self, out_number):
+    def data_tmall_handle(self, out_number, id, site_from, new_time):
         comment_page = 1
         while True:
             res = self.get_taobao_impression(out_number, 9)
@@ -343,7 +363,8 @@ class CommentSpider:
                 '_tb_token_': 'eeee3b3750ed',
             }
         ]
-        a = cookie_to_dic('xlly_s=1; cna=BlxpGa3pHwcCAXt1qFue0H25; _m_h5_tk=c5b3a9e5fcb8e7af464b740c33717bcf_1625461046485; _m_h5_tk_enc=854c2cf699871ea9dc8475e4625ae688; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; uc1=cookie21=VT5L2FSpccLuJBreK%2BBd&pas=0&existShop=false&cookie15=Vq8l%2BKCLz3%2F65A%3D%3D&cookie16=VT5L2FSpNgq6fDudInPRgavC%2BQ%3D%3D&cookie14=Uoe2yIdH2plXgA%3D%3D; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&lg2=W5iHLLyFOGW7aA%3D%3D&vt3=F8dCuwOxbPtD9a8VPu0%3D; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; _l_g_=Ug%3D%3D; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSUi4wEzg7hq&nk4=0%400AdtZS03tnds0llDWCRcSihqN1rrIyZSjaqW; unb=2671514723; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cookie1=BxNSonczp%2BfH4JvkmZGiHVjnsgV7tsFybnrAAaVXt9g%3D; login=true; cookie17=UU6m3oSoOMkDcQ%3D%3D; cookie2=18a7785e1f11a1d863fcadff0362df3e; _nk_=%5Cu658C%5Cu7237%5Cu72371058169464; sgcookie=E1005zv%2Bhz6f5Q0EO2HvAzL3BmLQK8mHDiohVNhyQWporZbAdVivA6gatxv2CBF8mUelPxLo0%2FHtlfIWQt4HF3yB1g%3D%3D; sg=437; t=b471be1b6451e3223c85cf947cb281f6; csg=a23665e3; _tb_token_=3b1f30eaaee70; enc=GW3FaK%2BshiuOkvzRvsW4FqeMe6%2FMvQeuzmtgAyuMTGwNpM93PLvN7bvDd1KcdqQ88O5IlPR6AHOQnMJ7tgQBvw%3D%3D; x5sec=7b22617365727665723b32223a2239393063356638396434666539663662353835323961336132326661613663644349376569596347454f57577664376c2b5a32456d414561444449324e7a45314d5451334d6a4d374d5443756f66474e41673d3d227d; tfstk=c5DfBxAnSZbXPhAN3mtP_PyMtC2Pa0A72IarcXxLApYX_3nbysD1Ly68Ffb5eWE5.; l=eBP6SJ7Vj5lXnq8jBO5wlurza77OmIdfhsPzaNbMiInca1o5ievT1NCB06sBrdtjgt5fVetrFQx-eRUH8f4LRx_ceTwhKXIpBB96Se1..; isg=BKurbzjUTxBGJJNEY1Gj1MWGOs-VwL9CUQZQ9R0pCOpevM0epZHPkqRaFvzSnBc6')
+        a = cookie_to_dic(
+            'xlly_s=1; cna=BlxpGa3pHwcCAXt1qFue0H25; _m_h5_tk=c5b3a9e5fcb8e7af464b740c33717bcf_1625461046485; _m_h5_tk_enc=854c2cf699871ea9dc8475e4625ae688; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; uc1=cookie21=VT5L2FSpccLuJBreK%2BBd&pas=0&existShop=false&cookie15=Vq8l%2BKCLz3%2F65A%3D%3D&cookie16=VT5L2FSpNgq6fDudInPRgavC%2BQ%3D%3D&cookie14=Uoe2yIdH2plXgA%3D%3D; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&lg2=W5iHLLyFOGW7aA%3D%3D&vt3=F8dCuwOxbPtD9a8VPu0%3D; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; _l_g_=Ug%3D%3D; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSUi4wEzg7hq&nk4=0%400AdtZS03tnds0llDWCRcSihqN1rrIyZSjaqW; unb=2671514723; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cookie1=BxNSonczp%2BfH4JvkmZGiHVjnsgV7tsFybnrAAaVXt9g%3D; login=true; cookie17=UU6m3oSoOMkDcQ%3D%3D; cookie2=18a7785e1f11a1d863fcadff0362df3e; _nk_=%5Cu658C%5Cu7237%5Cu72371058169464; sgcookie=E1005zv%2Bhz6f5Q0EO2HvAzL3BmLQK8mHDiohVNhyQWporZbAdVivA6gatxv2CBF8mUelPxLo0%2FHtlfIWQt4HF3yB1g%3D%3D; sg=437; t=b471be1b6451e3223c85cf947cb281f6; csg=a23665e3; _tb_token_=3b1f30eaaee70; enc=GW3FaK%2BshiuOkvzRvsW4FqeMe6%2FMvQeuzmtgAyuMTGwNpM93PLvN7bvDd1KcdqQ88O5IlPR6AHOQnMJ7tgQBvw%3D%3D; x5sec=7b22617365727665723b32223a2239393063356638396434666539663662353835323961336132326661613663644349376569596347454f57577664376c2b5a32456d414561444449324e7a45314d5451334d6a4d374d5443756f66474e41673d3d227d; tfstk=c5DfBxAnSZbXPhAN3mtP_PyMtC2Pa0A72IarcXxLApYX_3nbysD1Ly68Ffb5eWE5.; l=eBP6SJ7Vj5lXnq8jBO5wlurza77OmIdfhsPzaNbMiInca1o5ievT1NCB06sBrdtjgt5fVetrFQx-eRUH8f4LRx_ceTwhKXIpBB96Se1..; isg=BKurbzjUTxBGJJNEY1Gj1MWGOs-VwL9CUQZQ9R0pCOpevM0epZHPkqRaFvzSnBc6')
         index = 0
         while True:
             # time.sleep(random.randint(7,12))
@@ -392,9 +413,7 @@ class CommentSpider:
                 continue
             for i in result['rateDetail']['rateList']:
                 comment = {}
-                comment['impression'] = impression
                 comment['type'] = 1 if i['anony'] else 0
-                comment['good_url'] = headers['Referer']
                 comment['site_from'] = 9
                 images = []
                 if 'pics' in i:
@@ -411,8 +430,12 @@ class CommentSpider:
                 comment['date'] = i['rateDate']
                 data.append(comment)
             if data:
+                json_data = {
+                    'good': {'impression': impression, 'id': id, 'site_from': site_from},
+                    'data': data,
+                }
                 # data = json.dumps(data, ensure_ascii=False)
-                res = self.comment_save(out_number, data)
+                res = self.comment_save(out_number, json_data, new_time)
                 if not res['success']:
                     return res
                 if res['message'] == '重复爬取':
@@ -427,7 +450,7 @@ class CommentSpider:
                 time.sleep(num)
             comment_page += 1
 
-    def data_taobao_handle(self, out_number):
+    def data_taobao_handle(self, out_number, id, site_from, new_time):
         comment_page = 1
         while True:
             res = self.get_taobao_impression(out_number, 8)
@@ -485,8 +508,6 @@ class CommentSpider:
                             images.append('https:' + j['url'])
                     comment['images'] = ','.join(images)
                     comment['love_count'] = i['useful'] if 'useful' in i else 0
-                    comment['impression'] = impression
-                    comment['good_url'] = headers['Referer']
                     comment['site_from'] = 8
                     if i['content'] == '此用户没有填写评论!' or i['content'] == '此用户没有填写评价。':
                         comment['first'] = ''
@@ -500,8 +521,12 @@ class CommentSpider:
                     comment['date'] = i['date'].replace('年', '-').replace('月', '-').replace('日', '')
                     data.append(comment)
             if data:
+                json_data = {
+                    'good': {'impression': impression, 'id': id, 'site_from': site_from},
+                    'data': data,
+                }
                 # data = json.dumps(data, ensure_ascii=False)
-                res = self.comment_save(out_number, data)
+                res = self.comment_save(out_number, json_data, new_time)
                 if not res['success']:
                     return res
                 if res['message'] == '重复爬取':
