@@ -420,10 +420,17 @@ class TaobaoSpider(SeleniumSpider):
         max_page = int(re.search('\d+', max_page_text).group())
         if max_page <= page:
             page = max_page
-        list_urls = []
-        list_url = self.browser.find_elements_by_xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
-        for i in list_url:
-            list_urls.append(i.get_attribute('href'))
+        list_urls_cate = {
+            'taobao': [],
+            'tmall': [],
+        }
+        list_url_ele = self.browser.find_elements_by_xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
+        for i in list_url_ele:
+            href = i.get_attribute('href')
+            if 'item.taobao.com' in href:
+                list_urls_cate['taobao'].append(href)
+            else:
+                list_urls_cate['tmall'].append(href)
         while self.page <= page:
             next = self.browser.find_elements_by_xpath('//a[@class="J_Ajax num icon-tag"]')
             if len(next) > 1:
@@ -432,11 +439,18 @@ class TaobaoSpider(SeleniumSpider):
                 next[0].click()
             time.sleep(2)
             self.page += 1
-            list_url = self.browser.find_elements_by_xpath(
+            list_url_ele = self.browser.find_elements_by_xpath(
                 '//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
-            for i in list_url:
-                list_urls.append(i.get_attribute('href'))
+            for i in list_url_ele:
+                href = i.get_attribute('href')
+                if 'item.taobao.com' in href:
+                    list_urls_cate['taobao'].append(href)
+                else:
+                    list_urls_cate['tmall'].append(href)
         self.get_list_normal = True
+        list_urls = []
+        list_urls.extend(list_urls_cate['taobao'])
+        list_urls.extend(list_urls_cate['tmall'])
         return list_urls
 
     def is_huakuai_code(self, site_from):

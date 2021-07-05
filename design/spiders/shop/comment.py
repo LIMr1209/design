@@ -79,6 +79,7 @@ class CommentSpider:
                 success = True
             except requests.exceptions.RequestException as e:
                 time.sleep(10)
+                self.logger.warning('保存评论失败 正在重试')
                 # return {'success': False, 'message': "保存失败", 'out_number': out_number}
         if res.status_code != 200 or res.json()['code']:
             message = res.json()['message']
@@ -319,6 +320,7 @@ class CommentSpider:
         while True:
             res = self.get_taobao_impression(out_number, 9)
             if res['success']:
+                self.logger.warning("获取淘宝大家印象失败 正在重试")
                 impression = res['impression']
                 break
             time.sleep(5)
@@ -419,6 +421,7 @@ class CommentSpider:
         while True:
             res = self.get_taobao_impression(out_number, 8)
             if res['success']:
+                self.logger.warning("获取淘宝大家印象失败 正在重试")
                 impression = res['impression']
                 break
             time.sleep(5)
@@ -523,6 +526,7 @@ class CommentSpider:
         impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
         impression = ''
         if not "tags" in impression_data:
+            self.logger.warning('tags 不存在 反爬')
             return {'success': False, 'message': "反爬", 'out_number': out_number}
         for i in impression_data['tags']['tagClouds']:
             impression += i['tag'] + '(' + str(i['count']) + ')  '
@@ -572,6 +576,9 @@ def get_goods_data(url, params, logger, reverse):
                 res = requests.get(opalus_goods_comment_url, params=params, verify=False)
                 success = True
             except requests.exceptions.RequestException as e:
+                logger.warning("获取待爬取商品信息失败 正在重试")
+                logger.warning(str(e))
+                logger.warning(str(params))
                 time.sleep(10)
         res = json.loads(res.content)
         spider = CommentSpider(logger)
