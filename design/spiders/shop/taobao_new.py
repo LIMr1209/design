@@ -420,10 +420,17 @@ class TaobaoSpider(SeleniumSpider):
         max_page = int(re.search('\d+', max_page_text).group())
         if max_page <= page:
             page = max_page
-        list_urls = []
-        list_url = self.browser.find_elements_by_xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
-        for i in list_url:
-            list_urls.append(i.get_attribute('href'))
+        list_urls_cate = {
+            'taobao': [],
+            'tmall': [],
+        }
+        list_url_ele = self.browser.find_elements_by_xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
+        for i in list_url_ele:
+            href = i.get_attribute('href')
+            if 'item.taobao.com' in href:
+                list_urls_cate['taobao'].append(href)
+            else:
+                list_urls_cate['tmall'].append(href)
         while self.page <= page:
             next = self.browser.find_elements_by_xpath('//a[@class="J_Ajax num icon-tag"]')
             if len(next) > 1:
@@ -432,21 +439,50 @@ class TaobaoSpider(SeleniumSpider):
                 next[0].click()
             time.sleep(2)
             self.page += 1
-            list_url = self.browser.find_elements_by_xpath(
+            list_url_ele = self.browser.find_elements_by_xpath(
                 '//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
-            for i in list_url:
-                list_urls.append(i.get_attribute('href'))
+            for i in list_url_ele:
+                href = i.get_attribute('href')
+                if 'item.taobao.com' in href:
+                    list_urls_cate['taobao'].append(href)
+                else:
+                    list_urls_cate['tmall'].append(href)
         self.get_list_normal = True
+        list_urls = []
+        list_urls.extend(list_urls_cate['taobao'])
+        list_urls.extend(list_urls_cate['tmall'])
         return list_urls
 
+    def is_huakuai_code(self, site_from):
+        if site_from == 8:
+            try:
+                ele = self.browser.find_element_by_xpath('//*[@id="baxia-dialog-content"]')
+                if 'login' in ele.get_attribute('src'):
+                    time.sleep(1)
+                else:
+                    time.sleep(4)
+            except:
+                time.sleep(1)
+        else:
+            try:
+                ele = self.browser.find_element_by_xpath('//*[@id="sufei-dialog-content"]')
+                if 'login' in ele.get_attribute('src'):
+                    time.sleep(1)
+                else:
+                    time.sleep(4)
+            except:
+                time.sleep(1)
+
+
     def parse_detail(self, response):
-        time.sleep(4)
         res = {}
         if 'detail.tmall.hk' in self.browser.current_url:
             logging.error("天猫国际" + self.browser.current_url)
         if "detail.tmall.com" in self.browser.current_url:
+            self.is_huakuai_code(9)
             res = self.save_tmall_data(response)
         if "item.taobao.com" in self.browser.current_url:
+            self.is_huakuai_code(8)
             res = self.save_taobao_data(response)
         # fr = open('tmp/taobao.cookie', 'r')
         # cookies = json.loads(fr.read())
@@ -773,21 +809,25 @@ class TaobaoSpider(SeleniumSpider):
                 print("产品爬取失败", response.url, str("淘宝验证码评论量无法获取"))
                 return {'success': False, 'message': '验证码评论量无法获取'}
             if item['comment_count'] == '-':
-                print("产品爬取失败", response.url, str("验证码"))
+                print("产品爬取失败", response.url, str("淘宝验证码评论量无法获取"))
+                return {'success': False, 'message': '淘宝验证码评论量无法获取'}
+            try:
+                sale_xpath = self.browser.find_element_by_xpath('//*[@id="J_SellCounter"]').get_attribute(
+                    'innerText')
+                if sale_xpath:
+                    index = sale_xpath.find('万')
+                    if index != -1:
+                        item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
+                    else:
+                        if sale_xpath == '-':
+                            print("产品爬取失败", response.url, str("淘宝验证码销量无法获取"))
+                            return {'success': False, 'message': '淘宝验证码销量无法获取'}
+                        sale_count = re.search('\d+', sale_xpath)
+                        if sale_count:
+                            item['sale_count'] = int(sale_count.group())
+            except:
+                print("产品爬取失败", response.url, str("淘宝验证码销量无法获取"))
                 return {'success': False, 'message': '淘宝验证码销量无法获取'}
-            sale_xpath = self.browser.find_element_by_xpath('//*[@id="J_SellCounter"]').get_attribute(
-                'innerText')
-            if sale_xpath:
-                index = sale_xpath.find('万')
-                if index != -1:
-                    item['sale_count'] = int(float(sale_xpath[:index]) * 10000)
-                else:
-                    if sale_xpath == '-':
-                        print("产品爬取失败", response.url, str("验证码"))
-                        return {'success': False, 'message': '验证码销量无法获取'}
-                    sale_count = re.search('\d+', sale_xpath)
-                    if sale_count:
-                        item['sale_count'] = int(sale_count.group())
             try:
                 elem = WebDriverWait(self.browser, 20, 0.5).until(
                     EC.presence_of_element_located(
