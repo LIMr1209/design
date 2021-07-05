@@ -17,12 +17,14 @@ from selenium.webdriver.chrome.options import Options
 def cookie_to_dic(cookie):
     return {item.split('=')[0]: item.split('=')[1] for item in cookie.split('; ')}
 
+
 def dict_to_cookie(data):
     cookie = ''
-    for key,value in data.items():
-        cookie += key+'='+value+';'
+    for key, value in data.items():
+        cookie += key + '=' + value + ';'
     cookie = cookie[:-1]
     return cookie
+
 
 class CommentSpider:
     def __init__(self, logger):
@@ -73,6 +75,7 @@ class CommentSpider:
     # 保存评论
     def comment_save(self, out_number, data):
         success = False
+        data.sort(key=lambda x: x['date'], reverse=True)
         while not success:
             try:
                 res = self.s.post(self.comment_save_url, json=data)
@@ -338,18 +341,27 @@ class CommentSpider:
                 '_tb_token_': 'eeee3b3750ed',
             }
         ]
+        a = cookie_to_dic('xlly_s=1; cna=BlxpGa3pHwcCAXt1qFue0H25; _m_h5_tk=c5b3a9e5fcb8e7af464b740c33717bcf_1625461046485; _m_h5_tk_enc=854c2cf699871ea9dc8475e4625ae688; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; uc1=cookie21=VT5L2FSpccLuJBreK%2BBd&pas=0&existShop=false&cookie15=Vq8l%2BKCLz3%2F65A%3D%3D&cookie16=VT5L2FSpNgq6fDudInPRgavC%2BQ%3D%3D&cookie14=Uoe2yIdH2plXgA%3D%3D; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&lg2=W5iHLLyFOGW7aA%3D%3D&vt3=F8dCuwOxbPtD9a8VPu0%3D; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; _l_g_=Ug%3D%3D; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSUi4wEzg7hq&nk4=0%400AdtZS03tnds0llDWCRcSihqN1rrIyZSjaqW; unb=2671514723; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cookie1=BxNSonczp%2BfH4JvkmZGiHVjnsgV7tsFybnrAAaVXt9g%3D; login=true; cookie17=UU6m3oSoOMkDcQ%3D%3D; cookie2=18a7785e1f11a1d863fcadff0362df3e; _nk_=%5Cu658C%5Cu7237%5Cu72371058169464; sgcookie=E1005zv%2Bhz6f5Q0EO2HvAzL3BmLQK8mHDiohVNhyQWporZbAdVivA6gatxv2CBF8mUelPxLo0%2FHtlfIWQt4HF3yB1g%3D%3D; sg=437; t=b471be1b6451e3223c85cf947cb281f6; csg=a23665e3; _tb_token_=3b1f30eaaee70; enc=GW3FaK%2BshiuOkvzRvsW4FqeMe6%2FMvQeuzmtgAyuMTGwNpM93PLvN7bvDd1KcdqQ88O5IlPR6AHOQnMJ7tgQBvw%3D%3D; x5sec=7b22617365727665723b32223a2239393063356638396434666539663662353835323961336132326661613663644349376569596347454f57577664376c2b5a32456d414561444449324e7a45314d5451334d6a4d374d5443756f66474e41673d3d227d; tfstk=c5DfBxAnSZbXPhAN3mtP_PyMtC2Pa0A72IarcXxLApYX_3nbysD1Ly68Ffb5eWE5.; l=eBP6SJ7Vj5lXnq8jBO5wlurza77OmIdfhsPzaNbMiInca1o5ievT1NCB06sBrdtjgt5fVetrFQx-eRUH8f4LRx_ceTwhKXIpBB96Se1..; isg=BKurbzjUTxBGJJNEY1Gj1MWGOs-VwL9CUQZQ9R0pCOpevM0epZHPkqRaFvzSnBc6')
         index = 0
         while True:
-            time.sleep(random.randint(7,12))
+            # time.sleep(random.randint(7,12))
             index += 1
-            cookie = dict_to_cookie(cookie_list[index%2])
+            x5sec = ''
+            try:
+                with open('x5sec.txt', 'r') as f:
+                    x5sec = f.read().strip()
+            except:
+                pass
+            if x5sec:
+                a['x5sec'] = x5sec
+            # cookie = dict_to_cookie(cookie_list[index % 2])
+            cookie = dict_to_cookie(a)
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
                 'Referer': 'https://detail.tmall.com/item.htm?id=%s' % out_number,
                 'User-Agent': ua,
-                'Cookie': 'cna=CsZJGa3SrA0CAXt1qaHrs6Mu; hng=CN%7Czh-CN%7CCNY%7C156; sm4=110100; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; enc=iK%2B%2Fr8GkrhsC%2F28GshDory1JoMeZPGit6nr%2B%2FV5wboKC3NCIW1EjZyVmOLd3rxnbIjMQGtfZyRzAqkguS9Gmmg%3D%3D; xlly_s=1; sgcookie=E1005EAYIeU8wL6ku8nzSMAqoNcbgQsT2M%2FUep%2B1GzTNaIM%2BeEbMIYnBOqRrCW1QU7q%2Bk2uygAx6miG%2F8mrZNryh%2BA%3D%3D; t=0906303aa9a7f271161bb03f51f721cd; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&lg2=W5iHLLyFOGW7aA%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&vt3=F8dCuwzh0Ayl3hHKXDo%3D; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSUjIAGq%2Bo1j&nk4=0%400AdtZS03tnds0llDWCRcSihqN1rqY6jGZgtS; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; _tb_token_=56b8eb3e3860b; cookie2=1fa6409e956fde0350df87c82188b43e; _m_h5_tk=4bef43b6b770fa7729029504bb0f4945_1624857244387; _m_h5_tk_enc=6aec39be343994d05c40eb7e2613f12e; x5sec=7b22617365727665723b32223a223764313938313032626339383831376635343361633139386435666237633631434b6a7035495947454a32517438626f765053504f786f4d4d6a59334d5455784e4463794d7a73784d4b366838593043227d; tfstk=c76lBA1tc_RS_kAc1895q6lJDnjhatUyz9WR396lt8qPEAW24s0tgf7oDoYVr9hC.; l=eBQJ2fCIQDOlzIUXBO5Cnurza77OEIObzPVzaNbMiInca1z5iG_qeNCBCHNkrdtjgtfAHety7NlrrRFHSTad0ZqhuJM8GPLVexJ6-; isg=BGVlRHMDab3nzLNoRo7kzEb_dCGfohk05BYIrGdLbxxefofwL_EZBIBYCOII-zHs'
-                # 'Cookie': cookie
+                'Cookie': cookie
             }
             url = self.comment_tm_data_url % (out_number, comment_page)
 
@@ -375,7 +387,6 @@ class CommentSpider:
             data = []
             if not 'rateDetail' in result or not result['rateDetail']:
                 self.logger.warning('反爬限制')
-                time.sleep(10)
                 continue
             for i in result['rateDetail']['rateList']:
                 comment = {}
@@ -557,8 +568,8 @@ def comment_spider(name, category, reverse=0):
     logger.setLevel(logging.DEBUG)
     # while True:
     res = get_goods_data(opalus_goods_comment_url, params, logger, reverse)
-        # if not res['success']:
-        # break
+    # if not res['success']:
+    # break
 
 
 def get_goods_data(url, params, logger, reverse):
