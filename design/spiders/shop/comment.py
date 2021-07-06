@@ -409,6 +409,8 @@ class CommentSpider:
                 continue
             data = []
             if not 'rateDetail' in result or not result['rateDetail']:
+                print(result['url'])
+                time.sleep(10)
                 self.logger.warning('反爬限制')
                 continue
             for i in result['rateDetail']['rateList']:
