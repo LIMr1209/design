@@ -1,13 +1,14 @@
 # coding:utf-8
+import asyncio
 import logging
 import json
 import random
 import re
 import time
-from copy import deepcopy
 
 import requests
 from fake_useragent import UserAgent
+from pyppeteer import connect
 from requests.adapters import HTTPAdapter, ProxyError
 import fire
 from configparser import ConfigParser, ExtendedInterpolation
@@ -16,7 +17,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
-def cookie_to_dic(cookie):
+def cookie_to_dict(cookie):
     return {item.split('=')[0]: item.split('=')[1] for item in cookie.split('; ')}
 
 
@@ -133,7 +134,7 @@ class CommentSpider:
 
     def data_jd_handle(self, out_number, id, site_from, new_time):
         comment_page = 0
-        cookie_dict = cookie_to_dic(
+        cookie_dict = cookie_to_dict(
             'JSESSIONID=F6406AC900FCDF0F957FB9D6C4F9FDCB.s1; Path=/')
         self.s.cookies = requests.utils.cookiejar_from_dict(cookie_dict, cookiejar=None, overwrite=True)
         # cookies = get_jd_cookie()
@@ -226,12 +227,12 @@ class CommentSpider:
                 if not res['success']:
                     return res
                 if res['message'] == '重复爬取':
-                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
-                print("保存成功京东", comment_page, out_number)
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
+                print("保存成功京东", comment_page, out_number, id)
             pages = result['maxPage']
             if comment_page >= pages or not result['comments']:
                 # self.comment_end(out_number, headers['Referer'])
-                return {'success': True, 'message': "爬取完成", 'out_number': out_number}
+                return {'success': True, 'message': "爬取完成", 'out_number': out_number, 'id': id}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
                 time.sleep(num)
@@ -327,11 +328,11 @@ class CommentSpider:
                 if not res['success']:
                     return res
                 # if res['message'] == '重复爬取':
-                #     return {'success': True, 'message': "重复爬取", 'out_number': out_number}
-                print("保存成功拼多多", comment_page, out_number)
+                #     return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
+                print("保存成功拼多多", comment_page, out_number, id)
             if not result['data']:
                 self.comment_end(out_number, goods_url)
-                return {'success': True, 'message': "爬取成功", 'out_number': out_number}
+                return {'success': True, 'message': "爬取成功", 'out_number': out_number, 'id': id}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             time.sleep(random.randint(5, 8))
             # if self.sleep:
@@ -347,38 +348,28 @@ class CommentSpider:
                 impression = res['impression']
                 break
             time.sleep(5)
-        cookie_list = [
-            {
-                't': '7eb89f5c2e118140ef49e1f31237a35e',
-                '_tb_token_': 'f3e5557aebd57',
-                'cookie2': '1c695a1217e5b117d4e5225a55e7d40b',
-                'unb': '2210910815481',
-                'cookie17': 'UUpgRs05urYo2upivg%3D%3D',
-            },
-            {
-                'unb': '2671514723',
-                'cookie17': 'UU6m3oSoOMkDcQ%3D%3D',
-                'cookie2': '14afef918099fa1af5cef3074ead2ec3',
-                't': '0906303aa9a7f271161bb03f51f721cd',
-                '_tb_token_': 'eeee3b3750ed',
-            }
-        ]
-        a = cookie_to_dic(
+        # cookie_list = [
+        #     {
+        #         't': '7eb89f5c2e118140ef49e1f31237a35e',
+        #         '_tb_token_': 'f3e5557aebd57',
+        #         'cookie2': '1c695a1217e5b117d4e5225a55e7d40b',
+        #         'unb': '2210910815481',
+        #         'cookie17': 'UUpgRs05urYo2upivg%3D%3D',
+        #     },
+        # ]
+        cookie_dict = cookie_to_dict(
             'xlly_s=1; cna=BlxpGa3pHwcCAXt1qFue0H25; _m_h5_tk=c5b3a9e5fcb8e7af464b740c33717bcf_1625461046485; _m_h5_tk_enc=854c2cf699871ea9dc8475e4625ae688; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; uc1=cookie21=VT5L2FSpccLuJBreK%2BBd&pas=0&existShop=false&cookie15=Vq8l%2BKCLz3%2F65A%3D%3D&cookie16=VT5L2FSpNgq6fDudInPRgavC%2BQ%3D%3D&cookie14=Uoe2yIdH2plXgA%3D%3D; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&lg2=W5iHLLyFOGW7aA%3D%3D&vt3=F8dCuwOxbPtD9a8VPu0%3D; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; _l_g_=Ug%3D%3D; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSUi4wEzg7hq&nk4=0%400AdtZS03tnds0llDWCRcSihqN1rrIyZSjaqW; unb=2671514723; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cookie1=BxNSonczp%2BfH4JvkmZGiHVjnsgV7tsFybnrAAaVXt9g%3D; login=true; cookie17=UU6m3oSoOMkDcQ%3D%3D; cookie2=18a7785e1f11a1d863fcadff0362df3e; _nk_=%5Cu658C%5Cu7237%5Cu72371058169464; sgcookie=E1005zv%2Bhz6f5Q0EO2HvAzL3BmLQK8mHDiohVNhyQWporZbAdVivA6gatxv2CBF8mUelPxLo0%2FHtlfIWQt4HF3yB1g%3D%3D; sg=437; t=b471be1b6451e3223c85cf947cb281f6; csg=a23665e3; _tb_token_=3b1f30eaaee70; enc=GW3FaK%2BshiuOkvzRvsW4FqeMe6%2FMvQeuzmtgAyuMTGwNpM93PLvN7bvDd1KcdqQ88O5IlPR6AHOQnMJ7tgQBvw%3D%3D; x5sec=7b22617365727665723b32223a2239393063356638396434666539663662353835323961336132326661613663644349376569596347454f57577664376c2b5a32456d414561444449324e7a45314d5451334d6a4d374d5443756f66474e41673d3d227d; tfstk=c5DfBxAnSZbXPhAN3mtP_PyMtC2Pa0A72IarcXxLApYX_3nbysD1Ly68Ffb5eWE5.; l=eBP6SJ7Vj5lXnq8jBO5wlurza77OmIdfhsPzaNbMiInca1o5ievT1NCB06sBrdtjgt5fVetrFQx-eRUH8f4LRx_ceTwhKXIpBB96Se1..; isg=BKurbzjUTxBGJJNEY1Gj1MWGOs-VwL9CUQZQ9R0pCOpevM0epZHPkqRaFvzSnBc6')
-        index = 0
+        # cookie_dict = cookie_to_dict('sgcookie=E100nDB%2Fvt%2BlPNVUuHK1rQ5zDPLp%2F1yczzPThqqyjbUWyaB4pjon%2FguTCLdPEjihLGujJfctGXol%2FQ4fdXYRz66qmA%3D%3D; uc1=cookie14=Uoe2yIUfiLbRNA%3D%3D; t=b53111f044cc56cea4bdbd22205e0fe4; uc3=vt3=F8dCuwzn8IuXBz7Zqm0%3D&lg2=URm48syIIVrSKA%3D%3D&nk2=F5RHoWPz3gbNYt4%3D&id2=UUpgRs05urYo2upivg%3D%3D; tracknick=tb202938556; lid=tb202938556; uc4=id4=0%40U2gqyZ2h8V63RJQ0G%2BLPCwib%2Fwu8wfhL&nk4=0%40FY4Ms466dA%2FiBqQDIbngQmsGoTlKvQ%3D%3D; lgc=tb202938556; enc=V7FQMwMAHQy%2BAJxRmZYGoq5cI%2B1fCa7zdA%2FyPaANcQrnv45NgDS3JUECSPxfFuAG2E0SFNWvgg0qm0Qqi%2FmVAtQuTWf6jNAbTtED%2BAz9bfk%3D; _tb_token_=e7131e301193b; cookie2=12f5ca4f815095bfb9bd66c9c635d55b; cna=c2lgGTuTPWYCAXt1qJPODrdS; xlly_s=1; x5sec=7b22617365727665723b32223a223434626438313038326635323763316339356338393961653365393263663037434957556c596347454f5467345033463371486e65526f504d6a49784d446b784d4467784e5451344d5473784d4b366838593043227d; l=eBPOjgiljWcuu65WBO5Zhurza779eQAfCsPzaNbMiInca66ViFk3rNCBVMXWrdtjgtffdetrFQx-eR3M71adgZqhuJ1REpZZQxJM-; tfstk=crndBRtg7CAHpjet32LMPbO3lN4RaiILw9NV2pykPlQRvesRVs4ommHLIewA9lpO.; isg=BBsbP_D9_0dTLAOPhv3bgY8yqn-F8C_yQdYgpQ1awpoc7D7OlcN7QlYqhkziTIfq')
+        x5sec = ''
+        try:
+            with open('x5sec.txt', 'r') as f:
+                x5sec = f.read().strip()
+        except:
+            pass
         while True:
-            # time.sleep(random.randint(7,12))
-            index += 1
-            x5sec = ''
-            try:
-                with open('x5sec.txt', 'r') as f:
-                    x5sec = f.read().strip()
-            except:
-                pass
             if x5sec:
-                a['x5sec'] = x5sec
-            # cookie = dict_to_cookie(cookie_list[index % 2])
-            cookie = dict_to_cookie(a)
+                cookie_dict['x5sec'] = x5sec
+            cookie = dict_to_cookie(cookie_dict)
             proxies = random.choice(self.proxies_list)
             ua = UserAgent().random
             headers = {
@@ -409,9 +400,9 @@ class CommentSpider:
                 continue
             data = []
             if not 'rateDetail' in result or not result['rateDetail']:
-                print(result['url'])
-                time.sleep(10)
-                self.logger.warning('反爬限制')
+                # x5sec = asyncio.get_event_loop().run_until_complete(get_pyppeteer_tmall_x5sec(result['url']))
+                # x5sec = get_selenium_tmall_x5sec(result['url'])
+                x5sec = get_file_tmall_x5sec(result['url'])
                 continue
             for i in result['rateDetail']['rateList']:
                 comment = {}
@@ -441,12 +432,12 @@ class CommentSpider:
                 if not res['success']:
                     return res
                 if res['message'] == '重复爬取':
-                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
-                print("保存成功天猫", comment_page, out_number)
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
+                print("保存成功天猫", comment_page, out_number, id)
             pages = result['rateDetail']['paginator']['lastPage']
             if comment_page >= pages:
                 # self.comment_end(out_number, headers['Referer'])
-                return {'success': True, 'message': "爬取成功", 'out_number': out_number}
+                return {'success': True, 'message': "爬取成功", 'out_number': out_number, 'id': id}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
                 time.sleep(num)
@@ -532,12 +523,12 @@ class CommentSpider:
                 if not res['success']:
                     return res
                 if res['message'] == '重复爬取':
-                    return {'success': True, 'message': "重复爬取", 'out_number': out_number}
-                print("保存成功淘宝", comment_page, out_number)
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
+                print("保存成功淘宝", comment_page, out_number, id)
             pages = result['maxPage']
             if comment_page >= pages or not result['maxPage']:
                 # self.comment_end(out_number, headers['Referer'])
-                return {'success': True, 'message': "爬取成功", 'out_number': out_number}
+                return {'success': True, 'message': "爬取成功", 'out_number': out_number, 'id': id}
             num = random.randint(self.random_sleep_start, self.random_sleep_end)
             if self.sleep:
                 time.sleep(num)
@@ -630,7 +621,6 @@ def get_goods_data(url, params, logger, reverse):
         page += 1
     return {'success': True, 'message': ''}
 
-
 # 浏览器重新获取cookie 提供jd 评论爬取
 def get_jd_cookie():
     chrome_options = Options()
@@ -647,6 +637,92 @@ def get_jd_cookie():
     cookies = [i['name'] + "=" + i['value'] for i in cookies]
     cookies = '; '.join(cookies)
     return cookies
+
+
+# 手动滑块获取cookie 保存文件
+def get_file_tmall_x5sec(url):
+    print(url)
+    time.sleep(10)
+    x5sec = ''
+    try:
+        with open('x5sec.txt', 'r') as f:
+            x5sec = f.read().strip()
+    except:
+        pass
+    return x5sec
+
+
+# pyppeteer 滑块验证获取cookie
+async def get_pyppeteer_tmall_x5sec(url):
+        if not url.startswith('https'):
+            url = 'https:' + url
+        connect_params = {
+            'browserWSEndpoint': 'ws://127.0.0.1:9222/devtools/browser/f58c5278-023b-4187-b967-83bb90b83ca8',
+            'logLevel': 3,
+        }
+        browser = await connect(connect_params)
+        page = await browser.newPage()
+        # await page.setExtraHTTPHeaders({'Proxy-Authorization': 'Basic ' + ('{"H56R2946P953B99D"}:{"8ADE908B093EFBB9"}').toString('base64')})
+        # await page.setExtraHTTPHeaders({'Proxy-Authorization': 'Basic ' + proxyUser + ':' + proxyPass.toString('base64')})
+        await page.setViewport({'width': 1366, 'height': 768})
+        await page.setUserAgent(
+            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36')
+        await page.evaluate('''() =>{Object.defineProperties(navigator,{webdriver:{get: () => false}})}''')
+        await page.evaluateOnNewDocument(
+            '() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => false } }) }')
+        await page.evaluate('''() =>{ window.navigator.chrome = { runtime: {},  }; }''')
+        await page.evaluate(
+            '''() =>{ Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] }); }''')
+        await page.evaluate(
+            '''() =>{ Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5,6], }); }''')
+        await page.goto(url, {'timeout': 1000 * 50})
+        await asyncio.sleep(2)
+        # 鼠标移动到滑块，按下，滑动到头（然后延时处理），松开按键
+        await page.hover('#nc_1_n1z')  # 不同场景的验证码模块能名字不同。
+        await page.mouse.down()
+        steps = random.randint(58, 80)
+        await page.mouse.move(1053, 0, {'steps': 120})
+        await asyncio.sleep(2)
+        await page.mouse.up()
+        await asyncio.sleep(2)
+        # title = await page.title()
+        cookie_list = await page.cookies()
+        for i in cookie_list:
+            if i['name'] == 'x5sec':
+                x5sec = i['value']
+                break
+        else:
+            x5sec = ''
+        return x5sec
+
+# selenium浏览器重新获取cookie
+def get_selenium_tmall_x5sec(url):
+    if not url.startswith('https'):
+        url = 'https:'+url
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    # 初始化chrome对象
+    browser = webdriver.Chrome(options=chrome_options)
+    js = 'window.open("https://www.taobao.com/");'
+    browser.execute_script(js)
+    browser.close()
+    browser.switch_to_window(browser.window_handles[0])
+    while True:
+        try:
+            browser.get(url)
+            break
+        except:
+            pass
+    flag = input("验证成功:")
+    if flag == '1':
+        x5sec = browser.get_cookie('x5sec')
+        if x5sec:
+            return x5sec['value']
+        else:
+            return ''
+    else:
+        return ''
 
 
 if __name__ == '__main__':
