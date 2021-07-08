@@ -6,6 +6,7 @@ import random
 import re
 import time
 
+import pyautogui as pyautogui
 import requests
 from fake_useragent import UserAgent
 from pyppeteer import connect
@@ -712,6 +713,7 @@ def get_selenium_tmall_x5sec(url):
             break
         except:
             pass
+    pyautogui_code(browser)
     flag = input("验证成功:")
     if flag == '1':
         x5sec = browser.get_cookie('x5sec')
@@ -721,6 +723,57 @@ def get_selenium_tmall_x5sec(url):
             return ''
     else:
         return ''
+
+
+def get_track(distance):      # distance为传入的总距离
+    # 移动轨迹
+    track=[]
+    # 当前位移
+    current=0
+    # 减速阈值
+    mid=distance*4/5
+    # 计算间隔
+    t=0.2
+    # 初速度
+    v=20
+
+    while current<distance:
+        if current<mid:
+            # 加速度为2
+            a=5
+        else:
+            # 加速度为-2
+            a=-3
+        v0=v
+        # 当前速度
+        v=v0+a*t
+        # 移动距离
+        move=v0*t+1/2*a*t*t
+        # 当前位移
+        current+=move
+        # 加入轨迹
+        track.append(round(move))
+    return track
+
+
+def pyautogui_code(brower):
+    time.sleep(2)
+    button_ele = brower.find_element_by_xpath('//*[@id="nc_1_n1z"]')
+    button_x = button_ele.location['x']+17
+    button_y = button_ele.location['y']
+    pyautogui.moveTo(button_x, button_y+90)
+    div_ele = brower.find_element_by_xpath('//*[@id="nc_1__scale_text"]').size
+    # pyautogui.dragTo(button_ele.location['x'] +10 + div_ele['width'], button_ele.location['y']+90, duration=2)
+    pyautogui.mouseDown()
+    tracks = get_track(div_ele['width']-33)
+    temp = button_x
+    for x in tracks:
+        temp += x
+        pyautogui.moveTo(temp, button_y+90)
+    time.sleep(2)
+    pyautogui.mouseUp()
+    time.sleep(2)
+
 
 
 if __name__ == '__main__':
