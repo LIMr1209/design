@@ -166,8 +166,6 @@ class CommentSpider:
             try:
                 result = json.loads(rex.findall(comment_res.text)[0])
             except:
-                self.logger.error('json load 错误')
-                time.sleep(5)
                 continue
                 # cookies = get_jd_cookie()
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
