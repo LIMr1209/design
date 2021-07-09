@@ -122,7 +122,7 @@ class CommentSpider:
 
     def data_handle(self, i):
         if i['site_from'] == 8:
-            res = self.data_taobao_handle(i['number'], i['_id'],i['site_from'],  i['new_time'])
+            res = self.data_taobao_handle(i['number'], i['_id'], i['site_from'], i['new_time'])
         elif i['site_from'] == 9:
             res = self.data_tmall_handle(i['number'], i['_id'], i['site_from'], i['new_time'])
         elif i['site_from'] == 10:
@@ -218,7 +218,8 @@ class CommentSpider:
                     data.append(comment)
             if data:
                 json_data = {
-                    'good': {'impression': impression, 'positive_review': positive_review, 'comment_count':comment_count, 'id': id, 'site_from': site_from},
+                    'good': {'impression': impression, 'positive_review': positive_review,
+                             'comment_count': comment_count, 'id': id, 'site_from': site_from},
                     'data': data,
                 }
                 # data = json.dumps(data, ensure_ascii=False)
@@ -433,6 +434,8 @@ class CommentSpider:
                 if res['message'] == '重复爬取':
                     return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
                 print("保存成功天猫", comment_page, out_number, id)
+            if 'paginator' not in result['rateDetail']:
+                return {'success': True, 'message': "爬取成功", 'out_number': out_number, 'id': id}
             pages = result['rateDetail']['paginator']['lastPage']
             if comment_page >= pages:
                 # self.comment_end(out_number, headers['Referer'])
@@ -551,7 +554,11 @@ class CommentSpider:
             self.logger.warning('请求未响应')
             return {'success': False, 'message': "请求未响应", 'out_number': out_number}
         rex = re.compile('({.*})')
-        impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
+        try:
+            impression_data = json.loads(rex.findall(impression_res.content.decode('utf-8'))[0])
+        except:
+            self.logger.error('json load错误')
+            return {'success': False, 'message': "json load错误", 'out_number': out_number}
         impression = ''
         if not "tags" in impression_data:
             self.logger.warning('tags 不存在 反爬')
@@ -620,6 +627,7 @@ def get_goods_data(url, params, logger, reverse):
         page += 1
     return {'success': True, 'message': ''}
 
+
 # 浏览器重新获取cookie 提供jd 评论爬取
 def get_jd_cookie():
     chrome_options = Options()
@@ -653,51 +661,53 @@ def get_file_tmall_x5sec(url):
 
 # pyppeteer 滑块验证获取cookie
 async def get_pyppeteer_tmall_x5sec(url):
-        if not url.startswith('https'):
-            url = 'https:' + url
-        connect_params = {
-            'browserWSEndpoint': 'ws://127.0.0.1:9222/devtools/browser/f58c5278-023b-4187-b967-83bb90b83ca8',
-            'logLevel': 3,
-        }
-        browser = await connect(connect_params)
-        page = await browser.newPage()
-        # await page.setExtraHTTPHeaders({'Proxy-Authorization': 'Basic ' + ('{"H56R2946P953B99D"}:{"8ADE908B093EFBB9"}').toString('base64')})
-        # await page.setExtraHTTPHeaders({'Proxy-Authorization': 'Basic ' + proxyUser + ':' + proxyPass.toString('base64')})
-        await page.setViewport({'width': 1366, 'height': 768})
-        await page.setUserAgent(
-            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36')
-        await page.evaluate('''() =>{Object.defineProperties(navigator,{webdriver:{get: () => false}})}''')
-        await page.evaluateOnNewDocument(
-            '() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => false } }) }')
-        await page.evaluate('''() =>{ window.navigator.chrome = { runtime: {},  }; }''')
-        await page.evaluate(
-            '''() =>{ Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] }); }''')
-        await page.evaluate(
-            '''() =>{ Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5,6], }); }''')
-        await page.goto(url, {'timeout': 1000 * 50})
-        await asyncio.sleep(2)
-        # 鼠标移动到滑块，按下，滑动到头（然后延时处理），松开按键
-        await page.hover('#nc_1_n1z')  # 不同场景的验证码模块能名字不同。
-        await page.mouse.down()
-        steps = random.randint(58, 80)
-        await page.mouse.move(1053, 0, {'steps': 120})
-        await asyncio.sleep(2)
-        await page.mouse.up()
-        await asyncio.sleep(2)
-        # title = await page.title()
-        cookie_list = await page.cookies()
-        for i in cookie_list:
-            if i['name'] == 'x5sec':
-                x5sec = i['value']
-                break
-        else:
-            x5sec = ''
-        return x5sec
+    if not url.startswith('https'):
+        url = 'https:' + url
+    connect_params = {
+        'browserWSEndpoint': 'ws://127.0.0.1:9222/devtools/browser/f58c5278-023b-4187-b967-83bb90b83ca8',
+        'logLevel': 3,
+    }
+    browser = await connect(connect_params)
+    page = await browser.newPage()
+    # await page.setExtraHTTPHeaders({'Proxy-Authorization': 'Basic ' + ('{"H56R2946P953B99D"}:{"8ADE908B093EFBB9"}').toString('base64')})
+    # await page.setExtraHTTPHeaders({'Proxy-Authorization': 'Basic ' + proxyUser + ':' + proxyPass.toString('base64')})
+    await page.setViewport({'width': 1366, 'height': 768})
+    await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36')
+    await page.evaluate('''() =>{Object.defineProperties(navigator,{webdriver:{get: () => false}})}''')
+    await page.evaluateOnNewDocument(
+        '() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => false } }) }')
+    await page.evaluate('''() =>{ window.navigator.chrome = { runtime: {},  }; }''')
+    await page.evaluate(
+        '''() =>{ Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] }); }''')
+    await page.evaluate(
+        '''() =>{ Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5,6], }); }''')
+    await page.goto(url, {'timeout': 1000 * 50})
+    await asyncio.sleep(2)
+    # 鼠标移动到滑块，按下，滑动到头（然后延时处理），松开按键
+    await page.hover('#nc_1_n1z')  # 不同场景的验证码模块能名字不同。
+    await page.mouse.down()
+    steps = random.randint(58, 80)
+    await page.mouse.move(1053, 0, {'steps': 120})
+    await asyncio.sleep(2)
+    await page.mouse.up()
+    await asyncio.sleep(2)
+    # title = await page.title()
+    cookie_list = await page.cookies()
+    for i in cookie_list:
+        if i['name'] == 'x5sec':
+            x5sec = i['value']
+            break
+    else:
+        x5sec = ''
+    return x5sec
+
 
 # selenium浏览器重新获取cookie
 def get_selenium_tmall_x5sec(url):
     if not url.startswith('https'):
-        url = 'https:'+url
+        url = 'https:' + url
+    # os.system('chrome.exe https://login.taobao.com --remote-debugging-port=9222 --user - data - dir =“C:\selenum\AutomationProfile')
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
@@ -725,55 +735,31 @@ def get_selenium_tmall_x5sec(url):
         return ''
 
 
-def get_track(distance):      # distance为传入的总距离
-    # 移动轨迹
-    track=[]
-    # 当前位移
-    current=0
-    # 减速阈值
-    mid=distance*4/5
-    # 计算间隔
-    t=0.2
-    # 初速度
-    v=20
-
-    while current<distance:
-        if current<mid:
-            # 加速度为2
-            a=5
-        else:
-            # 加速度为-2
-            a=-3
-        v0=v
-        # 当前速度
-        v=v0+a*t
-        # 移动距离
-        move=v0*t+1/2*a*t*t
-        # 当前位移
-        current+=move
-        # 加入轨迹
-        track.append(round(move))
-    return track
-
-
 def pyautogui_code(brower):
     time.sleep(2)
     button_ele = brower.find_element_by_xpath('//*[@id="nc_1_n1z"]')
-    button_x = button_ele.location['x']+17
+    button_x = button_ele.location['x'] + 21
     button_y = button_ele.location['y']
-    pyautogui.moveTo(button_x, button_y+90)
+    pyautogui.moveTo(button_x, button_y + 90, 0.5)
     div_ele = brower.find_element_by_xpath('//*[@id="nc_1__scale_text"]').size
     # pyautogui.dragTo(button_ele.location['x'] +10 + div_ele['width'], button_ele.location['y']+90, duration=2)
     pyautogui.mouseDown()
-    tracks = get_track(div_ele['width']-33)
+    # tracks = get_track(div_ele['width']-20)
+    single = (div_ele['width'] - 42) / 10
+    a = [21, 23, 25, 27, 29, 31, 33, 35]
     temp = button_x
-    for x in tracks:
-        temp += x
-        pyautogui.moveTo(temp, button_y+90)
-    time.sleep(2)
+    for i in a:
+        temp += i
+        pyautogui.moveTo(temp, button_y + 90, 0.01)
+    pyautogui.moveTo(button_x + single * 10 - 5, button_y + 90, 0.05)
+    pyautogui.moveTo(button_x + single * 10 - 4, button_y + 90, 0.1)
+    pyautogui.moveTo(button_x + single * 10 - 2, button_y + 90, 0.15)
+    pyautogui.moveTo(button_x + single * 10 - 1, button_y + 90, 0.2)
+    pyautogui.moveTo(button_x + single * 10 - 0.5, button_y + 90, 0.25)
+    pyautogui.moveTo(button_x + single*10, button_y + 90, 0.3)
+    time.sleep(1)
     pyautogui.mouseUp()
     time.sleep(2)
-
 
 
 if __name__ == '__main__':
