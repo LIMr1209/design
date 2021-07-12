@@ -26,7 +26,7 @@ if fail_url:
     except Exception as e:
         kwargs['key_words'] = all_keywords
 
-elif page or keywords:
+elif page and keywords:
     kwargs['page'] = int(page) if page else 1
     kwargs['key_words'] = keywords
     if price_range_list:
