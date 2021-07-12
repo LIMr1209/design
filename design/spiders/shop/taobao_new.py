@@ -730,7 +730,7 @@ class TaobaoSpider(SeleniumSpider):
             try:
                 res = self.s.post(url=self.goods_url, data=good_data)
             except:
-                time.sleep(5)
+                time.sleep(3)
                 res = self.s.post(url=self.goods_url, data=good_data)
             return {'success': True, 'res': res}
         except Exception as e:
@@ -893,7 +893,7 @@ class TaobaoSpider(SeleniumSpider):
             try:
                 res = self.s.post(url=self.goods_url, data=good_data)
             except:
-                time.sleep(10)
+                time.sleep(3)
                 res = self.s.post(url=self.goods_url, data=good_data)
             return {'success': True, 'res': res}
         except Exception as e:
