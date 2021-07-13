@@ -473,6 +473,44 @@ class TaobaoSpider(SeleniumSpider):
             except:
                 time.sleep(1)
 
+    def fail_handle(self, res, response):
+        if not res:
+            return
+        # 爬虫程序错误
+        if not res['success']:
+            self.fail_url_save(response)
+            logging.error(res['message'])
+        # 保存商品错误
+        else:
+            if not 'res' in res:
+                return
+            respon = res['res']
+            try:
+                if respon.status_code != 200:
+                    print("产品保存失败" + response.url)
+                    print(respon.content)
+                    logging.error("产品保存失败" + response.url)
+                    logging.error(respon.content)
+                    self.fail_url_save(response)
+                    return
+
+                result = json.loads(respon.content)
+                if not result['code']:
+                    print("产品保存失败" + response.url)
+                    print(json.loads(respon.content)['message'])
+                    logging.error("产品保存失败" + response.url)
+                    logging.error(json.loads(respon.content)['message'])
+                    self.fail_url_save(response)
+                elif result['code'] == 3000:
+                    print("跳过此产品" + response.url)
+                    print(json.loads(respon.content)['message'])
+                    logging.error("跳过此产品" + response.url)
+                    logging.error(json.loads(respon.content)['message'])
+
+            except:
+                self.fail_url_save(response)
+            else:
+                self.suc_count += 1
 
     def parse_detail(self, response):
         res = {}
@@ -489,23 +527,7 @@ class TaobaoSpider(SeleniumSpider):
         # fr.close()
         # for i in cookies:
         #     self.browser.add_cookie(i)
-        if res:
-            if not res['success']:
-                self.fail_url_save(response)
-                logging.error(res['message'])
-            else:
-                if 'res' in res:
-                    respon = res['res']
-                    try:
-                        if respon.status_code != 200 or json.loads(respon.content)['code']:
-                            logging.error("产品保存失败" + response.url)
-                            logging.error(respon.content)
-                            logging.error(json.loads(respon.content)['message'])
-                            self.fail_url_save(response)
-                    except:
-                        self.fail_url_save(response)
-                    else:
-                        self.suc_count += 1
+        self.fail_handle(res, response)
         self.list_url.pop(0)
         if self.list_url:
             yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
