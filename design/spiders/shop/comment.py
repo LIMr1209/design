@@ -170,6 +170,8 @@ class CommentSpider:
                 continue
                 # cookies = get_jd_cookie()
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
+            if 'comments' not in result:
+                continue
             if comment_page == 0 and not result['comments'] and not self.switch:
                 self.comment_jd_data_url = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=6&page=%s&pageSize=10&isShadowSku=0&fold=1'
                 self.switch = True
