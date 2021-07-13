@@ -1,6 +1,7 @@
 # coding:utf-8
 import logging
 import json
+import multiprocessing
 import random
 import re
 import time
@@ -172,11 +173,11 @@ class CommentSpider:
                     'data': data,
                 }
                 # data = json.dumps(data, ensure_ascii=False)
-                # res = self.comment_save(out_number, json_data, new_time)
-                # if not res['success']:
-                #     return res
-                # if res['message'] == '重复爬取':
-                #     return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
+                res = self.comment_save(out_number, json_data, new_time)
+                if not res['success']:
+                    return res
+                if res['message'] == '重复爬取':
+                    return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
                 print("保存成功天猫", comment_page, out_number, id)
             if 'paginator' not in result['rateDetail']:
                 return {'success': True, 'message': "爬取成功", 'out_number': out_number, 'id': id}
@@ -264,9 +265,6 @@ def get_file_tmall_x5sec(url):
         pass
     return x5sec
 
-def func(msg):
-    print("in:", msg)
-    print("out,", msg)
 
 if __name__ == '__main__':
     import urllib3
@@ -286,9 +284,9 @@ if __name__ == '__main__':
     tunnel_pwd = cf.get('proxies', 'tunnel_pwd', fallback='')
     opalus_comment_url = cf.get('api', 'opalus_comment_url', fallback='')
     opalus_goods_comment_url = cf.get('api', 'opalus_goods_comment_url', fallback='')
-
+    cpu_count = multiprocessing.cpu_count()
     caty_list = ['烤箱', '电饭煲', '加湿器']
-    pool = Pool(3)  # 创建拥有10个进程数量的进程池
+    pool = Pool(cpu_count)  # 创建拥有10个进程数量的进程池
     for i in caty_list:
         pool.apply_async(get_goods_data, (i, tunnel_domain, tunnel_port, tunnel_user, tunnel_pwd,  opalus_goods_comment_url, opalus_comment_url))
     pool.close()  # 关闭进程池，不再接受新的进程
