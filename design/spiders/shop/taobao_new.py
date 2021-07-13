@@ -21,6 +21,7 @@ from design.items import TaobaoItem
 from design.spiders.selenium import SeleniumSpider
 from design.utils.redis_operation import RedisHandle
 
+
 # chrome.exe --remote-debugging-port=9666 --user-data-dir="C:\selenium_copy_12\AutomationProfile"
 
 # 解析源代码方式获取 sku 价格样式
@@ -63,7 +64,8 @@ def sku_price_func(browser, site_from):
         asset_list = json.loads(asset_res)
     else:
         asset_list = {}
-        asset_li = browser.find_elements_by_xpath('//ul[contains(@class,"J_TSaleProp")]/li/a[contains(@style,"background")]/..')
+        asset_li = browser.find_elements_by_xpath(
+            '//ul[contains(@class,"J_TSaleProp")]/li/a[contains(@style,"background")]/..')
         for i in asset_li:
             key = i.get_attribute('data-value')
             value = i.find_element_by_xpath('./a').get_attribute('style')
@@ -71,7 +73,7 @@ def sku_price_func(browser, site_from):
             asset_list[key] = [value]
     for i in detail_price:
         for key, value in asset_list.items():
-            if key.replace(';','') in i['style_list_num']:
+            if key.replace(';', '') in i['style_list_num']:
                 i['cover_url'] = 'https:' + value[0]
         i.pop('style_list_num')
     return detail_price
@@ -255,7 +257,7 @@ class TaobaoSpider(SeleniumSpider):
                 for i in self.fail_url:
                     for j in self.new_fail_url:
                         if i['name'] == j['name'] and i['price_range'] == j['price_range']:
-                            j['value'] = list(set(i['value']+j['value']))
+                            j['value'] = list(set(i['value'] + j['value']))
                             break
                     else:
                         self.new_fail_url.append(i)
@@ -424,7 +426,8 @@ class TaobaoSpider(SeleniumSpider):
             'taobao': [],
             'tmall': [],
         }
-        list_url_ele = self.browser.find_elements_by_xpath('//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
+        list_url_ele = self.browser.find_elements_by_xpath(
+            '//div[@class="item J_MouserOnverReq  "]//div[@class="pic"]/a')
         for i in list_url_ele:
             href = i.get_attribute('href')
             if 'item.taobao.com' in href:
@@ -495,7 +498,7 @@ class TaobaoSpider(SeleniumSpider):
                     return
 
                 result = json.loads(respon.content)
-                if  result['code'] != 0 :
+                if result['code'] != 0:
                     if result['code'] == 3000:
                         print("跳过此产品" + response.url)
                         print(json.loads(respon.content)['message'])
@@ -747,9 +750,9 @@ class TaobaoSpider(SeleniumSpider):
             # item['impression'] = impression
             good_data = dict(item)
             print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
-            good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-            good_data['comment_count'], good_data['price_range'], good_data['category'],
-            good_data['out_number']))
+                good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
+                good_data['comment_count'], good_data['price_range'], good_data['category'],
+                good_data['out_number']))
             try:
                 res = self.s.post(url=self.goods_url, data=good_data)
             except:
@@ -827,7 +830,7 @@ class TaobaoSpider(SeleniumSpider):
             try:
                 item['comment_count'] = self.browser.find_element_by_xpath(
                     '//*[@id="J_RateCounter"]').get_attribute('innerText')
-                    # '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
+                # '//ul[@id="J_TabBar"]//em[@class="J_ReviewsCount"]').get_attribute('innerText')
             except:
                 print("产品爬取失败", response.url, str("淘宝验证码评论量无法获取"))
                 return {'success': False, 'message': '验证码评论量无法获取'}
@@ -910,9 +913,9 @@ class TaobaoSpider(SeleniumSpider):
             # item['impression'] = impression
             good_data = dict(item)
             print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
-            good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-            good_data['comment_count'], good_data['price_range'], good_data['category'],
-            good_data['out_number']))
+                good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
+                good_data['comment_count'], good_data['price_range'], good_data['category'],
+                good_data['out_number']))
             try:
                 res = self.s.post(url=self.goods_url, data=good_data)
             except:
