@@ -242,6 +242,7 @@ class JdSpider(SeleniumSpider):
                 item['promotion_price'] = promotion_price
             if item['promotion_price'] == '' and item['original_price'] == '':
                 logging.error("反爬价格无法获取失败")
+                self.fail_url_save(response)
                 return
             try:
                 comment_text = self.browser.find_element_by_xpath(
@@ -295,6 +296,7 @@ class JdSpider(SeleniumSpider):
             detail_values = self.browser.find_elements_by_xpath('//dl[@class="clearfix"]/dd[not(@class)]')
             if len(detail_values) != len(detail_values):
                 logging.error('产品参数爬取错误 ' + self.browser.current_url)
+                self.fail_url_save(response)
             detail_dict = {}
             detail_str_list = []
             for j, i in enumerate(detail_keys):
