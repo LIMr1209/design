@@ -495,17 +495,18 @@ class TaobaoSpider(SeleniumSpider):
                     return
 
                 result = json.loads(respon.content)
-                if not result['code']:
-                    print("产品保存失败" + response.url)
-                    print(json.loads(respon.content)['message'])
-                    logging.error("产品保存失败" + response.url)
-                    logging.error(json.loads(respon.content)['message'])
-                    self.fail_url_save(response)
-                elif result['code'] == 3000:
-                    print("跳过此产品" + response.url)
-                    print(json.loads(respon.content)['message'])
-                    logging.error("跳过此产品" + response.url)
-                    logging.error(json.loads(respon.content)['message'])
+                if  result['code'] != 0 :
+                    if result['code'] == 3000:
+                        print("跳过此产品" + response.url)
+                        print(json.loads(respon.content)['message'])
+                        logging.error("跳过此产品" + response.url)
+                        logging.error(json.loads(respon.content)['message'])
+                    else:
+                        print("产品保存失败" + response.url)
+                        print(json.loads(respon.content)['message'])
+                        logging.error("产品保存失败" + response.url)
+                        logging.error(json.loads(respon.content)['message'])
+                        self.fail_url_save(response)
 
             except:
                 self.fail_url_save(response)
