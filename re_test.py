@@ -1527,16 +1527,75 @@ KISSY.config({
 1 : level: WARN, message: 当前达尔文类目下未设置属性分组, categoryId=50013039, exception: 
 -->
 </body></html>'''
-rex = re.compile('propertyPics":({".*?})')
-img_urls = re.findall(rex, a)[0]
-print(img_urls)
-import json
-json.loads(img_urls)
+# rex = re.compile('propertyPics":({".*?})')
+# img_urls = re.findall(rex, a)[0]
+# print(img_urls)
+# import json
+# json.loads(img_urls)
+#
+#
+# # a = 'background:url(//gd2.alicdn.com/imgextra/i1/1984614308/O1CN0145QGCF1hh6rcfvzES_!!1984614308.jpg_30x30.jpg) center no-repeat;'
+# # print('https:'+re.findall('background:url\((.*)\)', a)[0].rsplit('_',1)[0])
+#
+#
+# value = 'background: url("//gd2.alicdn.com/imgextra/i1/3182396686/O1CN012R7sNZ1zGEfqm1LCB_!!3182396686.jpg_30x30.jpg") center center no-repeat;'
+# print(re.findall('background:url\((.*)\)', value)[0].rsplit('_', 1)[0])
+
+a = '''
 
 
-# a = 'background:url(//gd2.alicdn.com/imgextra/i1/1984614308/O1CN0145QGCF1hh6rcfvzES_!!1984614308.jpg_30x30.jpg) center no-repeat;'
-# print('https:'+re.findall('background:url\((.*)\)', a)[0].rsplit('_',1)[0])
+<html>
 
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <script src="https://g.alicdn.com/mtb/lib-flexible/0.3.2/flexible.js" crossorigin></script>
+  <script src="//g.alicdn.com/code/lib/qrcodejs/1.0.0/qrcode.min.js" crossorigin></script>
+          <link rel="stylesheet" href="https://g.alicdn.com/bsop-static/sufei-punish/0.0.104/build/main.css">
 
-value = 'background: url("//gd2.alicdn.com/imgextra/i1/3182396686/O1CN012R7sNZ1zGEfqm1LCB_!!3182396686.jpg_30x30.jpg") center center no-repeat;'
-print(re.findall('background:url\((.*)\)', value)[0].rsplit('_', 1)[0])
+            </head>
+
+<body><script>
+with(document)with(body)with(insertBefore(createElement("script"),firstChild))setAttribute("exparams","category=&userid=&aplus&yunid=&0f13348578bf&trid=0b01dc9416262452456168416ef585&asid=AQAAAAB9iO5gGnDKDQAAAADw3yskkf4wyw==",id="tb-beacon-aplus",src=(location>"https"?"//g":"//g")+".alicdn.com/alilog/mlog/aplus_v2.js")
+</script>
+
+    <punish-component />
+    <script>
+        window._config_ = {
+            "renderTo": "#nocaptcha",
+             "customImage":"https://gw.alicdn.com/tfs/TB1OtqLfMMPMeJjy1XbXXcwxVXa-694-685.png",
+            "NCTOKENSTR": "3ed6de5a0a04c0295aab24bdfe09c604",
+            "action": "captcha",
+            "HOST": "rate.tmall.com:443",
+			"PATH": "/list_detail_rate.htm",
+            "FORMACTIOIN": "/_____tmd_____/verify/",
+            "BXSTEP": "100",
+            "SECDATA": "5e0c8e1365474455070961b803bd560607b52cabf5960afff39b64ce58073f78d67c783afbf2f1429bb88d22e9de8dc924fb9b529c904864bbfe3d3fb7f481ac654959777bb93a8a46736b198f52750ae0f0058c9e35ca1342909838a622e73d45cb0ce36cef9f62cbd52852a03cf8ba461ee819ca12264cfd380e1ff9a3181791471d8d4982c47aaa7e2372efc583150cc12e7d65e09ad2822c62abdf6dd288da920f4cb54f53170fd106b6fb14ec1579a52a883b8d79c21b1904b01749f64fd67c783afbf2f1429bb88d22e9de8dc924fb9b529c904864bbfe3d3fb7f481ac654959777bb93a8a46736b198f52750aba054159bd12f4e49383632589de52415127ba80eadd57577355098f1203f81009490045313404a034c300f6f334c988cf8b3d6c14e48c2ab40794cc1e1a04bd43057e2edd1838e1ccc05f4f01cfb61713b9e53b3a344694df999179f2180f7b845ebbb7c256e077889b653f76774fc4c74ee8e9e999cde873522a2663ee17e879a23c364d635f7a361193b1d191cf8fed81c65bebf3b9df46dd6afed6f19989714844c0713ecd4e394877978ee6e9104491e6e26e712b31d9b7ccb1b645df8a5ff640b33682743330a508a275a3f26aab570034bcc3f82cda2fb36536ba0f787ed30161bcae926b2770cccb7b945da9aec9765dbef7fbe01472b835246c724d80a4f02b77aed4e2a366ddd3d43ac8ed",
+            "NCAPPKEY": "X82Y__af77b91260d1b09f6f86cb7c6a9c5308"
+        }
+    </script>
+</body>
+ <script src="//g.alicdn.com/bsop-static/sufei-punish/0.0.104/build/punishpage.min.js" crossorigin></script>
+<script type="text/javascript"
+    src="https://g.alicdn.com/dt/tracker/4.0.0/??tracker.Tracker.js,tracker.interfaceTrackerPlugin.js,tracker.performanceTrackerPlugin.js"
+    crossorigin></script>
+
+  <script type="text/javascript">
+    var tracker = new window.Tracker({uidResolver: function() {
+    // 具体获取 userId 逻辑自行实现
+  return "3ed6de5a0a04c0295aab24bdfe09c604__1.1.1";
+  },  pid: 'punish-page', plugins: [[window.interfaceTrackerPlugin], [window.performanceTrackerPlugin, { sampleRate: 1 }]] });
+    tracker.install();
+    tracker.log({
+      code: 11,  // 系统自动生成，请勿修改 100%
+      c1: '3ed6de5a0a04c0295aab24bdfe09c604',  
+      msg: '霸下通用异步接口-验证码2',  // 异常信息，推荐传入
+      sampleRate: 1.00,  // 目前采样率为 100.00%
+    });
+  </script>
+
+</html>
+'''
+
+rex = re.compile('window._config_ = ({.*?})',re.DOTALL)
+print(json.loads(rex.findall(a)[0]))
