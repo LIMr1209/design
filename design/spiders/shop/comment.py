@@ -772,6 +772,10 @@ def pyautogui_code(brower):
 
 
 if __name__ == '__main__':
+    import urllib3
+
+    urllib3.disable_warnings()
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
 
     basedir = os.path.abspath(os.path.dirname(__file__))
 
