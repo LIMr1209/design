@@ -447,9 +447,11 @@ class TaobaoSpider(SeleniumSpider):
             for i in list_url_ele:
                 href = i.get_attribute('href')
                 if 'item.taobao.com' in href:
+                    # pass
                     list_urls_cate['taobao'].append(href)
                 else:
-                    list_urls_cate['tmall'].append(href)
+                    pass
+                    # list_urls_cate['tmall'].append(href)
         self.get_list_normal = True
         list_urls = []
         list_urls.extend(list_urls_cate['taobao'])
@@ -795,6 +797,14 @@ class TaobaoSpider(SeleniumSpider):
             try:
                 shop_name = self.browser.find_element_by_xpath('//div[@class="tb-shop-name"]//a')
             except:
+                try:
+                    elem = WebDriverWait(self.browser, 20, 0.5).until(
+                        EC.presence_of_element_located(
+                            (By.XPATH, '//a[@class="shop-name-link"]')
+                        )
+                    )
+                except:
+                    return {'success': False, 'message': '淘宝店铺名称等待错误'}
                 shop_name = self.browser.find_element_by_xpath('//a[@class="shop-name-link"]')
             shop_name = shop_name.get_attribute('innerText').strip()
             item['shop_name'] = shop_name
