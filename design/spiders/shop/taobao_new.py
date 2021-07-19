@@ -450,8 +450,8 @@ class TaobaoSpider(SeleniumSpider):
                     # pass
                     list_urls_cate['taobao'].append(href)
                 else:
-                    pass
-                    # list_urls_cate['tmall'].append(href)
+                    # pass
+                    list_urls_cate['tmall'].append(href)
         self.get_list_normal = True
         list_urls = []
         list_urls.extend(list_urls_cate['taobao'])
