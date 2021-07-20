@@ -804,7 +804,8 @@ class TaobaoSpider(SeleniumSpider):
                         )
                     )
                 except:
-                    return {'success': False, 'message': '淘宝店铺名称等待错误'}
+                    # return {'success': False, 'message': '淘宝店铺名称等待错误'}
+                    return
                 shop_name = self.browser.find_element_by_xpath('//a[@class="shop-name-link"]')
             shop_name = shop_name.get_attribute('innerText').strip()
             item['shop_name'] = shop_name
