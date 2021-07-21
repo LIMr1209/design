@@ -364,7 +364,7 @@ class CommentSpider:
         # cookie_dict = cookie_to_dict('sgcookie=E100nDB%2Fvt%2BlPNVUuHK1rQ5zDPLp%2F1yczzPThqqyjbUWyaB4pjon%2FguTCLdPEjihLGujJfctGXol%2FQ4fdXYRz66qmA%3D%3D; uc1=cookie14=Uoe2yIUfiLbRNA%3D%3D; t=b53111f044cc56cea4bdbd22205e0fe4; uc3=vt3=F8dCuwzn8IuXBz7Zqm0%3D&lg2=URm48syIIVrSKA%3D%3D&nk2=F5RHoWPz3gbNYt4%3D&id2=UUpgRs05urYo2upivg%3D%3D; tracknick=tb202938556; lid=tb202938556; uc4=id4=0%40U2gqyZ2h8V63RJQ0G%2BLPCwib%2Fwu8wfhL&nk4=0%40FY4Ms466dA%2FiBqQDIbngQmsGoTlKvQ%3D%3D; lgc=tb202938556; enc=V7FQMwMAHQy%2BAJxRmZYGoq5cI%2B1fCa7zdA%2FyPaANcQrnv45NgDS3JUECSPxfFuAG2E0SFNWvgg0qm0Qqi%2FmVAtQuTWf6jNAbTtED%2BAz9bfk%3D; _tb_token_=e7131e301193b; cookie2=12f5ca4f815095bfb9bd66c9c635d55b; cna=c2lgGTuTPWYCAXt1qJPODrdS; xlly_s=1; x5sec=7b22617365727665723b32223a223434626438313038326635323763316339356338393961653365393263663037434957556c596347454f5467345033463371486e65526f504d6a49784d446b784d4467784e5451344d5473784d4b366838593043227d; l=eBPOjgiljWcuu65WBO5Zhurza779eQAfCsPzaNbMiInca66ViFk3rNCBVMXWrdtjgtffdetrFQx-eR3M71adgZqhuJ1REpZZQxJM-; tfstk=crndBRtg7CAHpjet32LMPbO3lN4RaiILw9NV2pykPlQRvesRVs4ommHLIewA9lpO.; isg=BBsbP_D9_0dTLAOPhv3bgY8yqn-F8C_yQdYgpQ1awpoc7D7OlcN7QlYqhkziTIfq')
         x5sec = ''
         try:
-            with open('x5sec.txt', 'r') as f:
+            with open('design/utils/x5sec.txt', 'r') as f:
                 x5sec = f.read().strip()
         except:
             pass
@@ -654,7 +654,7 @@ def get_file_tmall_x5sec(url):
     input("1 成功 0 失败：")
     x5sec = ''
     try:
-        with open('x5sec.txt', 'r') as f:
+        with open('design/utils/x5sec.txt', 'r') as f:
             x5sec = f.read().strip()
     except:
         pass

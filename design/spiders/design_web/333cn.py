@@ -29,7 +29,6 @@ class DesignCaseSpider(scrapy.Spider):
         item = DesignItem()
         url = response.url
         img_url = response.xpath('//img[@class="wdcontimg"]/@src').extract()[0]
-        tags = ''
         try:
             tags = response.xpath('//div[@class="wdtitconl"]/a[2]/text()').extract()
         except:
