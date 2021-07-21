@@ -651,7 +651,7 @@ def get_jd_cookie():
 # 手动滑块获取cookie 保存文件
 def get_file_tmall_x5sec(url):
     print(url)
-    time.sleep(10)
+    input("1 成功 0 失败：")
     x5sec = ''
     try:
         with open('x5sec.txt', 'r') as f:
