@@ -89,25 +89,14 @@ class CommentSpider:
         while True:
             res = self.get_taobao_impression(out_number, 9)
             if res['success']:
-                print("获取淘宝大家印象失败 正在重试")
                 impression = res['impression']
                 break
             time.sleep(5)
-        # cookie_list = [
-        #     {
-        #         't': '7eb89f5c2e118140ef49e1f31237a35e',
-        #         '_tb_token_': 'f3e5557aebd57',
-        #         'cookie2': '1c695a1217e5b117d4e5225a55e7d40b',
-        #         'unb': '2210910815481',
-        #         'cookie17': 'UUpgRs05urYo2upivg%3D%3D',
-        #     },
-        # ]
         cookie_dict = cookie_to_dict(
             'xlly_s=1; cna=BlxpGa3pHwcCAXt1qFue0H25; _m_h5_tk=c5b3a9e5fcb8e7af464b740c33717bcf_1625461046485; _m_h5_tk_enc=854c2cf699871ea9dc8475e4625ae688; dnk=%5Cu658C%5Cu7237%5Cu72371058169464; uc1=cookie21=VT5L2FSpccLuJBreK%2BBd&pas=0&existShop=false&cookie15=Vq8l%2BKCLz3%2F65A%3D%3D&cookie16=VT5L2FSpNgq6fDudInPRgavC%2BQ%3D%3D&cookie14=Uoe2yIdH2plXgA%3D%3D; uc3=id2=UU6m3oSoOMkDcQ%3D%3D&nk2=0rawKUoBrqUrgaRu025xgA%3D%3D&lg2=W5iHLLyFOGW7aA%3D%3D&vt3=F8dCuwOxbPtD9a8VPu0%3D; tracknick=%5Cu658C%5Cu7237%5Cu72371058169464; lid=%E6%96%8C%E7%88%B7%E7%88%B71058169464; _l_g_=Ug%3D%3D; uc4=id4=0%40U2xrc8rNMJFuLuqj%2FSUi4wEzg7hq&nk4=0%400AdtZS03tnds0llDWCRcSihqN1rrIyZSjaqW; unb=2671514723; lgc=%5Cu658C%5Cu7237%5Cu72371058169464; cookie1=BxNSonczp%2BfH4JvkmZGiHVjnsgV7tsFybnrAAaVXt9g%3D; login=true; cookie17=UU6m3oSoOMkDcQ%3D%3D; cookie2=18a7785e1f11a1d863fcadff0362df3e; _nk_=%5Cu658C%5Cu7237%5Cu72371058169464; sgcookie=E1005zv%2Bhz6f5Q0EO2HvAzL3BmLQK8mHDiohVNhyQWporZbAdVivA6gatxv2CBF8mUelPxLo0%2FHtlfIWQt4HF3yB1g%3D%3D; sg=437; t=b471be1b6451e3223c85cf947cb281f6; csg=a23665e3; _tb_token_=3b1f30eaaee70; enc=GW3FaK%2BshiuOkvzRvsW4FqeMe6%2FMvQeuzmtgAyuMTGwNpM93PLvN7bvDd1KcdqQ88O5IlPR6AHOQnMJ7tgQBvw%3D%3D; x5sec=7b22617365727665723b32223a2239393063356638396434666539663662353835323961336132326661613663644349376569596347454f57577664376c2b5a32456d414561444449324e7a45314d5451334d6a4d374d5443756f66474e41673d3d227d; tfstk=c5DfBxAnSZbXPhAN3mtP_PyMtC2Pa0A72IarcXxLApYX_3nbysD1Ly68Ffb5eWE5.; l=eBP6SJ7Vj5lXnq8jBO5wlurza77OmIdfhsPzaNbMiInca1o5ievT1NCB06sBrdtjgt5fVetrFQx-eRUH8f4LRx_ceTwhKXIpBB96Se1..; isg=BKurbzjUTxBGJJNEY1Gj1MWGOs-VwL9CUQZQ9R0pCOpevM0epZHPkqRaFvzSnBc6')
-        # cookie_dict = cookie_to_dict('sgcookie=E100nDB%2Fvt%2BlPNVUuHK1rQ5zDPLp%2F1yczzPThqqyjbUWyaB4pjon%2FguTCLdPEjihLGujJfctGXol%2FQ4fdXYRz66qmA%3D%3D; uc1=cookie14=Uoe2yIUfiLbRNA%3D%3D; t=b53111f044cc56cea4bdbd22205e0fe4; uc3=vt3=F8dCuwzn8IuXBz7Zqm0%3D&lg2=URm48syIIVrSKA%3D%3D&nk2=F5RHoWPz3gbNYt4%3D&id2=UUpgRs05urYo2upivg%3D%3D; tracknick=tb202938556; lid=tb202938556; uc4=id4=0%40U2gqyZ2h8V63RJQ0G%2BLPCwib%2Fwu8wfhL&nk4=0%40FY4Ms466dA%2FiBqQDIbngQmsGoTlKvQ%3D%3D; lgc=tb202938556; enc=V7FQMwMAHQy%2BAJxRmZYGoq5cI%2B1fCa7zdA%2FyPaANcQrnv45NgDS3JUECSPxfFuAG2E0SFNWvgg0qm0Qqi%2FmVAtQuTWf6jNAbTtED%2BAz9bfk%3D; _tb_token_=e7131e301193b; cookie2=12f5ca4f815095bfb9bd66c9c635d55b; cna=c2lgGTuTPWYCAXt1qJPODrdS; xlly_s=1; x5sec=7b22617365727665723b32223a223434626438313038326635323763316339356338393961653365393263663037434957556c596347454f5467345033463371486e65526f504d6a49784d446b784d4467784e5451344d5473784d4b366838593043227d; l=eBPOjgiljWcuu65WBO5Zhurza779eQAfCsPzaNbMiInca66ViFk3rNCBVMXWrdtjgtffdetrFQx-eR3M71adgZqhuJ1REpZZQxJM-; tfstk=crndBRtg7CAHpjet32LMPbO3lN4RaiILw9NV2pykPlQRvesRVs4ommHLIewA9lpO.; isg=BBsbP_D9_0dTLAOPhv3bgY8yqn-F8C_yQdYgpQ1awpoc7D7OlcN7QlYqhkziTIfq')
         x5sec = ''
         try:
-            with open('x5sec.txt', 'r') as f:
+            with open('design/utils/x5sec.txt', 'r') as f:
                 x5sec = f.read().strip()
         except:
             pass
@@ -256,10 +245,10 @@ def get_goods_data(category, tunnel_domain, tunnel_port, tunnel_user, tunnel_pwd
 # 手动滑块获取cookie 保存文件
 def get_file_tmall_x5sec(url):
     print(url)
-    time.sleep(10)
+    input('1:成功,2:失败')
     x5sec = ''
     try:
-        with open('x5sec.txt', 'r') as f:
+        with open('design/utils/x5sec.txt', 'r') as f:
             x5sec = f.read().strip()
     except:
         pass
@@ -284,11 +273,19 @@ if __name__ == '__main__':
     tunnel_pwd = cf.get('proxies', 'tunnel_pwd', fallback='')
     opalus_comment_url = cf.get('api', 'opalus_comment_url', fallback='')
     opalus_goods_comment_url = cf.get('api', 'opalus_goods_comment_url', fallback='')
+    caty_list = ['吹风机', '耳机', '果蔬干', '拉杆箱', '水壶', '台灯', '电风扇', '美容器', '剃须刀', '电动牙刷', '集成灶', '衣物护理机', '茶具', '煮茶器', '空气炸锅', '按摩椅', '破壁机', '早餐机', '酸奶机', '电火锅', '豆芽机', '美妆冰箱', '美发梳', '除螨仪', '筋膜枪', '脱毛仪', '颈椎按摩仪', '扫地机器人', '电动蒸汽拖把', '挂烫机', '烘衣机', '烤箱', '电饭煲', '加湿器', '微波炉', '吸尘器', '取暖器', '卷/直发器', '豆浆机', '烤饼机', '绞肉机', '净水器', '电压力锅', '洗碗机', '咖啡机', '饮水机', '理发器', '健康秤', '足浴盆', '足疗机', '空气净化器', '除湿机', '电话机', '电热饭盒', '电磁炉', '电陶炉', '油烟机', '消毒柜', '电热水器', '燃气热水器', '空气能热水器', '太阳能热水器', '新风系统', '电动滑板车', '保温杯', '梅子酒', '调奶器', '冲牙器', '内衣洗衣机']
     cpu_count = multiprocessing.cpu_count()
-    caty_list = ['烤箱', '电饭煲', '加湿器']
-    pool = Pool(cpu_count)  # 创建拥有10个进程数量的进程池
-    for i in caty_list:
-        pool.apply_async(get_goods_data, (i, tunnel_domain, tunnel_port, tunnel_user, tunnel_pwd,  opalus_goods_comment_url, opalus_comment_url))
-    pool.close()  # 关闭进程池，不再接受新的进程
-    pool.join()
+    length = int(cpu_count / 2)
+    while True:
+        if len(caty_list) == 0:
+            break
+        elif len(caty_list) >=4:
+            tmp_list = [caty_list.pop(0) for i in range(4)]
+        else:
+            tmp_list = [caty_list.pop(0) for i in range(len(caty_list))]
+        pool = Pool(length)  # 创建拥有10个进程数量的进程池
+        for i in tmp_list:
+            pool.apply_async(get_goods_data, (i, tunnel_domain, tunnel_port, tunnel_user, tunnel_pwd,  opalus_goods_comment_url, opalus_comment_url))
+        pool.close()  # 关闭进程池，不再接受新的进程
+        pool.join()
 

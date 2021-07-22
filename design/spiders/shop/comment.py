@@ -346,7 +346,6 @@ class CommentSpider:
         while True:
             res = self.get_taobao_impression(out_number, 9)
             if res['success']:
-                self.logger.warning("获取淘宝大家印象失败 正在重试")
                 impression = res['impression']
                 break
             time.sleep(5)
@@ -452,7 +451,6 @@ class CommentSpider:
         while True:
             res = self.get_taobao_impression(out_number, 8)
             if res['success']:
-                self.logger.warning("获取淘宝大家印象失败 正在重试")
                 impression = res['impression']
                 break
             time.sleep(5)
