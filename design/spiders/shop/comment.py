@@ -182,7 +182,7 @@ class CommentSpider:
                 continue
                 # return {'success': False, 'message': "反爬限制", 'out_number': out_number, 'page': comment_page}
             data = []
-            if 'comments' in result:
+            if 'comments' in result and result['comments']:
                 for i in result['comments']:
                     comment = {}
                     positive_review = result['productCommentSummary']['goodCount']
