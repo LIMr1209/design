@@ -231,6 +231,8 @@ class CommentSpider:
                 if res['message'] == '重复爬取':
                     return {'success': True, 'message': "重复爬取", 'out_number': out_number, 'id': id}
                 print("保存成功京东", comment_page, out_number, id)
+            if 'maxPage' not in result:
+                return {'success': True, 'message': "爬取完成", 'out_number': out_number, 'id': id}
             pages = result['maxPage']
             if comment_page >= pages or not result['comments']:
                 # self.comment_end(out_number, headers['Referer'])
