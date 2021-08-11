@@ -381,7 +381,7 @@ class CommentSpider:
             url = self.comment_tm_data_url % (out_number, comment_page)
 
             try:
-                comment_res = self.s.get(url, headers=headers, verify=False, proxies=proxies, timeout=self.time_out)
+                comment_res = self.s.get(url, headers=headers, verify=False, timeout=self.time_out)
             except ProxyError as e:
                 self.logger.error('代理错误')
                 time.sleep(5)
@@ -400,10 +400,22 @@ class CommentSpider:
                 time.sleep(5)
                 continue
             data = []
+            # hng=CN%7Czh-CN%7CCNY%7C156; dnk=tb202938556; uc1=cookie16=URm48syIJ1yk0MX2J7mAAEhTuw%3D%3D&pas=0&cookie21=Vq8l%2BKCLiYYu&cookie15=U%2BGCWk%2F75gdr5Q%3D%3D&existShop=false&cookie14=Uoe2ytBH3p442g%3D%3D; uc3=id2=UUpgRs05urYo2upivg%3D%3D&nk2=F5RHoWPz3gbNYt4%3D&lg2=WqG3DMC9VAQiUQ%3D%3D&vt3=F8dCujP1zxfsXbiy96U%3D; tracknick=tb202938556; lid=tb202938556; uc4=id4=0%40U2gqyZ2h8V63RJQ0G%2BLPCwiZ4plI%2BxNM&nk4=0%40FY4Ms466dA%2FiBqQDIbngQJAPVzqFcQ%3D%3D; _l_g_=Ug%3D%3D; unb=2210910815481; lgc=tb202938556; cookie1=Vyh4QzqjFdE47ql2BKurTZEx6r6Q36e1fsdd5othmPc%3D; login=true; cookie17=UUpgRs05urYo2upivg%3D%3D; cookie2=14b1fb3929cc5a649e82028fa31e3131; _nk_=tb202938556; sgcookie=E1000ubIuwhSv01MgadS434pTh653qA918Gjoc7TZ33%2BJ5ssXQPoK7w1HUphM%2BRzsm2sCHZw2to8ys7VcYgKqm%2F4zQ%3D%3D; cancelledSubSites=empty; t=0906303aa9a7f271161bb03f51f721cd; sg=613; csg=fef14dfa; enc=NsJN%2BzsECmyz4a4slGGOHX7sYLeXeziZjrprqDi%2FZtyVrnI3inanZ991F3TixdE02Wt3U2oL0%2BfT7dUFWUhMCzOM90n%2BseqSR6w0VIvTPtw%3D; _tb_token_=7a3e5eee873d7; cna=CsZJGa3SrA0CAXt1qaHrs6Mu; xlly_s=1; x5sec=7b22617365727665723b32223a2263336639663662666437653739616230353939653461396562386461353966624350795969496747454b376731616948783566596b514561447a49794d5441354d5441344d5455304f4445374d5443756f66474e41673d3d227d; tfstk=cK8PB_q2r43rTfQIXa_UOOgsiZDRZvShbr5dqngl3N5iJdIli3ydiE2Og1Btogf..; l=eBQJ2fCIQDOlzj9MBO5ahurza77tuIdf1oVzaNbMiInca6ifaEGByNCKgXlWudtjgt5UXetP31ECHR3B7l438x_ceTwhKXIpBFpwRe1..; isg=BP39hv6eQB6n9tsgvobchK53DFn3mjHs1NTfv79DoNSo9h4oh-mDvcbgoCqw8kmk
             if not 'rateDetail' in result or not result['rateDetail']:
                 # x5sec = asyncio.get_event_loop().run_until_complete(get_pyppeteer_tmall_x5sec(result['url']))
                 # x5sec = get_selenium_tmall_x5sec(result['url'])
-                x5sec = get_file_tmall_x5sec(result['url'])
+                if 'url' not in result:
+                    continue
+                if 'deny_h5' in result['url']:
+                    try:
+                    # https://g.alicdn.com/sd/punish/deny_h5.html
+                        cookie = input('cookie:')
+                        cookie_dict = cookie_to_dict(cookie)
+                        x5sec = ''
+                    except:
+                        continue
+                else:
+                    x5sec = get_file_tmall_x5sec(result['url'])
                 continue
             for i in result['rateDetail']['rateList']:
                 comment = {}
