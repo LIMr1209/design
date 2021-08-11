@@ -435,6 +435,7 @@ class TaobaoSpider(SeleniumSpider):
             else:
                 list_urls_cate['tmall'].append(href)
         while self.page <= page:
+            time.sleep(2)
             next = self.browser.find_elements_by_xpath('//a[@class="J_Ajax num icon-tag"]')
             if len(next) > 1:
                 next[1].click()
