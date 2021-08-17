@@ -103,10 +103,10 @@ class ImagePipeline(object):
         try:
             response = s.post(self.url, data=dict_item, verify=False, timeout=10)
             res = json.loads(response.content.decode('utf-8'))
-            if res['message'] != '更新成功!':
-                print(res['message'])
-                print(dict_item['title'], dict_item['url'])
             print(res)
+            if res['code'] != 0:
+                self.fail_url.append(dict_item['url'])
+                print(dict_item['url'])
         except:
             self.fail_url.append(dict_item['url'])
 

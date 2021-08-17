@@ -12,13 +12,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from scrapy.http import HtmlResponse
 from selenium.common.exceptions import TimeoutException
+from fake_useragent import UserAgent
 
 
 # 浏览器中间件
 class UserAgentSpiderMiddleware(object):
-    def precess_request(self, requset, spider):
-        user_agent = random.choice(USER_AGENT_LIST)
-        requset.headers['User-Agent'] = user_agent
+    def precess_request(self, request, spider):
+        ua = UserAgent().random
+        request.headers['User-Agent'] = ua
         return None
 
 # 代理中间件

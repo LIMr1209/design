@@ -1,7 +1,5 @@
 import scrapy
 from design.items import DesignItem
-from scrapy.selector import HtmlXPathSelector,Selector
-import re
 
 data = {
     'channel': '51design',

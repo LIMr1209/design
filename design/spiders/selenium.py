@@ -101,32 +101,34 @@ class SeleniumSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         self.mySetting = get_project_settings()
         chrome_options = Options()
-        # chrome_options.add_argument("--headless")  # 无头浏览器
-        # 这些网站识别不出来你是用了Selenium，因此需要将模拟浏览器设置为开发者模式
-        # chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
-        # chrome_options.add_experimental_option('useAutomationExtension', False)
+        if 'se_port' not in kwargs:
 
-        # 不加载图片
-        # chrome_options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
-        # if self.mySetting['TUNNEL_USER']:
-        #     # 有密码
-        #     proxyauth_plugin_path = create_proxyauth_extension(
-        #         tunnelhost=self.mySetting['TUNNEL_DOMAIN'],  # 隧道域名
-        #         tunnelport=self.mySetting['TUNNEL_PORT'],  # 端口号
-        #         proxy_username=self.mySetting['TUNNEL_USER'],  # 用户名
-        #         proxy_password=self.mySetting['TUNNEL_PWD']  # 密码
-        #     )
-        #     chrome_options.add_extension(proxyauth_plugin_path)
-        # else:
-        #     # ip 无密码
-        #     chrome_options.add_argument(
-        #         "--proxy-server=http://{}:{}".format(self.mySetting['TUNNEL_DOMAIN'], self.mySetting['TUNNEL_PORT']))
-        # ua
-        # ua = UserAgent().random
-        # chrome_options.add_argument("user-agent={}".format(ua))
-        #
-        # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\AutomationProfile"
-        chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:{}".format(kwargs['se_port']))
+            # chrome_options.add_argument("--headless")  # 无头浏览器
+            # 这些网站识别不出来你是用了Selenium，因此需要将模拟浏览器设置为开发者模式
+            chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+
+            # 不加载图片
+            # chrome_options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
+            # if self.mySetting['TUNNEL_USER']:
+            #     # 有密码
+            #     proxyauth_plugin_path = create_proxyauth_extension(
+            #         tunnelhost=self.mySetting['TUNNEL_DOMAIN'],  # 隧道域名
+            #         tunnelport=self.mySetting['TUNNEL_PORT'],  # 端口号
+            #         proxy_username=self.mySetting['TUNNEL_USER'],  # 用户名
+            #         proxy_password=self.mySetting['TUNNEL_PWD']  # 密码
+            #     )
+            #     chrome_options.add_extension(proxyauth_plugin_path)
+            # else:
+            #     # ip 无密码
+            #     chrome_options.add_argument(
+            #         "--proxy-server=http://{}:{}".format(self.mySetting['TUNNEL_DOMAIN'], self.mySetting['TUNNEL_PORT']))
+            # ua
+            ua = UserAgent().random
+            chrome_options.add_argument("user-agent={}".format(ua))
+        else:
+            # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\AutomationProfile"
+            chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:{}".format(kwargs['se_port']))
         # chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
         # 其中PageLoadStrategy有三种选择： 默认normal
         # (1) NONE: 当html下载完成之后，不等待解析完成，selenium会直接返回
@@ -138,7 +140,7 @@ class SeleniumSpider(scrapy.Spider):
         # caps["pageLoadStrategy"] = "none"
         # 初始化chrome对象
         self.browser = webdriver.Chrome(options=chrome_options, desired_capabilities=caps)
-        self.se_port = kwargs['se_port']
+        self.se_port = kwargs['se_port'] if 'se_port' in kwargs else ''
 
         # self.browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
         #     "source": """
@@ -150,14 +152,18 @@ class SeleniumSpider(scrapy.Spider):
         # self.browser.maximize_window()
         # if self.windowHeight and self.windowWidth:
         #     self.browser.set_window_size(900, 900)
-        self.browser.set_page_load_timeout(kwargs['time_out'])  # 页面加载超时时间
-        self.browser.set_script_timeout(kwargs['time_out']) # 执行js 超时时间
+        if 'time_out' in kwargs:
+            self.browser.set_page_load_timeout(kwargs['time_out'])  # 页面加载超时时间
+            self.browser.set_script_timeout(kwargs['time_out']) # 执行js 超时时间
+        else:
+            self.browser.set_page_load_timeout(30)  # 页面加载超时时间
+            self.browser.set_script_timeout(30) # 执行js 超时时间
         self.wait = WebDriverWait(self.browser, 30)  # 指定元素加载超时时间
         # 设置信号量，当收到spider_closed信号时，调用mySpiderCloseHandle方法，关闭chrome
         # dispatcher.connect(receiver=self.mySpiderCloseHandle,
         #                    signal=signals.spider_closed
         #                    )
-        # super(SeleniumSpider, self).__init__(*args, **kwargs)
+        super(SeleniumSpider, self).__init__(*args, **kwargs)
 
     def mySpiderCloseHandle(self, spider):
         pass

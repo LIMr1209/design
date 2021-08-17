@@ -394,6 +394,11 @@ class TaobaoSpider(SeleniumSpider):
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True})
 
+    def get_list_urls_opalus_update(self):
+        """获取opalus 需要更新的数据"""
+        list_urls = []
+
+        return list_urls
     def get_list_urls(self):
         self.get_list_normal = False
         self.browser_get('https://www.taobao.com/')

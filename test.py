@@ -110,14 +110,17 @@ s.headers.update({'x-test': 'true'})
 #
 # print(res.request.headers)
 # res.iter_content()
+#
+# import requests
+#
+# long_url = "https://shop18880568.m.youzan.com/wscgoods/detail/27bd3b2zvykww?scan=1&activity=none&from=kdt&qr=directgoods_713301781&shopAutoEnter=1"
+# querystring = {"url":long_url,'key':'606bc0eef1dda641df1aa6a3@4df8c4530e44064ae69e5b3f165619c3'}
+#
+# url = "http://suo.im/api.php"
+#
+# response = requests.request("GET", url, params=querystring)
+#
+# print(response.text)
 
-import requests
-
-long_url = "https://shop18880568.m.youzan.com/wscgoods/detail/27bd3b2zvykww?scan=1&activity=none&from=kdt&qr=directgoods_713301781&shopAutoEnter=1"
-querystring = {"url":long_url,'key':'606bc0eef1dda641df1aa6a3@4df8c4530e44064ae69e5b3f165619c3'}
-
-url = "http://suo.im/api.php"
-
-response = requests.request("GET", url, params=querystring)
-
+response = requests.get('https://www.yankodesign.com/category/technology/')
 print(response.text)

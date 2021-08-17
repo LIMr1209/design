@@ -52,4 +52,6 @@ if args.is_shop:
     process.start()
 else:
     # 普通爬虫
-    cmdline.execute('scrapy crawl {}'.format(args.spider).split())
+    # cmdline.execute('scrapy crawl {}'.format(args.spider).split())
+    se_port = args.se_port
+    cmdline.execute('scrapy crawl {} -a se_port={}'.format(args.spider,se_port).split())

@@ -3,11 +3,11 @@ import os
 import random
 import re
 import time
-from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+# from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 import requests
 from fake_useragent import UserAgent
 from requests.adapters import HTTPAdapter
-import pandas as pd
+# import pandas as pd
 
 s = requests.Session()
 s.mount('http://', HTTPAdapter(max_retries=5))  # 重试次数
