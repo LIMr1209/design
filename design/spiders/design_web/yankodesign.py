@@ -26,7 +26,7 @@ class DesignCaseSpider(SeleniumSpider):
     url = 'http://www.yankodesign.com/category/%s/page/%s'
 
     custom_settings = {
-        'LOG_LEVEL': 'ERROR',
+        'LOG_LEVEL': 'INFO',
         'DOWNLOAD_DELAY': 0,
         'COOKIES_ENABLED': False,  # enabled by default
         'DOWNLOADER_MIDDLEWARES': {

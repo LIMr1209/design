@@ -1,7 +1,7 @@
 import scrapy
 import requests
 import random
-from design.settings import USER_AGENT_LIST
+import fake_useragent
 
 
 class MzSpider(scrapy.spiders.Spider):
@@ -55,7 +55,7 @@ def save_image_help(response):
             "//div[@class='main']/div[@class='content']/div[@class='main-image']/p/a/img/@src").extract()[0]
     try:
         path = './image_test/mz/'
-        user_agent = random.choice(USER_AGENT_LIST)
+        user_agent = UserAgent().random
         headers = {
             'Referer': response.url,
             'User-Agent': user_agent

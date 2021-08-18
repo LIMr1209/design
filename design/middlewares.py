@@ -7,20 +7,26 @@
 
 from scrapy import signals
 import random
-from design.settings import USER_AGENT_LIST, PROXY_LIST
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from design.settings import PROXY_LIST
 from scrapy.http import HtmlResponse
 from selenium.common.exceptions import TimeoutException
+
 from fake_useragent import UserAgent
 
 
-# 浏览器中间件
 class UserAgentSpiderMiddleware(object):
-    def precess_request(self, request, spider):
-        ua = UserAgent().random
-        request.headers['User-Agent'] = ua
-        return None
+    # 随机更换user-agent
+    def __init__(self, crawler):
+        super(UserAgentSpiderMiddleware, self).__init__()
+        self.ua = UserAgent().random
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
+    def process_request(self, request, spider):
+        request.headers.setdefault('User-Agent', self.ua)
+
 
 # 代理中间件
 class ProxySpiderMiddleware(object):
@@ -36,6 +42,8 @@ class ProxySpiderMiddleware(object):
         service = 'socks5://%s' % proxy
         request.meta['proxy'] = service
         return None
+
+
 # selenium 中间件
 class SeleniumMiddleware():
     # Middleware中会传递进来一个spider，这就是我们的spider对象，从中可以获取__init__时的chrome相关元素
@@ -64,7 +72,7 @@ class SeleniumMiddleware():
             except Exception as e:
                 try:
                     spider.browser.execute_script('window.stop()')
-                    print(f"chrome getting page error, Exception = {e}",request.url)
+                    print(f"chrome getting page error, Exception = {e}", request.url)
                 except:
                     pass
                 return HtmlResponse(url=request.url, status=500, request=request)
