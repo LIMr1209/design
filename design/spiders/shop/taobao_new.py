@@ -187,7 +187,7 @@ class TaobaoSpider(SeleniumSpider):
                 # '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
                 # '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
             }
-        self.key_words = kwargs['key_words'].split(',') if 'key_words' in kwargs else []
+        self.key_words = kwargs['key_words_str'].split(',') if 'key_words_str' in kwargs else []
         self.redis_cli = RedisHandle('localhost', '6379')
         self.list_url = []
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0

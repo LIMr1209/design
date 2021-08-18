@@ -56,6 +56,7 @@ class SeleniumMiddleware():
                 #     EC.presence_of_element_located((By.XPATH, '//div[@class="detail detail_p"]//img'))
                 # )
             except TimeoutException as e:
+                spider.browser.execute_script('window.stop()')
                 return HtmlResponse(url=request.url,
                                     body=spider.browser.page_source,
                                     request=request,

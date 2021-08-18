@@ -26,11 +26,11 @@ if fail_url:
         kwargs['key_words'] = all_keywords
 
 elif keywords:
-    kwargs['key_words'] = keywords
+    kwargs['key_words_str'] = keywords
     if price_range_list:
         kwargs['price_range_list'] = json.loads(price_range_list)
 else:
-    kwargs['key_words'] = all_keywords
+    kwargs['key_words_str'] = all_keywords
 process = CrawlerProcess()
 process.crawl(TaobaoSpider, **kwargs)
 process.start()
