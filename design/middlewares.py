@@ -51,18 +51,16 @@ class SeleniumMiddleware():
         if usedSelenium:
             try:
                 spider.browser.get(request.url)
-                # 等待元素加载
-                # searchRes = spider.wait.until(
-                #     EC.presence_of_element_located((By.XPATH, '//div[@class="detail detail_p"]//img'))
-                # )
             except TimeoutException as e:
-                spider.browser.execute_script('window.stop()')
-                return HtmlResponse(url=request.url,
-                                    body=spider.browser.page_source,
-                                    request=request,
-                                    # 最好根据网页的具体编码而定
-                                    encoding='utf-8',
-                                    status=200)
+                try:
+                    return HtmlResponse(url=request.url,
+                                        body=spider.browser.page_source,
+                                        request=request,
+                                        # 最好根据网页的具体编码而定
+                                        encoding='utf-8',
+                                        status=200)
+                except:
+                    spider.browser.execute_script('window.stop()')
             except Exception as e:
                 try:
                     spider.browser.execute_script('window.stop()')

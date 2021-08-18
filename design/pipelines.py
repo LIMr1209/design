@@ -107,7 +107,8 @@ class ImagePipeline(object):
             if res['code'] != 0:
                 self.fail_url.append(dict_item['url'])
                 print(dict_item['url'])
-        except:
+        except Exception as e:
+            print(str(e))
             self.fail_url.append(dict_item['url'])
 
     def close_spider(self, spider):

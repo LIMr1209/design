@@ -19,7 +19,7 @@ class DesignCaseSpider(SeleniumSpider):
     name = 'yankodesign'
     handle_httpstatus_list = [404]
     allowed_domains = ['www.yankodesign.com']
-    date_threshold = datetime.datetime.now().strftime('%Y/%m/%d')
+    date_threshold = (datetime.datetime.now()-datetime.timedelta(days=1)).strftime('%Y/%m/%d')
     category_list = ['productdesign', 'technology', 'automotive']
     category_id = 0
     fail_url = []
