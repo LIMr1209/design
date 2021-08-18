@@ -1,7 +1,7 @@
 import scrapy
 import requests
 import random
-import fake_useragent
+from fake_useragent import UserAgent
 
 
 class MzSpider(scrapy.spiders.Spider):
