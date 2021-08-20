@@ -19,13 +19,13 @@ NEWSPIDER_MODULE = 'design.spiders'
 # RETRY_TIMES = 3 # 重试次数
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = False
+ROBOTSTXT_OBEY = False # 不遵循爬虫协议
 # HTTPERROR_ALLOWED_CODES = [404]
 
 
-# LOG_LEVEL = 'ERROR'
+# LOG_LEVEL = 'ERROR'  # 日志级别
 #
-LOG_FILE = 'log/ERROR.log'
+LOG_FILE = 'log/ERROR.log' # 默认日志文件
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # Scrapy下载器将执行的最大并发（即并发）请求数。
 CONCURRENT_REQUESTS = 16  # 并发请求数
@@ -43,12 +43,30 @@ DOWNLOAD_DELAY = 0  # 下载延迟
 # CONCURRENT_REQUESTS_PER_IP = 16 # 多线程
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+COOKIES_ENABLED = True
+
+"""
+1.COOKIES_ENABLED = True 时：
+
+   1. scrapy 启动 CookiesMiddleware 中间件，为请求自动添加服务器响应的 cookie，
+
+   2. 如果我们在 Request 中，使用 cookies 参数添加 cookie 时， 我们添加的 cookie 会额外加入到请求头中，如果响应有重名设置，则覆盖。（即，cookies 参数的cookie优先，但是 response 里的 cookie 也一个不少）
+
+   3. 如果我们使用 headers 参数添加 cookie，headers添加的 cookie 会失效，被响应 cookie 完全覆盖。（即，headers里设置的 cookie 无效）
+
+2.COOKIES_ENABLED = False 时：
+
+   1. scrapy 关闭 CookiesMiddleware 中间件，response 设置的 cookie 失效
+
+   2. 使用 cookies 设置的 cookie 失效。
+
+   3. 使用 headers 设置的 cookie 保留。
+"""
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
 
-# Override the default request headers:
+# Override the default request headers: 默认请求头
 # DEFAULT_REQUEST_HEADERS = {
 #     'Host': 'www.laisj.com',
 #     'Cache-Control': 'no-cache',
@@ -59,30 +77,23 @@ COOKIES_ENABLED = False
 # }
 # IMAGES_STORE = "./Images"
 
-# Enable or disable spider middlewares
+# Enable or disable spider middlewares  爬虫中间件
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
     'design.middlewares.DesignSpiderMiddleware': 543,
 
 }
 
-# Enable or disable downloader middlewares
+# Configure item pipelines  管道
+# See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
+ITEM_PIPELINES = {
+    # 'design.pipelines.ImagePipeline': 301,
+    'design.pipelines.ImageSavePipeline': 301,
+
+}
+
+# Enable or disable downloader middlewares  下载中间件
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-
-
-# 配置mongodb相关配置
-MONGODB_HOST = "localhost"
-MONGODB_PORT = 27017
-
-# 数据库名称
-MONGODB_DBNAME = "opalus"
-SHEETE_NAME = "produce-item"
-
-SELENIUM_TIMEOUT = 25  # selenium浏览器的超时时间，单位秒
-LOAD_IMAGE = False  # 是否下载图片
-WINDOW_HEIGHT = 900  # 浏览器窗口大小
-WINDOW_WIDTH = 900
-
 DOWNLOADER_MIDDLEWARES = {
     # 'design.middlewares.DesignDownloaderMiddleware': 543,
     'design.middlewares.UserAgentSpiderMiddleware': 300,
@@ -92,21 +103,14 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
-# EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-# }
-
-# Configure item pipelines
-# See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-    # 'design.pipelines.ImagePipeline': 301,
-    'design.pipelines.ImageSavePipeline': 301,
-
+EXTENSIONS = {
+   'scrapy.extensions.telnet.TelnetConsole': None,
 }
 
 PROXY_LIST = [
     '127.0.0.1:1080'
 ]
+# 自动限制爬行速度。
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
 # AUTOTHROTTLE_ENABLED = True
@@ -122,25 +126,45 @@ PROXY_LIST = [
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-# HTTPCACHE_ENABLED = True
-# HTTPCACHE_EXPIRATION_SECS = 0
-# HTTPCACHE_DIR = 'httpcache'
-# HTTPCACHE_IGNORE_HTTP_CODES = []
-# HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+HTTPCACHE_ENABLED = True  # 开启缓存  默认 False
+# 缓存策略 默认 DummyPolicy 不考虑服务器返回的HTTP Cache-Control指示，它会缓存所有的请求和响应。
+# RFC2616Policy 这种缓存策略会考虑服务器返回的缓存指令，大概类似于浏览器的行为
+HTTPCACHE_POLICY = 'scrapy.extensions.httpcache.DummyPolicy'
+# HTTPCACHE_POLICY = 'scrapy.extensions.httpcache.RFC2616Policy'
+# 缓存文件存储 默认 FilesystemCacheStorage,  DBM存储 DbmCacheStorage
+HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+# HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.DbmCacheStorage'
+HTTPCACHE_EXPIRATION_SECS = 0  # 有效时长 0 不过期  秒为单位
+HTTPCACHE_DIR = 'httpcache' # 存储HTTP 缓存的目录。 默认httpcache  如果为空，HTTP 缓存将被禁用
+# HTTPCACHE_IGNORE_HTTP_CODES = []  # 忽略缓存指定状态码得请求
+# HTTPCACHE_GZIP = False # 压缩格式
 
 # 爬虫允许的最大深度，可以通过meta查看当前深度；0表示无深度
 DEPTH_LIMIT = 0
 
 # 爬取时，0表示深度优先Lifo(默认)；1表示广度优先FiFo
 # 后进先出，深度优先
-# DEPTH_PRIORITY = 0
-# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleLifoDiskQueue'
-# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.LifoMemoryQueue'
+DEPTH_PRIORITY = 0
+SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleLifoDiskQueue'
+SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.LifoMemoryQueue'
 
 # 先进先出，广度优先
-DEPTH_PRIORITY = 1
-SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
-SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+# DEPTH_PRIORITY = 1
+# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
+# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+
+# 配置mongodb相关配置
+MONGODB_HOST = "localhost"
+MONGODB_PORT = 27017
+
+# 数据库名称
+MONGODB_DBNAME = "opalus"
+SHEETE_NAME = "produce-item"
+
+SELENIUM_TIMEOUT = 25  # selenium浏览器的超时时间，单位秒
+LOAD_IMAGE = False  # 是否下载图片
+WINDOW_HEIGHT = 900  # 浏览器窗口大小
+WINDOW_WIDTH = 900
 
 # configparser 自定义配置信息
 

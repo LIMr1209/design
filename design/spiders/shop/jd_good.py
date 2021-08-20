@@ -39,7 +39,7 @@ class JdSpider(SeleniumSpider):
     }
 
     def __init__(self, *args, **kwargs):
-        self.key_words = kwargs['key_words'].split(',') if 'key_words' in kwargs else []
+        self.key_words = kwargs['key_words_str'].split(',') if 'key_words_str' in kwargs else []
         self.page = kwargs['page'] if 'page' in kwargs else 1
         self.max_page = kwargs['max_page']
         self.max_price_page = 10  # 价格区间的爬10页

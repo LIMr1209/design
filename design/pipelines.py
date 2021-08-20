@@ -44,11 +44,12 @@ def other_image(dict_item, headers, path):
             # num = str(a) + str(b)
             img_file = url.split('/')[-1]
             if dict_item['channel'] == 'suning' or dict_item['channel'] == "amazon":
-                img_file = img_file.split('.')[0]+'.jpg'
-            if dict_item["channel"] == "samsonite" or dict_item['channel'] == "tumi" or dict_item['channel'] == "americantourister":
+                img_file = img_file.split('.')[0] + '.jpg'
+            if dict_item["channel"] == "samsonite" or dict_item['channel'] == "tumi" or dict_item[
+                'channel'] == "americantourister":
                 a = int(time.time())
                 b = random.randint(10, 100)
-                img_file = str(a) + str(b)+'.jpg'
+                img_file = str(a) + str(b) + '.jpg'
             try:
                 if img_response.status_code == 200:
                     with open(path + '\\' + img_file, 'wb') as file:
@@ -74,7 +75,7 @@ class ImageSavePipeline(object):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'}
         label_name = dict_item['tag']
-        path = get_project_settings()['IMG_SAVE_PATH'] + label_name+'_'+dict_item['channel']
+        path = get_project_settings()['IMG_SAVE_PATH'] + label_name + '_' + dict_item['channel']
         if not os.path.exists(path):
             os.makedirs(path)
         if dict_item['channel'] == 'baidu':
@@ -93,25 +94,26 @@ class ImagePipeline(object):
         self.fail_url = []
 
     def open_spider(self, spider):
-        pass
-
-    def process_item(self, item, spider):
-        dict_item = dict(item)
         s = requests.Session()
         s.mount('http://', HTTPAdapter(max_retries=5))  # 重试次数
         s.mount('https://', HTTPAdapter(max_retries=5))
-        try:
-            response = s.post(self.url, data=dict_item, verify=False, timeout=10)
-            res = json.loads(response.content.decode('utf-8'))
-            print(res)
-            if res['code'] != 0:
-                self.fail_url.append(dict_item['url'])
-                print(dict_item['url'])
-        except Exception as e:
-            print(str(e))
-            self.fail_url.append(dict_item['url'])
+        self.s = s
+
+    def process_item(self, item, spider):
+        dict_item = dict(item)
+        # try:
+        #     response = self.s.post(self.url, data=dict_item, verify=False, timeout=10)
+        #     res = json.loads(response.content.decode('utf-8'))
+        #     print(res)
+        #     if res['code'] != 0:
+        #         self.fail_url.append(dict_item['url'])
+        #         print(dict_item['url'])
+        # except Exception as e:
+        #     print(str(e))
+        #     self.fail_url.append(dict_item['url'])
 
     def close_spider(self, spider):
+        self.s.close()
         print(self.fail_url)
 
 

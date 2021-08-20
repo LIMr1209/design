@@ -24,15 +24,15 @@ if fail_url:
             kwargs['fail_url'] = redis_fail_url
             kwargs['error_retry'] = 1
     except Exception as e:
-        kwargs['key_words'] = all_keywords
+        kwargs['key_words_str'] = all_keywords
 
 elif page and keywords:
     kwargs['page'] = int(page) if page else 1
-    kwargs['key_words'] = keywords
+    kwargs['key_words_str'] = keywords
     if price_range_list:
         kwargs['price_range_list'] = json.loads(price_range_list)
 else:
-    kwargs['key_words'] = all_keywords
+    kwargs['key_words_str'] = all_keywords
 process = CrawlerProcess()
 process.crawl(JdSpider, **kwargs)
 process.start()

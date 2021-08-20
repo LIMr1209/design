@@ -121,6 +121,3 @@ s.headers.update({'x-test': 'true'})
 # response = requests.request("GET", url, params=querystring)
 #
 # print(response.text)
-
-response = requests.get('https://www.yankodesign.com/category/technology/')
-print(response.text)

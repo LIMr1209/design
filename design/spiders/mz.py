@@ -15,7 +15,7 @@ class MzSpider(scrapy.spiders.Spider):
 
     def start_requests(self):
         headers = {
-            'referer': 'http://51wz.net/',
+            'referer': 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=https%3A%2F%2Fwww.mzitu.com%2F&fenlei=256&oq=%25E5%25A6%25B9%25E5%25AD%2590%25E5%259B%25BE&rsv_pq=a603886d000038bc&rsv_t=bda9iduSaOD3kiTdexGKHo8sNiO7We5B8evovkS8X1XxIxyWe8LdheP%2BmVw&rqlang=cn&rsv_enter=1&rsv_dl=tb&rsv_btype=i&inputT=3325&rsv_sug3=14&rsv_sug1=13&rsv_sug7=000&rsv_n=2&bs=%E5%A6%B9%E5%AD%90%E5%9B%BE',
         }
         yield scrapy.Request(url='https://www.mzitu.com/', callback=self.pages, headers=headers)
 
