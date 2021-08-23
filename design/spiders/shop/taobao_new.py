@@ -178,16 +178,13 @@ class TaobaoSpider(SeleniumSpider):
 
     def __init__(self, *args, **kwargs):
         self.page = 1
-        self.max_page = kwargs['max_page']
-        self.max_price_page = 7  # 价格区间的爬10页
-        if 'price_range_list' in kwargs and kwargs['price_range_list']:
-            self.price_range_list = kwargs['price_range_list']
-        else:
-            self.price_range_list = {
-                # '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
-                # '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
-            }
-        self.key_words = kwargs['key_words_str'].split(',') if 'key_words_str' in kwargs else []
+        # if 'price_range_list' in kwargs and kwargs['price_range_list']:
+        #     self.price_range_list = kwargs['price_range_list']
+        # else:
+        #     self.price_range_list = {
+        #         '吹风机': ['[459,750]', '[751,999]', '[1000,]'],
+        #         '真无线蓝牙耳机 降噪 入耳式': ['[300, 900]', '[900,3000]'],
+            # }
         self.redis_cli = RedisHandle('localhost', '6379')
         self.list_url = []
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
@@ -200,8 +197,18 @@ class TaobaoSpider(SeleniumSpider):
         self.s.mount('https://', HTTPAdapter(max_retries=5))
         self.setting = get_project_settings()
         self.goods_url = self.setting['OPALUS_GOODS_URL']
+        self.opalus_goods_tags_url = self.setting['OPALUS_GOODS_TAGS_URL']
         self.taobao_comment_impression = 'https://rate.tmall.com/listTagClouds.htm?itemId=%s&isAll=true&isInner=true'
         self.search_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}&tab=all'
+
+        if 'key_words_str' not in kwargs:
+            if self.error_retry:
+                self.key_words = []
+            else:
+                self.key_words = self.get_opalus_goods_tags()
+
+        else:
+            self.key_words = json.loads(kwargs['key_words_str'])
 
         super(TaobaoSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -212,20 +219,27 @@ class TaobaoSpider(SeleniumSpider):
         self.browser.execute_script(js)
         self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
+    def get_opalus_goods_tags(self):
+        response = self.s.get(self.opalus_goods_tags_url, params={'site_from':8})
+        result = json.loads(response.content)
+        return result['data']
+
     def fail_url_save(self, response):
         if self.error_retry:
             fail_url = self.new_fail_url
         else:
             fail_url = self.fail_url
         name = self.get_category()
-        price_range = self.get_price_range()
+        # price_range = self.get_price_range()
         for i in fail_url:
-            if i['name'] == name and i['price_range'] == price_range:
+            # if i['name'] == name and i['price_range'] == price_range:
+            if i['name'] == name:
                 if response.url not in i['value']:
                     i['value'].append(response.url)
                 break
         else:
-            temp = {'name': name, 'value': [response.url], 'price_range': price_range}
+            # temp = {'name': name, 'value': [response.url], 'price_range': price_range}
+            temp = {'name': name, 'value': [response.url]}
             fail_url.append(temp)
         if self.error_retry:
             self.new_fail_url = fail_url
@@ -236,7 +250,7 @@ class TaobaoSpider(SeleniumSpider):
         logging.error("待爬取关键词:")
         logging.error(self.key_words)
         logging.error('价位档')
-        logging.error(self.price_range_list)
+        # logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
         logging.error('爬取失败')
@@ -244,19 +258,22 @@ class TaobaoSpider(SeleniumSpider):
         logging.error('待爬取')
         logging.error(self.list_url)
         category = self.get_category()
-        price_range = self.get_price_range()
+        # price_range = self.get_price_range()
         if self.error_retry:
             if self.list_url:
                 for i in self.new_fail_url:
-                    if i['name'] == category and i['price_range'] == price_range:
+                    # if i['name'] == category and i['price_range'] == price_range:
+                    if i['name'] == category:
                         i['value'] += self.list_url
                         break
                 else:
-                    self.new_fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
+                    # self.new_fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
+                    self.new_fail_url.append({'name': category, 'value': self.list_url})
             if self.fail_url:
                 for i in self.fail_url:
                     for j in self.new_fail_url:
-                        if i['name'] == j['name'] and i['price_range'] == j['price_range']:
+                        # if i['name'] == j['name'] and i['price_range'] == j['price_range']:
+                        if i['name'] == j['name']:
                             j['value'] = list(set(i['value'] + j['value']))
                             break
                     else:
@@ -269,25 +286,28 @@ class TaobaoSpider(SeleniumSpider):
         else:
             if self.list_url:
                 for i in self.fail_url:
-                    if i['name'] == category and i['price_range'] == price_range:
+                    # if i['name'] == category and i['price_range'] == price_range:
+                    if i['name'] == category:
                         i['value'] += self.list_url
                         break
                 else:
-                    self.fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
+                    # self.fail_url.append({'price_range': price_range, 'name': category, 'value': self.list_url})
+                    self.fail_url.append({'name': category, 'value': self.list_url})
             if self.fail_url:
                 self.redis_cli.insert('taobao', 'fail_url', json.dumps(self.fail_url))
             else:
                 self.redis_cli.delete('taobao', 'fail_url')
             if self.get_list_normal and self.key_words:
-                if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
-                    self.price_range_list[self.category].pop(0)
-                else:
-                    self.key_words.pop(0)
+                # if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
+                #     self.price_range_list[self.category].pop(0)
+                # else:
+                #     self.key_words.pop(0)
+                self.key_words.pop(0)
             if self.key_words:
                 self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('taobao', 'keywords')
-            self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
+            # self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
 
     # 滑块破解
     def selenium_code(self):
@@ -387,9 +407,10 @@ class TaobaoSpider(SeleniumSpider):
             data = self.fail_url.pop(0)
             self.list_url = data['value']
             self.category = data['name']
-            self.price_range = data['price_range']
+            # self.price_range = data['price_range']
         else:
-            self.category = self.key_words[0]
+            self.category = self.key_words[0]['name']
+            self.max_page = self.key_words[0]['max_page']
             self.list_url = self.get_list_urls()  # 获取商品链接
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
                              meta={'usedSelenium': True})
@@ -405,22 +426,23 @@ class TaobaoSpider(SeleniumSpider):
         self.browser.find_element_by_id('q').send_keys(self.category)  # 搜索框输入关键词
         self.browser.find_element_by_xpath('//div[@class="search-button"]/button').click()  # 点击搜索
         # 价位档
-        if self.category in self.price_range_list:
-            page = self.max_price_page
-            price_range = self.price_range_list[self.category][0]
-            temp = re.findall('(\d+)', price_range)
-            price_eles = self.browser.find_elements_by_xpath('//input[@class="J_SortbarPriceInput input"]')
-            price_eles[0].send_keys(temp[0])
-            if len(temp) > 1:
-                price_eles[1].send_keys(temp[1])
-            price_button = self.browser.find_element_by_xpath('//button[@class="J_SortbarPriceSubmit btn"]')
-            # 鼠标悬停 元素可见 再点击(不可行)
-            # ActionChains(self.browser).move_to_element(price_button).perform()
-            # price_button.click()
-            # 执行js
-            self.browser.execute_script("arguments[0].click();", price_button)
-        else:
-            page = self.max_page
+        # if self.category in self.price_range_list:
+        #     page = self.max_price_page
+        #     price_range = self.price_range_list[self.category][0]
+        #     temp = re.findall('(\d+)', price_range)
+        #     price_eles = self.browser.find_elements_by_xpath('//input[@class="J_SortbarPriceInput input"]')
+        #     price_eles[0].send_keys(temp[0])
+        #     if len(temp) > 1:
+        #         price_eles[1].send_keys(temp[1])
+        #     price_button = self.browser.find_element_by_xpath('//button[@class="J_SortbarPriceSubmit btn"]')
+        #     # 鼠标悬停 元素可见 再点击(不可行)
+        #     # ActionChains(self.browser).move_to_element(price_button).perform()
+        #     # price_button.click()
+        #     # 执行js
+        #     self.browser.execute_script("arguments[0].click();", price_button)
+        # else:
+        #     page = self.max_page
+        page = self.max_page
         time.sleep(2)
         self.page += 1
         max_page_text = self.browser.find_element_by_xpath('//div[@class="total"]').get_attribute('innerText')
@@ -553,12 +575,14 @@ class TaobaoSpider(SeleniumSpider):
                     self.price_range = data['price_range']
             else:
                 self.page = 1
-                if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
-                    self.price_range_list[self.category].pop(0)
-                else:
-                    self.key_words.pop(0)
+                # if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
+                #     self.price_range_list[self.category].pop(0)
+                # else:
+                #     self.key_words.pop(0)
+                self.key_words.pop(0)
                 if self.key_words:
-                    self.category = self.key_words[0]
+                    self.category = self.key_words[0]['name']
+                    self.max_page = self.key_words[0]['max_page']
                     self.list_url = self.get_list_urls()
             if self.list_url:
                 yield scrapy.Request(self.list_url[0], callback=self.parse_detail, dont_filter=True,
@@ -750,16 +774,16 @@ class TaobaoSpider(SeleniumSpider):
 
             item['site_from'] = 9
             item['site_type'] = 1
-            item['price_range'] = self.get_price_range()
+            # item['price_range'] = self.get_price_range()
             item['out_number'] = itemId
             item['category'] = self.get_category()
             item['url'] = 'https://detail.tmall.com/item.htm?id=' + str(itemId)
             # impression = self.get_impression(itemId)
             # item['impression'] = impression
             good_data = dict(item)
-            print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
+            print("原价%s,优惠价%s, 销量%s, 评论%s, 分类%s, 站外编号%s " % (
                 good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-                good_data['comment_count'], good_data['price_range'], good_data['category'],
+                good_data['comment_count'], good_data['category'],
                 good_data['out_number']))
             try:
                 res = self.s.post(url=self.goods_url, data=good_data)
@@ -921,7 +945,7 @@ class TaobaoSpider(SeleniumSpider):
                 pass
             item['site_from'] = 8
             item['site_type'] = 1
-            item['price_range'] = self.get_price_range()
+            # item['price_range'] = self.get_price_range()
             item['out_number'] = itemId
             # item['cover_url'] = data[0]['cover_url']
             item['category'] = self.get_category()
@@ -929,9 +953,9 @@ class TaobaoSpider(SeleniumSpider):
             # impression = self.get_impression(itemId)
             # item['impression'] = impression
             good_data = dict(item)
-            print("原价%s,优惠价%s, 销量%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (
+            print("原价%s,优惠价%s, 销量%s, 评论%s, 分类%s, 站外编号%s " % (
                 good_data['original_price'], good_data['promotion_price'], good_data['sale_count'],
-                good_data['comment_count'], good_data['price_range'], good_data['category'],
+                good_data['comment_count'], good_data['category'],
                 good_data['out_number']))
             try:
                 res = self.s.post(url=self.goods_url, data=good_data)
@@ -969,17 +993,17 @@ class TaobaoSpider(SeleniumSpider):
         return impression
 
     # 获取价位档
-    def get_price_range(self):
-        price_range = ''
-        if self.error_retry:
-            price_range = self.price_range
-        else:
-
-            if self.category in self.price_range_list:
-                price_range = self.price_range_list[self.category][0]
-                temp = re.findall('(\d+)', price_range)
-                price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
-        return price_range
+    # def get_price_range(self):
+    #     price_range = ''
+    #     if self.error_retry:
+    #         price_range = self.price_range
+    #     else:
+    #
+    #         if self.category in self.price_range_list:
+    #             price_range = self.price_range_list[self.category][0]
+    #             temp = re.findall('(\d+)', price_range)
+    #             price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
+    #     return price_range
 
     # 获取分类
     def get_category(self):
