@@ -179,7 +179,7 @@ class JdSpider(SeleniumSpider):
             data = self.fail_url.pop(0)
             self.list_url = data['value']
             self.category = data['name']
-            self.price_range = data['price_range']
+            # self.price_range = data['price_range']
         else:
             self.category = self.key_words[0]['name']
             self.max_page = self.key_words[0]['max_page']
@@ -408,7 +408,7 @@ class JdSpider(SeleniumSpider):
                     data = self.fail_url.pop(0)
                     self.list_url = data['value']
                     self.category = data['name']
-                    self.price_range = data['price_range']
+                    # self.price_range = data['price_range']
             else:
                 # if self.category in self.price_range_list:
                 #     page = self.max_price_page
