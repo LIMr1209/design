@@ -93,7 +93,7 @@ class JdSpider(SeleniumSpider):
         # self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
     def get_opalus_goods_tags(self):
-        response = self.s.get(self.opalus_goods_tags_url, params={'site_from':8})
+        response = self.s.get(self.opalus_goods_tags_url, params={'site_from':9})
         result = json.loads(response.content)
         return result['data']
 
