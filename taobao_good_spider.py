@@ -19,14 +19,12 @@ if fail_url:
             kwargs['fail_url'] = redis_fail_url
             kwargs['error_retry'] = 1
     except Exception as e:
-        kwargs['key_words'] = ''
+        pass
 
 elif keywords:
     kwargs['key_words_str'] = keywords
     # if price_range_list:
     #     kwargs['price_range_list'] = json.loads(price_range_list)
-else:
-    kwargs['key_words_str'] = ''
 process = CrawlerProcess()
 process.crawl(TaobaoSpider, **kwargs)
 process.start()

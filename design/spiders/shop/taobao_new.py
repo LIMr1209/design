@@ -222,7 +222,7 @@ class TaobaoSpider(SeleniumSpider):
     def get_opalus_goods_tags(self):
         response = self.s.get(self.opalus_goods_tags_url, params={'site_from':8})
         result = json.loads(response.content)
-        return result['data']
+        return result['data'][37:]
 
     def fail_url_save(self, response):
         if self.error_retry:
