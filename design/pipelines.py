@@ -101,16 +101,16 @@ class ImagePipeline(object):
 
     def process_item(self, item, spider):
         dict_item = dict(item)
-        # try:
-        #     response = self.s.post(self.url, data=dict_item, verify=False, timeout=10)
-        #     res = json.loads(response.content.decode('utf-8'))
-        #     print(res)
-        #     if res['code'] != 0:
-        #         self.fail_url.append(dict_item['url'])
-        #         print(dict_item['url'])
-        # except Exception as e:
-        #     print(str(e))
-        #     self.fail_url.append(dict_item['url'])
+        try:
+            response = self.s.post(self.url, data=dict_item, verify=False, timeout=10)
+            res = json.loads(response.content.decode('utf-8'))
+            print(res)
+            if res['code'] != 0:
+                self.fail_url.append(dict_item['url'])
+                print(dict_item['url'])
+        except Exception as e:
+            print(str(e))
+            self.fail_url.append(dict_item['url'])
 
     def close_spider(self, spider):
         self.s.close()

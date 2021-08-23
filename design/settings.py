@@ -126,16 +126,16 @@ PROXY_LIST = [
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-HTTPCACHE_ENABLED = True  # 开启缓存  默认 False
+# HTTPCACHE_ENABLED = True  # 开启缓存  默认 False
 # 缓存策略 默认 DummyPolicy 不考虑服务器返回的HTTP Cache-Control指示，它会缓存所有的请求和响应。
 # RFC2616Policy 这种缓存策略会考虑服务器返回的缓存指令，大概类似于浏览器的行为
-HTTPCACHE_POLICY = 'scrapy.extensions.httpcache.DummyPolicy'
+# HTTPCACHE_POLICY = 'scrapy.extensions.httpcache.DummyPolicy'
 # HTTPCACHE_POLICY = 'scrapy.extensions.httpcache.RFC2616Policy'
 # 缓存文件存储 默认 FilesystemCacheStorage,  DBM存储 DbmCacheStorage
-HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+# HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.DbmCacheStorage'
-HTTPCACHE_EXPIRATION_SECS = 0  # 有效时长 0 不过期  秒为单位
-HTTPCACHE_DIR = 'httpcache' # 存储HTTP 缓存的目录。 默认httpcache  如果为空，HTTP 缓存将被禁用
+# HTTPCACHE_EXPIRATION_SECS = 0  # 有效时长 0 不过期  秒为单位
+# HTTPCACHE_DIR = 'httpcache' # 存储HTTP 缓存的目录。 默认httpcache  如果为空，HTTP 缓存将被禁用
 # HTTPCACHE_IGNORE_HTTP_CODES = []  # 忽略缓存指定状态码得请求
 # HTTPCACHE_GZIP = False # 压缩格式
 
@@ -177,6 +177,7 @@ cf = ConfigParser(interpolation=ExtendedInterpolation())
 cf.read(os.path.abspath(os.path.join(basedir, "..", ".env")), encoding='utf-8')
 # api接口
 OPALUS_GOODS_URL = cf.get('api', 'opalus_goods_url')
+OPALUS_GOODS_TAGS_URL = cf.get('api', 'opalus_goods_tags_url')
 OPALUS_COMMENT_URL = cf.get('api', 'opalus_comment_url')
 OPALUS_GOODS_COMMENT_URL = cf.get('api', 'opalus_goods_comment_url')
 PRODUCT_SAVE_URL = cf.get('api', 'product_save_url')

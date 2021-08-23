@@ -39,17 +39,14 @@ class JdSpider(SeleniumSpider):
     }
 
     def __init__(self, *args, **kwargs):
-        self.key_words = kwargs['key_words_str'].split(',') if 'key_words_str' in kwargs else []
         self.page = kwargs['page'] if 'page' in kwargs else 1
-        self.max_page = kwargs['max_page']
-        self.max_price_page = 10  # 价格区间的爬10页
-        if 'price_range_list' in kwargs and kwargs['price_range_list']:
-            self.price_range_list = kwargs['price_range_list']
-        else:
-            self.price_range_list = {
-                # '吹风机': ['459-750', '751-999', '1000gt'],
-                # '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
-            }
+        # if 'price_range_list' in kwargs and kwargs['price_range_list']:
+        #     self.price_range_list = kwargs['price_range_list']
+        # else:
+        #     self.price_range_list = {
+        #         # '吹风机': ['459-750', '751-999', '1000gt'],
+        #         # '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
+        #     }
         self.redis_cli = RedisHandle('localhost', '6379')
         self.list_url = []
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
@@ -69,10 +66,20 @@ class JdSpider(SeleniumSpider):
                 'password': self.setting['JD_PASSWORD_LIST'][i]
             })
         self.goods_url = self.setting['OPALUS_GOODS_URL']
+        self.opalus_goods_tags_url = self.setting['OPALUS_GOODS_TAGS_URL']
         self.search_url = 'https://search.jd.com/Search?keyword={name}&page={page}&s=53&ev=^exprice_{price_range}^'
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         self.suc_count = 0
         self.comment_no_count = 0
+
+        if 'key_words_str' not in kwargs:
+            if self.error_retry:
+                self.key_words = []
+            else:
+                self.key_words = self.get_opalus_goods_tags()
+
+        else:
+            self.key_words = json.loads(kwargs['key_words_str'])
 
         super(JdSpider, self).__init__(*args, **kwargs)
         dispatcher.connect(receiver=self.except_close,
@@ -85,20 +92,27 @@ class JdSpider(SeleniumSpider):
         # old_num = len(self.browser.window_handles)
         # self.browser.switch_to_window(self.browser.window_handles[old_num])  # 切换新窗口
 
+    def get_opalus_goods_tags(self):
+        response = self.s.get(self.opalus_goods_tags_url, params={'site_from':8})
+        result = json.loads(response.content)
+        return result['data']
+
     def fail_url_save(self, response):
         if self.error_retry:
             fail_url = self.new_fail_url
         else:
             fail_url = self.fail_url
         name = self.get_category()
-        price_range = self.get_price_range()
+        # price_range = self.get_price_range()
         for i in fail_url:
-            if i['name'] == name and i['price_range'] == price_range:
+            # if i['name'] == name and i['price_range'] == price_range:
+            if i['name'] == name:
                 if response.url not in i['value']:
                     i['value'].append(response.url)
                 break
         else:
-            temp = {'name': name, 'value': [response.url], 'price_range': price_range}
+            # temp = {'name': name, 'value': [response.url], 'price_range': price_range}
+            temp = {'name': name, 'value': [response.url]}
             fail_url.append(temp)
         if self.error_retry:
             self.new_fail_url = fail_url
@@ -111,14 +125,15 @@ class JdSpider(SeleniumSpider):
         logging.error('页码')
         logging.error(self.page)
         logging.error('价位档')
-        logging.error(self.price_range_list)
+        # logging.error(self.price_range_list)
         logging.error('爬取失败')
         logging.error(self.fail_url)
         if self.error_retry:
             if self.fail_url:
                 for i in self.fail_url:
                     for j in self.new_fail_url:
-                        if i['name'] == j['name'] and i['price_range'] == j['price_range']:
+                        # if i['name'] == j['name'] and i['price_range'] == j['price_range']:
+                        if i['name'] == j['name']:
                             j['value'] = list(set(i['value'] + j['value']))
                             break
                     else:
@@ -133,12 +148,12 @@ class JdSpider(SeleniumSpider):
             else:
                 self.redis_cli.delete('jd', 'page')
             if self.page == self.max_page:
-                if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
-                    self.price_range_list[self.category].pop(0)
-                else:
-                    self.key_words.pop(0)
+                # if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
+                #     self.price_range_list[self.category].pop(0)
+                # else:
+                self.key_words.pop(0)
             if self.key_words:
-                self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
+                # self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
                 self.redis_cli.insert('jd', 'keywords', ','.join(self.key_words))
             else:
                 self.redis_cli.delete('jd', 'keywords')
@@ -166,18 +181,19 @@ class JdSpider(SeleniumSpider):
             self.category = data['name']
             self.price_range = data['price_range']
         else:
-            self.category = self.key_words[0]
+            self.category = self.key_words[0]['name']
+            self.max_page = self.key_words[0]['max_page']
             self.list_url = self.get_list_urls()
         yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
                              meta={'usedSelenium': True}, dont_filter=True)
 
     def get_list_urls(self):
         list_url = []
-        if self.category in self.price_range_list:
-            url = self.search_url.format(name=self.category,
-                                         price_range=self.price_range_list[self.key_words[0]][0], page=self.page)
-        else:
-            url = self.search_url.format(name=self.category, price_range='', page=self.page)
+        # if self.category in self.price_range_list:
+        #     url = self.search_url.format(name=self.category,
+        #                                  price_range=self.price_range_list[self.key_words[0]['name']][0], page=self.page)
+        # else:
+        url = self.search_url.format(name=self.category, price_range='', page=self.page)
         self.browser_get(url)
         time.sleep(3)
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
@@ -321,7 +337,7 @@ class JdSpider(SeleniumSpider):
                     detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
             item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
             item['detail_str'] = ', '.join(detail_str_list)
-            item['price_range'] = self.get_price_range()
+            # item['price_range'] = self.get_price_range()
             itemId = re.findall('\d+', response.url)[0]
             item['out_number'] = itemId
             item['site_from'] = 11
@@ -394,20 +410,23 @@ class JdSpider(SeleniumSpider):
                     self.category = data['name']
                     self.price_range = data['price_range']
             else:
-                if self.category in self.price_range_list:
-                    page = self.max_price_page
-                else:
-                    page = self.max_page
+                # if self.category in self.price_range_list:
+                #     page = self.max_price_page
+                # else:
+                #     page = self.max_page
+                page = self.max_page
                 if self.page < page:
                     self.page += 1
                 else:
                     self.page = 1
-                    if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
-                        self.price_range_list[self.category].pop(0)
-                    else:
-                        self.key_words.pop(0)
+                    # if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
+                    #     self.price_range_list[self.category].pop(0)
+                    # else:
+                    #     self.key_words.pop(0)
+                    self.key_words.pop(0)
                 if self.key_words:
-                    self.category = self.key_words[0]
+                    self.category = self.key_words[0]['name']
+                    self.max_page = self.key_words[0]['max_page']
                     self.list_url = self.get_list_urls()
             if self.list_url:
                 yield scrapy.Request(self.list_url[0], callback=self.parse_detail,
@@ -441,16 +460,16 @@ class JdSpider(SeleniumSpider):
         data['impression'] = impression
         return data
 
-    def get_price_range(self):
-        price_range = ''
-        if self.error_retry:
-            price_range = self.price_range
-        else:
-            if self.key_words and self.key_words[0] in self.price_range_list:
-                price_range = self.price_range_list[self.key_words[0]][0]
-                temp = re.findall('(\d+)', price_range)
-                price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
-        return price_range
+    # def get_price_range(self):
+    #     price_range = ''
+    #     if self.error_retry:
+    #         price_range = self.price_range
+    #     else:
+    #         if self.key_words and self.key_words[0]['name'] in self.price_range_list:
+    #             price_range = self.price_range_list[self.key_words[0]['name']][0]
+    #             temp = re.findall('(\d+)', price_range)
+    #             price_range = temp[0] + "-" + temp[1] if len(temp) > 1 else temp[0] + '以上'
+    #     return price_range
 
     def get_category(self):
         if self.category == '真无线蓝牙耳机 降噪 入耳式':
