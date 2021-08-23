@@ -351,8 +351,8 @@ class JdSpider(SeleniumSpider):
             good_data = dict(item)
             # data = self.get_impression(itemId)
             # good_data.update(data)
-            print("原价%s,优惠价%s, 评论%s, 价位档%s, 分类%s, 站外编号%s " % (good_data['original_price'], good_data['promotion_price'],
-                                                              good_data['comment_count'], good_data['price_range'],
+            print("原价%s,优惠价%s, 评论%s, 分类%s, 站外编号%s " % (good_data['original_price'], good_data['promotion_price'],
+                                                              good_data['comment_count'],
                                                               good_data['category'],
                                                               good_data['out_number']))
             try:
