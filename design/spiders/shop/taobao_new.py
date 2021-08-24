@@ -304,7 +304,7 @@ class TaobaoSpider(SeleniumSpider):
                 #     self.key_words.pop(0)
                 self.key_words.pop(0)
             if self.key_words:
-                self.redis_cli.insert('taobao', 'keywords', ','.join(self.key_words))
+                self.redis_cli.insert('taobao', 'keywords', json.loads(self.key_words))
             else:
                 self.redis_cli.delete('taobao', 'keywords')
             # self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))

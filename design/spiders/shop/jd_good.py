@@ -154,7 +154,7 @@ class JdSpider(SeleniumSpider):
                 self.key_words.pop(0)
             if self.key_words:
                 # self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
-                self.redis_cli.insert('jd', 'keywords', ','.join(self.key_words))
+                self.redis_cli.insert('jd', 'keywords', json.dumps(self.key_words))
             else:
                 self.redis_cli.delete('jd', 'keywords')
             if self.fail_url:
