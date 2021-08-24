@@ -202,10 +202,7 @@ class TaobaoSpider(SeleniumSpider):
         self.search_url = 'https://s.taobao.com/search?q={name}&filter=reserve_price{price_range}&s={page_count}&tab=all'
 
         if 'key_words_str' not in kwargs:
-            if self.error_retry:
-                self.key_words = []
-            else:
-                self.key_words = self.get_opalus_goods_tags()
+            self.key_words = self.get_opalus_goods_tags()
 
         else:
             self.key_words = json.loads(kwargs['key_words_str'])
