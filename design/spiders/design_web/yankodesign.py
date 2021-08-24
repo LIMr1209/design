@@ -34,11 +34,11 @@ class CustomItemLoader(ItemLoader):
     description_out = Join('\n')
 
 
-class DesignCaseSpider(SeleniumSpider):
+class DesignCaseSpider(scrapy.Spider):
     name = 'yankodesign'
     handle_httpstatus_list = [404]
     allowed_domains = ['www.yankodesign.com']
-    date_threshold = (datetime.datetime.now() - datetime.timedelta(days=5)).strftime('%Y/%m/%d')
+    date_threshold = (datetime.datetime.now() - datetime.timedelta(days=2)).strftime('%Y/%m/%d')
     category_list = ['productdesign', 'technology', 'automotive']
     fail_url = []
     cate_url = 'https://www.yankodesign.com/category/%s/'

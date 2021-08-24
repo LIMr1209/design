@@ -12,3 +12,4 @@ build/
 project.egg-info/
 *.log
 !.env_example
+!.gitkeep
