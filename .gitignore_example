@@ -1,4 +1,3 @@
-!.gitignore_example
 *.pyc
 logs
 pids
@@ -12,4 +11,5 @@ build/
 project.egg-info/
 *.log
 !.env_example
-!.gitkeep
+!.gitignore_example
+!log/.gitkeep
