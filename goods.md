@@ -16,6 +16,7 @@ Python3.6.5+
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\AutomationProfile
 ```
 
 ### 项目部署
@@ -24,10 +25,23 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ### 项目管理
 爬虫管理相关指令
 #### 商品信息
+爬取淘宝商品
 ```Bash
-python start -spider taobao -is_shop -key_words 理发器,健康秤
+python taobao_good_spider.py
 ```
-#### 
+爬取京东商品
+```Bash
+python jd_good_spider.py
+```
+爬取拼多多商品
+```Bash
+python start -spider pdd -is_shop -key_words 理发器,健康秤
+```
+爬取亚马逊商品
+```Bash
+python start -spider amazon -is_shop -key_words 理发器,健康秤
+```
+#### 评论信息
 全量爬取京东商品的评论
 ```Bash
 python design/spiders/shop/commeny.py jd all  

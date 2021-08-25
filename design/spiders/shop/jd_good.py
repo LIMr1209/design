@@ -73,8 +73,10 @@ class JdSpider(SeleniumSpider):
         self.comment_no_count = 0
 
         if 'key_words_str' not in kwargs:
-            self.key_words = self.get_opalus_goods_tags()
-
+            if self.error_retry:
+                self.key_words = []
+            else:
+                self.key_words = self.get_opalus_goods_tags()
         else:
             self.key_words = json.loads(kwargs['key_words_str'])
 
