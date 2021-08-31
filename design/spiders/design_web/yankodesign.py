@@ -38,7 +38,7 @@ class DesignCaseSpider(scrapy.Spider):
     name = 'yankodesign'
     handle_httpstatus_list = [404]
     allowed_domains = ['www.yankodesign.com']
-    date_threshold = (datetime.datetime.now() - datetime.timedelta(days=2)).strftime('%Y/%m/%d')
+    date_threshold = (datetime.datetime.now() - datetime.timedelta(days=5)).strftime('%Y/%m/%d')
     category_list = ['productdesign', 'technology', 'automotive']
     fail_url = []
     cate_url = 'https://www.yankodesign.com/category/%s/'
@@ -75,7 +75,7 @@ class DesignCaseSpider(scrapy.Spider):
         # for i in fail_url:
         #     yield scrapy.Request(i, callback=self.parse_detail)
         # yield scrapy.Request(
-        #     'https://www.yankodesign.com/2021/08/18/nissan-reveals-the-2023-z-model-fitting-it-out-with-a-turbocharged-engine-and-400-hp-for-the-smoothest-ride-yet/',
+        #     'https://www.yankodesign.com/2021/08/29/this-self-propelled-trailer-for-e-bikes-and-bicycles-reinvents-last-mile-delivery/',
         #     callback=self.parse_detail)
         for i in self.category_list:
             yield scrapy.Request(self.cate_url % (i), meta={'page': 1, 'category':i}, callback=self.parse_list)
@@ -87,7 +87,7 @@ class DesignCaseSpider(scrapy.Spider):
         # detail_list = link.extract_links(response)
         # for i in detail_list:
         #     print(i.url)
-        detail_list = response.xpath('//article/figure/a/@href').getall()  # getall() 返回多个 get() 返回单个
+        detail_list = response.xpath('//div[@class="post-card-wrapper"]/a/@href').getall()  # getall() 返回多个 get() 返回单个
         if not detail_list:
             print(response.url)
         # yield scrapy.Request(detail_list[0], callback=self.parse_detail, meta={'usedSelenium': True})
@@ -122,13 +122,13 @@ class DesignCaseSpider(scrapy.Spider):
                         '//img[contains(@class,"alignnone size-full") or contains(@class, "aligncenter size-full")]/@src').getall()
                 except:
                     img_urls = response.xpath('//img[@class="postpic"]/@src').getall()
-            designer = response.xpath('string(//div[@class="grid-8 column-1"]/div/p[contains(text(),"Designer:") or contains(text(), "Designers:")])').get().strip()
             item.add_value('img_urls', ','.join(img_urls))
+            designer = response.xpath('string(//div[contains(@class, "single-box clearfix entry-content")]/p[contains(text(),"Designer:") or contains(text(), "Designers:")])').get().strip()
             if designer:
                 item.add_value('designer', designer.split(':')[1].strip())
-            item.add_xpath('title', '//h1[@class="entry-title"]/text()')
+            item.add_xpath('title', '//h1/text()')
 
-            desc_list_p = response.xpath('//div[@class="grid-8 column-1"]/div[1]/p')
+            desc_list_p = response.xpath('//div[contains(@class, "single-box clearfix entry-content")]/p')
             desc_text_list = []
             for i in desc_list_p:
                 desc = i.xpath('string(.)').get()
