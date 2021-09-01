@@ -128,3 +128,17 @@ scrapy genspider -t basic example 'example.com'
 ```
 - 爬取数据字段设置(design/items.py)
 - 爬取的数据处理程序(design/piplines.py)
+
+
+### 其它
+* 电商爬虫相关命令 goods.md 文件
+* 电商反爬 design\spiders\shop\电商爬虫.xlsx
+* 启动爬虫  scrapy crawl 爬虫名称
+
+> 普通爬虫  
+电商爬虫脚本  design\spiders\shop  
+招聘网站爬虫脚本 design\spiders\recruit  
+工业设计奖项网站爬取脚本 design\spiders\prizes  
+工业设计网站爬取脚本 design\spiders\design_web  
+工业设计公司网站爬取脚本 design\spiders\design_company  
+
