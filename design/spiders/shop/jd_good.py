@@ -47,7 +47,7 @@ class JdSpider(SeleniumSpider):
         #         # '吹风机': ['459-750', '751-999', '1000gt'],
         #         # '真无线蓝牙耳机 降噪 入耳式': ['300-900', '900-3000'],
         #     }
-        self.redis_cli = RedisHandle('localhost', '6379')
+        self.redis_cli = RedisHandle('127.0.0.1', '6379')
         self.list_url = []
         self.error_retry = kwargs['error_retry'] if 'error_retry' in kwargs else 0
         self.fail_url = kwargs['fail_url'] if 'fail_url' in kwargs else []
@@ -71,6 +71,11 @@ class JdSpider(SeleniumSpider):
         self.comment_data_url = 'https://club.jd.com/comment/skuProductPageComments.action?callback=fetchJSON_comment98&productId=%s&score=0&sortType=5&page=%s&pageSize=10&isShadowSku=0&fold=1'
         self.suc_count = 0
         self.comment_no_count = 0
+        self.redis_key = {'name': 'jd'}
+
+        if 'kind' in kwargs:
+            if kwargs['kind'] == 2:
+                self.redis_key = {'name': 'jd_custom'}
 
         if 'key_words_str' not in kwargs:
             if self.error_retry:
@@ -138,14 +143,14 @@ class JdSpider(SeleniumSpider):
                     else:
                         self.new_fail_url.append(i)
             if self.new_fail_url:
-                self.redis_cli.insert('jd', 'fail_url', json.dumps(self.new_fail_url))
+                self.redis_cli.insert(self.redis_key['name'], 'fail_url', json.dumps(self.new_fail_url))
             else:
-                self.redis_cli.delete('jd', 'fail_url')
+                self.redis_cli.delete(self.redis_key['name'], 'fail_url')
         else:
             if self.page != self.max_page or self.page != 1:
-                self.redis_cli.insert('jd', 'page', self.page)
+                self.redis_cli.insert(self.redis_key['name'], 'page', self.page)
             else:
-                self.redis_cli.delete('jd', 'page')
+                self.redis_cli.delete(self.redis_key['name'], 'page')
             if self.page == self.max_page:
                 # if self.category in self.price_range_list and len(self.price_range_list[self.category]) > 1:
                 #     self.price_range_list[self.category].pop(0)
@@ -153,13 +158,13 @@ class JdSpider(SeleniumSpider):
                 self.key_words.pop(0)
             if self.key_words:
                 # self.redis_cli.insert('taobao', 'price_range_list', json.dumps(self.price_range_list))
-                self.redis_cli.insert('jd', 'keywords', json.dumps(self.key_words))
+                self.redis_cli.insert(self.redis_key['name'], 'keywords', json.dumps(self.key_words))
             else:
-                self.redis_cli.delete('jd', 'keywords')
+                self.redis_cli.delete(self.redis_key['name'], 'keywords')
             if self.fail_url:
-                self.redis_cli.insert('jd', 'fail_url', json.dumps(self.fail_url))
+                self.redis_cli.insert(self.redis_key['name'], 'fail_url', json.dumps(self.fail_url))
             else:
-                self.redis_cli.delete('jd', 'fail_url')
+                self.redis_cli.delete(self.redis_key['name'], 'fail_url')
 
     def browser_get(self, url):
         try:
@@ -197,11 +202,15 @@ class JdSpider(SeleniumSpider):
         time.sleep(3)
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
         for i in urls:
+            if 'https://ccc-x.jd.com' in i.get_attribute('href'):
+                continue
             list_url.append(i.get_attribute('href'))
         if not list_url:
             self.browser.refresh()
         urls = self.browser.find_elements_by_xpath('//div[@class="p-img"]/a[@target="_blank"]')
         for i in urls:
+            if 'https://ccc-x.jd.com' in i.get_attribute('href'):
+                continue
             list_url.append(i.get_attribute('href'))
         return list_url
 
@@ -227,6 +236,8 @@ class JdSpider(SeleniumSpider):
                     '//span[@class="p-price"]/span[2]').text.strip()
             except:
                 promotion_price = ''
+            if "预约抢购" in self.browser.page_source:
+                return
             if promotion_price == '':
                 if "预售" in self.browser.page_source:
                     logging.error('预售 {}'.format(response.url))
