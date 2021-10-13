@@ -318,24 +318,28 @@ class JdSpider(SeleniumSpider):
                 detail_str_list.append(
                     i.get_attribute('innerText') + ':' + detail_values[j].get_attribute('innerText'))
                 detail_dict[i.get_attribute('innerText')] = detail_values[j].get_attribute('innerText')
-            if not detail_dict:
-                detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
-                for j, i in enumerate(detail_list):
-                    s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
-                        '\t', '').replace(
-                        '\xa0',
-                        '')
-                    if s.endswith('：') or s.endswith(':'):
-                        detail_str_list.append(s + detail_list[j + 1])
-                        continue
-                    if ':' in s or '：' in s:
-                        detail_str_list.append(s)
-                item['detail_str'] = ', '.join(detail_str_list)
-                for i in detail_str_list:
-                    tmp = re.split('[:：]', i)
+            try:
+                brand = self.browser.find_element_by_xpath('//ul[@id="parameter-brand"]//a').get_attribute('innerText')
+                if brand:
+                    detail_dict['品牌'] = brand
+            except:
+                pass
+            detail_list = self.browser.find_elements_by_xpath('//ul[contains(@class,"parameter2")]/li')
+            for j, i in enumerate(detail_list):
+                s = i.get_attribute('innerText').replace(' ', '').replace('\n', '').replace('\r', '').replace(
+                    '\t', '').replace(
+                    '\xa0',
+                    '')
+                if s.endswith('：') or s.endswith(':'):
+                    detail_str_list.append(s + detail_list[j + 1])
+                    continue
+                if ':' in s or '：' in s:
+                    detail_str_list.append(s)
+            for i in detail_str_list:
+                tmp = re.split('[:：]', i)
+                if tmp[0] not in detail_dict:
                     detail_dict[tmp[0]] = tmp[1].replace('\xa0', '')
             item['detail_dict'] = json.dumps(detail_dict, ensure_ascii=False)
-            item['detail_str'] = ', '.join(detail_str_list)
             # item['price_range'] = self.get_price_range()
             itemId = re.findall('\d+', response.url)[0]
             item['out_number'] = itemId
